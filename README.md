@@ -1,5 +1,5 @@
 # Paging
-<img src="https://raw.githubusercontent.com/thomasgalliker/Paging/master/Paging.Logo/PagingLogo_rect.png" height="100" alt="Paging" align="right">
+<img src="https://raw.githubusercontent.com/thomasgalliker/Paging/master/logo.png" height="100" alt="Paging.NET" align="right">
 Paging provides tools which are commonly used for handling paged data loading.
 
 ### Download and Install Paging.NET
@@ -8,7 +8,7 @@ Use the following command to install Paging using NuGet package manager console:
 
     PM> Install-Package Paging.NET
 
-You can use this library in any .Net project which is compatible to PCL (e.g. Xamarin Android, iOS, Windows Phone, Windows Store, Universal Apps, etc.)
+You can use this library in any .Net project which is compatible to .Net Standard 1.0 and higher as well as with legacy PCL projects.
 
 ### API Usage
 The unit tests shipped along with this library show nicely all the helper methods you can use.
