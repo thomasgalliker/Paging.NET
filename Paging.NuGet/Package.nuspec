@@ -29,9 +29,9 @@
     <file src="..\Paging\bin\Release\Paging.xml" target="lib\portable-net45+dnxcore50+wp80+wpa81+win81+netcore45+monoandroid10+monotouch10+xamarin.ios10\Paging.xml" />
 
     <!--Netfx 4.5-->
-    <!--<file src="..\Paging.Net45\bin\Release\Paging.dll" target="lib\net45\Paging.dll" />
+    <file src="..\Paging.Net45\bin\Release\Paging.dll" target="lib\net45\Paging.dll" />
     <file src="..\Paging.Net45\bin\Release\Paging.xml" target="lib\net45\Paging.xml" />
-    <file src="..\Paging.Net45\bin\Release\Paging.pdb" target="lib\net45\Paging.pdb" />-->
+    <file src="..\Paging.Net45\bin\Release\Paging.pdb" target="lib\net45\Paging.pdb" />
 
     <!--Net Standard 1.0-->
     <file src="..\Paging.NetStandard\bin\Release\netstandard1.0\Paging.dll" target="lib\netstandard1.0\Paging.dll" />

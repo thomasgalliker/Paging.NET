@@ -7,8 +7,8 @@
     <ProjectGuid>{4E7E96C2-9B4A-4D4C-A8DB-A1EDFB936B0A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Paging.Net45</RootNamespace>
-    <AssemblyName>Paging.Net45</AssemblyName>
+    <RootNamespace>Paging</RootNamespace>
+    <AssemblyName>Paging</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -28,6 +28,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Paging.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
