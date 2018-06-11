@@ -1,5 +1,5 @@
 # Paging
-<img src="https://raw.githubusercontent.com/thomasgalliker/Paging/master/logo.png" height="100" alt="Paging.NET" align="right">
+<img src="https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png" height="100" alt="Paging.NET" align="right">
 Paging provides tools which are commonly used for handling paged data loading.
 
 ### Download and Install Paging.NET

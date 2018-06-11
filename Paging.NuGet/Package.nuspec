@@ -7,7 +7,7 @@
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
     <projectUrl>https://github.com/thomasgalliker/Paging.NET</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/thomasgalliker/Paging/master/Paging.Logo/PagingLogo_square.png</iconUrl>
+    <iconUrl>https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>Paging.NET is a basic toolkit which provides incremential server-side data loads.</summary>
     <description>Paging.NET is a basic toolkit which provides incremential server-side data loads.</description>
