@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard1.0</TargetFramework>
+    <AssemblyName>Paging</AssemblyName>
+    <RootNamespace>Paging</RootNamespace>
+  </PropertyGroup>
+
+  <Import Project="..\Paging.Shared\Paging.Shared.projitems" Label="Shared" />
+
+</Project>
