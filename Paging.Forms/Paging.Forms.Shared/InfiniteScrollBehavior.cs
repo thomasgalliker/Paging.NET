@@ -26,7 +26,7 @@ namespace Paging.Forms
                 default(IEnumerable),
                 BindingMode.OneWay,
                 propertyChanged: OnItemsSourceChanged);
- 
+
         public bool IsLoadingMore
         {
             get { return (bool)this.GetValue(IsLoadingMoreProperty); }
