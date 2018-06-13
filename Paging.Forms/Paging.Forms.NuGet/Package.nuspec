@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Paging.Forms.NET</id>
-    <version>1.0.0-pre2</version>
+    <version>1.0.0-pre3</version>
     <title>Paging.Forms.NET</title>
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
@@ -22,6 +22,7 @@
     <language>en-US</language>
     <dependencies>
       <group>
+        <dependency id="Paging.NET" version="[1.0.0-pre2,)" />
         <dependency id="Xamarin.Forms" version="[2.0.0.6490,)" />
       </group>
     </dependencies>

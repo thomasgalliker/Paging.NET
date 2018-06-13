@@ -34,6 +34,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Forms.NuGet", "Pagin
 		{00C4539A-1319-455B-A789-48B48F4F16CC} = {00C4539A-1319-455B-A789-48B48F4F16CC}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paging.JavaScript", "Paging.JavaScript", "{E17CF83D-B0F8-41A3-9FE0-03CA81FE1351}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.projitems*{00c4539a-1319-455b-a789-48b48f4f16cc}*SharedItemsImports = 4
