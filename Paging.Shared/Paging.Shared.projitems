@@ -8,4 +8,10 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Paging</Import_RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)PaginationSet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PaginationSetExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PagingInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PagingInfoExtensions.cs" />
+  </ItemGroup>
 </Project>

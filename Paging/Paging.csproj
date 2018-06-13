@@ -37,6 +37,7 @@
     <DocumentationFile>bin\Release\Paging.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="MathExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="..\Paging.Shared\Paging.Shared.projitems" Label="Shared" />

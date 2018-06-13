@@ -14,14 +14,26 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Tests", "Paging.Test
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Shared", "Paging.Shared\Paging.Shared.shproj", "{A9D5A23A-94BC-4A2A-91A7-BB843210E653}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.NetStandard", "Paging.NetStandard\Paging.NetStandard.csproj", "{651286E4-8853-4350-BC60-0934A9A84766}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.NetStandard", "Paging.NetStandard\Paging.NetStandard.csproj", "{651286E4-8853-4350-BC60-0934A9A84766}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Net45", "Paging.Net45\Paging.Net45.csproj", "{4E7E96C2-9B4A-4D4C-A8DB-A1EDFB936B0A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paging.Forms", "Paging.Forms", "{B5973EC7-0C99-40EA-9175-EFAB3393EAAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Forms", "Paging.Forms\Paging.Forms\Paging.Forms.csproj", "{00C4539A-1319-455B-A789-48B48F4F16CC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Forms.NetStandard", "Paging.Forms\Paging.Forms.NetStandard\Paging.Forms.NetStandard.csproj", "{3225C490-23D8-4AB7-8121-98F1453C9756}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Forms.Shared", "Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.shproj", "{5479044D-59E0-463B-A5E6-E3B01A3B58A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Forms.NuGet", "Paging.Forms\Paging.Forms.NuGet\Paging.Forms.NuGet.csproj", "{F62BDD95-E062-4B88-AED8-A028D8E19167}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.projitems*{00c4539a-1319-455b-a789-48b48f4f16cc}*SharedItemsImports = 4
 		Paging.Shared\Paging.Shared.projitems*{12c3a1a2-c021-4159-aefe-2a999f994655}*SharedItemsImports = 4
 		Paging.Shared\Paging.Shared.projitems*{4e7e96c2-9b4a-4d4c-a8db-a1edfb936b0a}*SharedItemsImports = 4
+		Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.projitems*{5479044d-59e0-463b-a5e6-e3b01a3b58a2}*SharedItemsImports = 13
 		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,9 +61,27 @@ Global
 		{4E7E96C2-9B4A-4D4C-A8DB-A1EDFB936B0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E7E96C2-9B4A-4D4C-A8DB-A1EDFB936B0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E7E96C2-9B4A-4D4C-A8DB-A1EDFB936B0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{00C4539A-1319-455B-A789-48B48F4F16CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{00C4539A-1319-455B-A789-48B48F4F16CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{00C4539A-1319-455B-A789-48B48F4F16CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{00C4539A-1319-455B-A789-48B48F4F16CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3225C490-23D8-4AB7-8121-98F1453C9756}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3225C490-23D8-4AB7-8121-98F1453C9756}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3225C490-23D8-4AB7-8121-98F1453C9756}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3225C490-23D8-4AB7-8121-98F1453C9756}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F62BDD95-E062-4B88-AED8-A028D8E19167}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F62BDD95-E062-4B88-AED8-A028D8E19167}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F62BDD95-E062-4B88-AED8-A028D8E19167}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F62BDD95-E062-4B88-AED8-A028D8E19167}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{00C4539A-1319-455B-A789-48B48F4F16CC} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
+		{3225C490-23D8-4AB7-8121-98F1453C9756} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
+		{5479044D-59E0-463B-A5E6-E3B01A3B58A2} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
+		{F62BDD95-E062-4B88-AED8-A028D8E19167} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}
