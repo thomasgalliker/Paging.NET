@@ -6,6 +6,10 @@ namespace Paging.Forms
 {
     public class InfiniteScrollBehavior : Behavior<ListView>
     {
+        private bool isLoadingMoreFromScroll;
+        private bool isLoadingMoreFromLoader;
+        private ListView associatedListView;
+
         public static readonly BindableProperty IsLoadingMoreProperty =
             BindableProperty.Create(
                 nameof(IsLoadingMore),
@@ -22,11 +26,7 @@ namespace Paging.Forms
                 default(IEnumerable),
                 BindingMode.OneWay,
                 propertyChanged: OnItemsSourceChanged);
-
-        private bool isLoadingMoreFromScroll;
-        private bool isLoadingMoreFromLoader;
-        private ListView associatedListView;
-
+ 
         public bool IsLoadingMore
         {
             get { return (bool)this.GetValue(IsLoadingMoreProperty); }
