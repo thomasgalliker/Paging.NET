@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.0</TargetFramework>
     <AssemblyName>Paging.Forms</AssemblyName>
-    <RootNamespace>Paging</RootNamespace>
+    <RootNamespace>Paging.Forms</RootNamespace>
   </PropertyGroup>
 
   <Import Project="..\Paging.Forms.Shared\Paging.Forms.Shared.projitems" Label="Shared" />
