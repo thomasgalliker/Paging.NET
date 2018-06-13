@@ -1,8 +1,8 @@
 ﻿namespace Paging
 {
-    internal static class PaginationSetExtensions
+    public static class PaginationSetExtensions
     {
-        internal static bool StopScroll<T>(this PaginationSet<T> paginationSet, PagingInfo pagingInfo)
+        public static bool StopScroll<T>(this PaginationSet<T> paginationSet, PagingInfo pagingInfo)
         {
             if (paginationSet == null)
             {
