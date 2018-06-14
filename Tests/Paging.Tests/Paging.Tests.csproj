@@ -70,6 +70,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Testdata\Car.cs" />
+    <Compile Include="PaginationSetTests.cs" />
     <Compile Include="PagingInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

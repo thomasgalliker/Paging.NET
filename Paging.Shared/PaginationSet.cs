@@ -6,9 +6,8 @@ namespace Paging
 {
     public class PaginationSet<T>
     {
-        public PaginationSet()
+        public PaginationSet() : this(new HashSet<T>())
         {
-            this.Items = new HashSet<T>();
         }
 
         public PaginationSet(IEnumerable<T> items)
