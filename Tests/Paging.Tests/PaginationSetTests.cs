@@ -3,6 +3,7 @@ using System.Linq;
 using FluentAssertions;
 using Paging.Tests.Testdata;
 using Xunit;
+using Paging;
 
 namespace Paging.Tests
 {
@@ -26,7 +27,7 @@ namespace Paging.Tests
         public void ShouldReturnSinglePageIfCollectionIsProvided()
         {
             // Arrange
-            var items = GenerateCarsList(3).ToList();
+            var items = CarFactory.GenerateCarsList(3).ToList();
 
             // Act
             var paginationSet = new PaginationSet<Car>(items);
@@ -60,18 +61,10 @@ namespace Paging.Tests
         {
             public SelectedPageTestData()
             {
-                this.Add(GenerateCarsList(6), new PagingInfo { CurrentPage = 1, ItemsPerPage = 3 }, 10, 10, 4);
-                this.Add(GenerateCarsList(6), new PagingInfo { CurrentPage = 2, ItemsPerPage = 3 }, 10, 10, 4);
-                this.Add(GenerateCarsList(6), new PagingInfo { CurrentPage = 3, ItemsPerPage = 3 }, 10, 10, 4);
-                this.Add(GenerateCarsList(6), new PagingInfo { CurrentPage = 4, ItemsPerPage = 3 }, 10, 10, 4);
-            }
-        }
-
-        private static IEnumerable<Car> GenerateCarsList(int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                yield return new Car { Id = i };
+                this.Add(CarFactory.GenerateCarsList(6), new PagingInfo { CurrentPage = 1, ItemsPerPage = 3 }, 10, 10, 4);
+                this.Add(CarFactory.GenerateCarsList(6), new PagingInfo { CurrentPage = 2, ItemsPerPage = 3 }, 10, 10, 4);
+                this.Add(CarFactory.GenerateCarsList(6), new PagingInfo { CurrentPage = 3, ItemsPerPage = 3 }, 10, 10, 4);
+                this.Add(CarFactory.GenerateCarsList(6), new PagingInfo { CurrentPage = 4, ItemsPerPage = 3 }, 10, 10, 4);
             }
         }
     }

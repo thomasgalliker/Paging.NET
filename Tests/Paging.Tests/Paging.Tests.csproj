@@ -70,10 +70,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PagingInfoExtensionsTests.cs" />
     <Compile Include="Testdata\Car.cs" />
     <Compile Include="PaginationSetTests.cs" />
     <Compile Include="PagingInfoTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Testdata\CarFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -85,6 +87,10 @@
     <ProjectReference Include="..\..\Paging.Net45\Paging.Net45.csproj">
       <Project>{4e7e96c2-9b4a-4d4c-a8db-a1edfb936b0a}</Project>
       <Name>Paging.Net45</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Paging.Queryable\Paging.Queryable.Net45\Paging.Queryable.Net45.csproj">
+      <Project>{a19c5ad5-db85-4d7d-9e69-8ddab7be6cba}</Project>
+      <Name>Paging.Queryable.Net45</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

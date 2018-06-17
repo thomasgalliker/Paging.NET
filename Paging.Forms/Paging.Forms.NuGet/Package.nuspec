@@ -2,20 +2,20 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Paging.Forms.NET</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>Paging.Forms.NET</title>
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
     <projectUrl>https://github.com/thomasgalliker/Paging.NET</projectUrl>
     <iconUrl>https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>Paging.NET is a basic toolkit which provides incremential server-side data loads.</summary>
-    <description>Paging.NET is a basic toolkit which provides incremential server-side data loads.</description>
+    <summary>Paging.NET is a basic toolkit which provides incremental server-side data loads.</summary>
+    <description>Paging.NET is a basic toolkit which provides incremental server-side data loads.</description>
     <tags>
       infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
     </tags>
     <releaseNotes>
-1.0.0
+1.0.1
 - Initial release
     </releaseNotes>
     <copyright>Copyright 2018</copyright>
