@@ -1,4 +1,6 @@
-# Paging
+# Paging.NET
+[![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)
+
 <img src="https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png" height="100" alt="Paging.NET" align="right">
 Paging provides tools which are commonly used for handling paged data loading.
 
