@@ -6,6 +6,16 @@ namespace Paging.Tests
     public class PagingInfoTests
     {
         [Fact]
+        public void ShouldEqualToDefault()
+        {
+            // Arrange
+            var pagingInfoDefault = PagingInfo.Default;
+
+            // Assert
+            pagingInfoDefault.Should().BeEquivalentTo(new PagingInfo());
+        }
+
+        [Fact]
         public void ShouldInitializePagingInfoWithDefaultValues()
         {
             // Arrange

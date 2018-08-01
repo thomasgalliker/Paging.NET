@@ -4,6 +4,8 @@ namespace Paging
 {
     public class PagingInfo : IEquatable<PagingInfo>
     {
+        public static readonly PagingInfo Default = new PagingInfo();
+
         public PagingInfo()
         {
             this.CurrentPage = 1;
