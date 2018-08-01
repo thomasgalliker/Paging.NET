@@ -21,6 +21,16 @@ namespace Paging
 
         public string Search { get; set; }
 
+        public static bool operator ==(PagingInfo pi1, PagingInfo pi2)
+        {
+            return Equals(pi1, pi2);
+        }
+
+        public static bool operator !=(PagingInfo pi1, PagingInfo pi2)
+        {
+            return !(pi1 == pi2);
+        }
+
         public bool Equals(PagingInfo other)
         {
             if (ReferenceEquals(null, other))

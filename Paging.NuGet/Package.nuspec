@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Paging.NET</id>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
     <title>Paging.NET</title>
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
@@ -15,6 +15,9 @@
       infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
     </tags>
     <releaseNotes>  
+1.0.3
+- Added PagingInfo == and != operators
+
 1.0.2
 - Added PagingInfo.Default
 

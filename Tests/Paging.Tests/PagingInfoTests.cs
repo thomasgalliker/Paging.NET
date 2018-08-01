@@ -9,10 +9,16 @@ namespace Paging.Tests
         public void ShouldEqualToDefault()
         {
             // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
             var pagingInfoDefault = PagingInfo.Default;
 
             // Assert
-            pagingInfoDefault.Should().BeEquivalentTo(new PagingInfo());
+            pagingInfoDefault.Should().BeEquivalentTo(pagingInfo);
+            pagingInfoDefault.Equals(pagingInfo).Should().BeTrue();
+            (pagingInfoDefault == pagingInfo).Should().BeTrue();
+            (pagingInfoDefault != pagingInfo).Should().BeFalse();
         }
 
         [Fact]
