@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="consoleapp_screenshot.PNG" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Paging.NET" Version="1.0.3" />
+  </ItemGroup>
+
+</Project>
