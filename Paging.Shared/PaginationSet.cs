@@ -59,5 +59,10 @@ namespace Paging
         /// The list of filtered items.
         /// </summary>
         public IEnumerable<T> Items { get; set; }
+
+        public bool HasMorePages()
+        {
+            return this.TotalPages > this.CurrentPage;
+        }
     }
 }
