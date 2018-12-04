@@ -9,4 +9,8 @@
     <None Remove="consoleapp_screenshot.PNG" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Paging\Paging.csproj" />
+  </ItemGroup>
+
 </Project>
