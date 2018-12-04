@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Paging.NET</id>
-    <version>1.0.3</version>
+    <version>2.0.0</version>
     <title>Paging.NET</title>
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
@@ -15,6 +15,9 @@
       infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
     </tags>
     <releaseNotes>  
+2.0.0
+- Add support for .net standard
+
 1.0.3
 - Added PagingInfo == and != operators
 
@@ -31,7 +34,6 @@
   <files>
     <!--.NET 4.5-->
     <file src="Paging\bin\Release\net45\Paging.dll" target="lib\net45\Paging.dll" />
-    <file src="Paging\bin\Release\net45\Paging.xml" target="lib\net45\Paging.xml" />
     <file src="Paging\bin\Release\net45\Paging.pdb" target="lib\net45\Paging.pdb" />
 
     <!--Net Standard 1.0-->

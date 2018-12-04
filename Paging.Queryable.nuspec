@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>Paging.Queryable.NET</id>
-    <version>1.0.3</version>
+    <version>2.0.0</version>
     <title>Paging.Queryable.NET</title>
     <authors>Thomas Galliker</authors>
     <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
@@ -15,6 +15,9 @@
       infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
     </tags>
     <releaseNotes>
+2.0.0
+- Add support for .net standard
+
 1.0.3
 - Added PagingInfo == and != operators
 
@@ -28,7 +31,7 @@
     <language>en-US</language>
     <dependencies>
       <group>
-        <dependency id="Paging.NET" version="[1.0.0,)" />
+        <dependency id="Paging.NET" version="[2.0.0,)" />
       </group>
       <group targetFramework="net45">
         <dependency id="System.Linq.Dynamic" version="[1.0.7,)" />
@@ -41,7 +44,6 @@
   <files>
     <!--.NET 4.5-->
     <file src="Paging.Queryable\bin\Release\net45\Paging.Queryable.dll" target="lib\net45\Paging.Queryable.dll" />
-    <file src="Paging.Queryable\bin\Release\net45\Paging.Queryable.xml" target="lib\net45\Paging.Queryable.xml" />
     <file src="Paging.Queryable\bin\Release\net45\Paging.Queryable.pdb" target="lib\net45\Paging.Queryable.pdb" />
 
     <!--Net Standard 1.3-->
