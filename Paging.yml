@@ -72,17 +72,17 @@ steps:
     projects: '**/Paging.Tests.csproj'
     arguments: ''
 
-#- task: NuGetCommand@2
-#  displayName: 'Pack NuGet PreRelease'
-#  inputs:
-#    command: custom
-#    arguments: pack $(nuspecFile) -Version $(PackageVersionPre) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
-#
-#- task: NuGetCommand@2
-#  displayName: 'Pack NuGet Prod'
-#  inputs:
-#    command: custom
-#    arguments: pack $(nuspecFile) -Version $(PackageVersion) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
+- task: NuGetCommand@2
+  displayName: 'Pack NuGet PreRelease'
+  inputs:
+    command: custom
+    arguments: pack $(nuspecFile) -Version $(PackageVersionPre) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
+
+- task: NuGetCommand@2
+  displayName: 'Pack NuGet Prod'
+  inputs:
+    command: custom
+    arguments: pack $(nuspecFile) -Version $(PackageVersion) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
 
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
