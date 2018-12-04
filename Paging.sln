@@ -7,27 +7,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging", "Paging\Paging.csp
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Shared", "Paging.Shared\Paging.Shared.shproj", "{A9D5A23A-94BC-4A2A-91A7-BB843210E653}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paging.Forms", "Paging.Forms", "{B5973EC7-0C99-40EA-9175-EFAB3393EAAB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Forms", "Paging.Forms\Paging.Forms\Paging.Forms.csproj", "{00C4539A-1319-455B-A789-48B48F4F16CC}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Forms.NetStandard", "Paging.Forms\Paging.Forms.NetStandard\Paging.Forms.NetStandard.csproj", "{3225C490-23D8-4AB7-8121-98F1453C9756}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Forms.Shared", "Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.shproj", "{5479044D-59E0-463B-A5E6-E3B01A3B58A2}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paging.JavaScript", "Paging.JavaScript", "{E17CF83D-B0F8-41A3-9FE0-03CA81FE1351}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{163068B4-1A1C-406E-B44C-B00FBDB81EF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Tests", "Tests\Paging.Tests\Paging.Tests.csproj", "{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Paging.Queryable", "Paging.Queryable", "{A30AD185-BE02-4D23-ADFE-750777956177}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Queryable.Net45", "Paging.Queryable\Paging.Queryable.Net45\Paging.Queryable.Net45.csproj", "{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Queryable.NetStandard", "Paging.Queryable\Paging.Queryable.NetStandard\Paging.Queryable.NetStandard.csproj", "{47CB4034-707B-4233-9520-7AEED1BA707E}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Queryable.Shared", "Paging.Queryable\Paging.Queryable.Shared\Paging.Queryable.Shared.shproj", "{CBB723AA-41FC-42E8-AF65-023C8FF625A5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{72F59CFF-03A0-4DC2-80C7-13FB8831EED2}"
 EndProject
@@ -45,11 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.projitems*{00c4539a-1319-455b-a789-48b48f4f16cc}*SharedItemsImports = 4
-		Paging.Forms\Paging.Forms.Shared\Paging.Forms.Shared.projitems*{5479044d-59e0-463b-a5e6-e3b01a3b58a2}*SharedItemsImports = 13
-		Paging.Queryable\Paging.Queryable.Shared\Paging.Queryable.Shared.projitems*{a19c5ad5-db85-4d7d-9e69-8ddab7be6cba}*SharedItemsImports = 4
 		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
-		Paging.Queryable\Paging.Queryable.Shared\Paging.Queryable.Shared.projitems*{cbb723aa-41fc-42e8-af65-023c8ff625a5}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,26 +38,10 @@ Global
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00C4539A-1319-455B-A789-48B48F4F16CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00C4539A-1319-455B-A789-48B48F4F16CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00C4539A-1319-455B-A789-48B48F4F16CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00C4539A-1319-455B-A789-48B48F4F16CC}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3225C490-23D8-4AB7-8121-98F1453C9756}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3225C490-23D8-4AB7-8121-98F1453C9756}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3225C490-23D8-4AB7-8121-98F1453C9756}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3225C490-23D8-4AB7-8121-98F1453C9756}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{47CB4034-707B-4233-9520-7AEED1BA707E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{47CB4034-707B-4233-9520-7AEED1BA707E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{47CB4034-707B-4233-9520-7AEED1BA707E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{47CB4034-707B-4233-9520-7AEED1BA707E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7F82A1F4-0E5E-4095-9519-7D4C324DE0E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F82A1F4-0E5E-4095-9519-7D4C324DE0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F82A1F4-0E5E-4095-9519-7D4C324DE0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -89,13 +51,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{00C4539A-1319-455B-A789-48B48F4F16CC} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
-		{3225C490-23D8-4AB7-8121-98F1453C9756} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
-		{5479044D-59E0-463B-A5E6-E3B01A3B58A2} = {B5973EC7-0C99-40EA-9175-EFAB3393EAAB}
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
-		{A19C5AD5-DB85-4D7D-9E69-8DDAB7BE6CBA} = {A30AD185-BE02-4D23-ADFE-750777956177}
-		{47CB4034-707B-4233-9520-7AEED1BA707E} = {A30AD185-BE02-4D23-ADFE-750777956177}
-		{CBB723AA-41FC-42E8-AF65-023C8FF625A5} = {A30AD185-BE02-4D23-ADFE-750777956177}
 		{7F82A1F4-0E5E-4095-9519-7D4C324DE0E6} = {72F59CFF-03A0-4DC2-80C7-13FB8831EED2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

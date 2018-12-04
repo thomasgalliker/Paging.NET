@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Paging.NET" Version="1.0.3" />
+    <ProjectReference Include="..\..\Paging\Paging.csproj" />
   </ItemGroup>
 
 </Project>
