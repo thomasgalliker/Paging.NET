@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using FluentAssertions;
-using Paging.Queryable;
-using Paging.Tests.Testdata;
+using Paging.Queryable.Tests.Testdata;
 using Xunit;
+using FluentAssertions;
 
-namespace Paging.Tests
+namespace Paging.Queryable.Tests
 {
     public class PagingInfoExtensionsTests
     {
