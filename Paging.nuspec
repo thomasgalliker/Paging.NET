@@ -40,9 +40,5 @@
     <file src="Paging\bin\Release\netstandard1.0\Paging.dll" target="lib\netstandard1.0\Paging.dll" />
     <file src="Paging\bin\Release\netstandard1.0\Paging.pdb" target="lib\netstandard1.0\Paging.pdb" />
     <file src="Paging\bin\Release\netstandard1.0\Paging.deps.json" target="lib\netstandard1.0\Paging.deps.json" />
-
-    <file src="tools\init.ps1" target="tools\init.ps1" />
-    <file src="tools\install.ps1" target="tools\install.ps1" />
-    <file src="tools\uninstall.ps1" target="tools\uninstall.ps1" />
   </files>
 </package>
