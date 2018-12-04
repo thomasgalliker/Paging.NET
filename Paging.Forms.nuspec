@@ -32,7 +32,7 @@
     <dependencies>
       <group>
         <dependency id="Paging.NET" version="[2.0.0,)" />
-        <dependency id="Xamarin.Forms" version="[2.0.0.6490,)" />
+        <dependency id="Xamarin.Forms" version="[2.4.0.280,)" />
       </group>
     </dependencies>
   </metadata>
