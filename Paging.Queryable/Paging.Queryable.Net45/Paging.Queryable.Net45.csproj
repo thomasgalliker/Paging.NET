@@ -47,12 +47,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Paging.Net45\Paging.Net45.csproj">
-      <Project>{4e7e96c2-9b4a-4d4c-a8db-a1edfb936b0a}</Project>
-      <Name>Paging.Net45</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="..\Paging.Queryable.Shared\Paging.Queryable.Shared.projitems" Label="Shared" />

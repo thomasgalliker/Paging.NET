@@ -12,8 +12,4 @@
     <PackageReference Include="System.Linq.Dynamic.Core" Version="1.0.8.11" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\Paging.NetStandard\Paging.NetStandard.csproj" />
-  </ItemGroup>
-
 </Project>
