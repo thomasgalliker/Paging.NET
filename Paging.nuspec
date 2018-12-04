@@ -29,20 +29,15 @@
     <dependencies/>
   </metadata>
   <files>
-    <!--PCL-->
-    <file src="Paging\bin\Release\Paging.dll" target="lib\portable-net45+dnxcore50+wp80+wpa81+win81+netcore45+monoandroid10+monotouch10+xamarin.ios10\Paging.dll" />
-    <file src="Paging\bin\Release\Paging.pdb" target="lib\portable-net45+dnxcore50+wp80+wpa81+win81+netcore45+monoandroid10+monotouch10+xamarin.ios10\Paging.pdb" />
-    <file src="Paging\bin\Release\Paging.xml" target="lib\portable-net45+dnxcore50+wp80+wpa81+win81+netcore45+monoandroid10+monotouch10+xamarin.ios10\Paging.xml" />
-
-    <!--Netfx 4.5-->
-    <file src="Paging.Net45\bin\Release\Paging.dll" target="lib\net45\Paging.dll" />
-    <file src="Paging.Net45\bin\Release\Paging.xml" target="lib\net45\Paging.xml" />
-    <file src="Paging.Net45\bin\Release\Paging.pdb" target="lib\net45\Paging.pdb" />
+    <!--.NET 4.5-->
+    <file src="Paging\bin\Release\net45\Paging.dll" target="lib\net45\Paging.dll" />
+    <file src="Paging\bin\Release\net45\Paging.xml" target="lib\net45\Paging.xml" />
+    <file src="Paging\bin\Release\net45\Paging.pdb" target="lib\net45\Paging.pdb" />
 
     <!--Net Standard 1.0-->
-    <file src="Paging.NetStandard\bin\Release\netstandard1.0\Paging.dll" target="lib\netstandard1.0\Paging.dll" />
-    <file src="Paging.NetStandard\bin\Release\netstandard1.0\Paging.pdb" target="lib\netstandard1.0\Paging.pdb" />
-    <file src="Paging.NetStandard\bin\Release\netstandard1.0\Paging.deps.json" target="lib\netstandard1.0\Paging.deps.json" />
+    <file src="Paging\bin\Release\netstandard1.0\Paging.dll" target="lib\netstandard1.0\Paging.dll" />
+    <file src="Paging\bin\Release\netstandard1.0\Paging.pdb" target="lib\netstandard1.0\Paging.pdb" />
+    <file src="Paging\bin\Release\netstandard1.0\Paging.deps.json" target="lib\netstandard1.0\Paging.deps.json" />
 
     <file src="tools\init.ps1" target="tools\init.ps1" />
     <file src="tools\install.ps1" target="tools\install.ps1" />

@@ -31,7 +31,7 @@ steps:
   inputs:
     FileNames: |
      AssemblyInfo.cs
-     Paging.NetStandard.csproj
+     Paging.csproj
     InsertAttributes: true
     Title: 'Paging.NET'
     Description: ''
