@@ -31,7 +31,7 @@
     <language>en-US</language>
     <dependencies>
       <group>
-        <dependency id="Paging.NET" version="[2.0.18338.27-pre,)" />
+        <dependency id="Paging.NET" version="[$version$,)" />
         <dependency id="Xamarin.Forms" version="[2.4.0.280,)" />
       </group>
     </dependencies>
