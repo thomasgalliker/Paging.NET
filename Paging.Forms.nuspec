@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Paging.Forms.NET</id>
+    <version>2.0.0</version>
+    <title>Paging.Forms.NET</title>
+    <authors>Thomas Galliker</authors>
+    <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
+    <projectUrl>https://github.com/thomasgalliker/Paging.NET</projectUrl>
+    <iconUrl>https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>Paging.NET is a basic toolkit which provides incremental server-side data loads.</summary>
+    <description>Paging.NET is a basic toolkit which provides incremental server-side data loads.</description>
+    <tags>
+      infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
+    </tags>
+    <releaseNotes>
+2.0.0
+- Add support for .net standard
+
+1.0.3
+- Added PagingInfo == and != operators
+
+1.0.2
+- Added PagingInfo.Default
+
+1.0.1
+- Initial release
+    </releaseNotes>
+    <copyright>Copyright 2018</copyright>
+    <language>en-US</language>
+    <dependencies>
+      <group>
+        <dependency id="Paging.NET" version="[$version$,)" />
+        <dependency id="Xamarin.Forms" version="[2.4.0.280,)" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <!--Net Standard 1.0-->
+    <file src="Paging.Forms\bin\Release\netstandard1.2\Paging.Forms.dll" target="lib\netstandard1.2\Paging.Forms.dll" />
+    <file src="Paging.Forms\bin\Release\netstandard1.2\Paging.Forms.pdb" target="lib\netstandard1.2\Paging.Forms.pdb" />
+    <file src="Paging.Forms\bin\Release\netstandard1.2\Paging.Forms.deps.json" target="lib\netstandard1.2\Paging.Forms.deps.json" />
+  </files>
+</package>
