@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Paging
 {
-    public static class PagingInfoExtensions
+    internal static class PagingInfoExtensions
     {
         internal static string ToQueryString(this PagingInfo pagingInfo)
         {
