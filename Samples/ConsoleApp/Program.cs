@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Paging;
 
@@ -8,6 +8,8 @@ namespace ConsoleApp
     {
         private static void Main(string[] args)
         {
+            Console.WriteLine("Paging.NET Sample App");
+            Console.WriteLine("");
             Console.WriteLine("Total number of items:");
             var itemsCount = Convert.ToInt32(Console.ReadLine());
 
@@ -45,7 +47,10 @@ namespace ConsoleApp
                     Console.WriteLine($" to continue [{pagingSet.CurrentPage}/{pagingSet.TotalPages}]");
                     var input = Console.ReadLine();
                 }
-            } while (pagingSet.TotalPages > pagingSet.CurrentPage);
+            } while (pagingSet.HasMorePages());
+
+            // Alternative way to check if more pages available:
+            //} while (!pagingSet.StopScroll(pageInfo));
         }
     }
 }
