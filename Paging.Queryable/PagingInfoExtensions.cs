@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-
 #if NETSTANDARD1_3
 using System.Linq.Dynamic.Core;
 #else
@@ -13,6 +12,11 @@ namespace Paging.Queryable
 {
     public static class PagingInfoExtensions
     {
+        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>> filterPredicate = null)
+        {
+            return pagingInfo.CreatePaginationSet(queryable, entities => entities);
+        }
+
         public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> filterPredicate = null)
         {
             if (pagingInfo == null)
@@ -62,6 +66,13 @@ namespace Paging.Queryable
                 var paginationSet = new PaginationSet<TDto>(pagingInfo, dtos, totalCount, totalCountUnfiltered);
                 return paginationSet;
             }
+        }
+
+        public static PaginationSet<TTarget> Map<TSource, TTarget>(this PagingInfo pagingInfo, PaginationSet<TSource> paginationSet, Func<IEnumerable<TSource>, IEnumerable<TTarget>> mapSourceToTarget)
+        {
+            var targetItems = mapSourceToTarget(paginationSet.Items);
+            var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
+            return paginationSetTarget;
         }
     }
 }
