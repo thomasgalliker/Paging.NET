@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Paging.Queryable.Tests.Testdata
@@ -7,9 +7,14 @@ namespace Paging.Queryable.Tests.Testdata
     {
         internal static IEnumerable<Car> GenerateCarsList(int count)
         {
+            return GenerateCarsList("Car", count);
+        }
+
+        internal static IEnumerable<Car> GenerateCarsList(string name, int count)
+        {
             for (var i = 0; i < count; i++)
             {
-                yield return new Car { Id = i, Name = $"Car {i}" };
+                yield return new Car { Id = i, Name = $"{name} {i}" };
             }
         }
 
