@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -51,7 +51,7 @@ namespace Paging
         public int TotalCount { get; set; }
 
         /// <summary>
-        /// The total number of items if no filter was applied.
+        /// The total number of items if no filtering is applied.
         /// </summary>
         public int TotalCountUnfiltered { get; set; }
 
