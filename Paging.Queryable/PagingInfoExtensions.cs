@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 #if NETSTANDARD1_3
@@ -40,7 +41,57 @@ namespace Paging.Queryable
                 {
                     foreach (var filter in pagingInfo.Filter)
                     {
-                        queryable = queryable.Where($"{filter.Key}.ToLower().Contains(\"{filter.Value.ToLower()}\")");
+                        if (filter.Value is string stringValue)
+                        {
+                            var op = stringValue[0];
+                            if (op == '>' || op == '<' || op == '=')
+                            {
+                                // If the given string value contains a comparison operator, we apply it
+                                queryable = queryable.Where($"{filter.Key} {filter.Value}");
+                            }
+                            else
+                            {
+                                // No comparison operator mean: key.Contains(value)
+                                queryable = queryable.Where($"{filter.Key}.ToLower().Contains(\"{stringValue.ToLower()}\")");
+                            }
+                        }
+                        else if (filter.Value.IsNumericType())
+                        {
+                            queryable = queryable.Where($"{filter.Key} == {filter.Value}");
+                        }
+                        else if (filter.Value is DateTime dateTimeValue)
+                        {
+                            queryable = queryable.Where($"{filter.Key} == @0", dateTimeValue);
+                        }
+                        else if (filter.Value is IDictionary<string, object> ranges)
+                        {
+                            foreach (var range in ranges)
+                            {
+                                var op = range.Key[0];
+                                if (op == '>' || op == '<' || op == '=')
+                                {
+                                    if (range.Value is string && DateTime.TryParse($"{range.Value}", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var parsedDateTimeValue))
+                                    {
+                                        queryable = queryable.Where($"{filter.Key} {range.Key} @0", parsedDateTimeValue);
+                                    }
+                                    else
+                                    {
+                                        queryable = queryable.Where($"{filter.Key} {range.Key} @0", range.Value);
+                                    }
+
+                                }
+                                else
+                                {
+                                    //queryable = queryable.Where($"{filter.Key} == @0", dateTimeRange);
+                                }
+
+                            }
+
+                        }
+                        else
+                        {
+                            throw new NotSupportedException($"Filter values of type '{filter.Value.GetType().Name}' is currently not supported. Affected property: {filter.Key}.");
+                        }
                     }
                 }
 
@@ -82,6 +133,20 @@ namespace Paging.Queryable
             var targetItems = mapSourceToTarget(paginationSet.Items);
             var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
             return paginationSetTarget;
+        }
+
+        private static bool IsNumericType(this object value)
+        {
+            return
+                value is short ||
+                value is ushort ||
+                value is int ||
+                value is uint ||
+                value is ulong ||
+                value is long ||
+                value is float ||
+                value is double ||
+                value is decimal;
         }
     }
 }
