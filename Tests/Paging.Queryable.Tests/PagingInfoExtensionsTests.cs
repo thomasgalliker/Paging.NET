@@ -165,7 +165,7 @@ namespace Paging.Queryable.Tests
                 Filter = new Dictionary<string, object>
                 {
                     {"Name", "bmw"},
-                    {"model", "x"},
+                    {"model", ""},
                     {"Price", ">=5000"},
                     {"year", "<2010"}
                 }
@@ -206,6 +206,7 @@ namespace Paging.Queryable.Tests
                         {
                             {">", "2012-01-01T00:00:00Z" },
                             {"<=", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc) },
+                            {"", null }
                         }
                     }
                 }
