@@ -15,7 +15,7 @@ namespace Paging
         {
             this.CurrentPage = 1;
             this.ItemsPerPage = 0;
-            this.Filter = new Dictionary<string, string>();
+            this.Filter = new Dictionary<string, object>();
         }
 
         /// <summary>
@@ -56,10 +56,12 @@ namespace Paging
         public string Search { get; set; }
 
         /// <summary>
-        /// Property-based filtering. All specified {key, value} pairs are used to OR-filter
+        /// Property-based filtering. All specified {Key, Value} pairs are used to OR-filter
         /// the underlying collection.
+        /// - Key is of type string and contains the property name of the property to be filtered.
+        /// - Value is an arbitrary filter value (currently supported: string, decimal, DateTime).
         /// </summary>
-        public IDictionary<string, string> Filter { get; set; }
+        public IDictionary<string, object> Filter { get; set; }
 
         public static bool operator ==(PagingInfo pi1, PagingInfo pi2)
         {
