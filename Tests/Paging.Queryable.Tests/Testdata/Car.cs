@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace Paging.Queryable.Tests.Testdata
 {
@@ -8,6 +8,8 @@ namespace Paging.Queryable.Tests.Testdata
         public int Id { get; set; }
 
         public string Name { get; set; }
+
+        public string Model { get; set; }
     }
 
     [DebuggerDisplay("CarDto: {this.Id}")]
@@ -16,5 +18,7 @@ namespace Paging.Queryable.Tests.Testdata
         public int Id { get; set; }
 
         public string Name { get; set; }
+
+        public string Model { get; set; }
     }
 }
