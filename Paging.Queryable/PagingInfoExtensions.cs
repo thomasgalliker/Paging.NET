@@ -43,6 +43,12 @@ namespace Paging.Queryable
                     {
                         if (filter.Value is string stringValue)
                         {
+                            if (string.IsNullOrEmpty(stringValue))
+                            {
+                                // Ignore null/empty operator
+                                continue;
+                            }
+
                             var op = stringValue[0];
                             if (op == '>' || op == '<' || op == '=')
                             {
@@ -67,6 +73,12 @@ namespace Paging.Queryable
                         {
                             foreach (var range in ranges)
                             {
+                                if (string.IsNullOrEmpty(range.Key))
+                                {
+                                    // Ignore null/empty operator
+                                    continue;
+                                }
+
                                 var op = range.Key[0];
                                 if (op == '>' || op == '<' || op == '=')
                                 {
@@ -82,11 +94,9 @@ namespace Paging.Queryable
                                 }
                                 else
                                 {
-                                    //queryable = queryable.Where($"{filter.Key} == @0", dateTimeRange);
+                                    throw new NotSupportedException($"Filter range operator '{op}' is currently not supported. Affected property: {filter.Key}.");
                                 }
-
                             }
-
                         }
                         else
                         {
