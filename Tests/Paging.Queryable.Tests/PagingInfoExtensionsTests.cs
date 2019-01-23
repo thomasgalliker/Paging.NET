@@ -48,16 +48,16 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
-        public void ShouldCreatePaginationSet_FilterItems()
+        public void ShouldCreatePaginationSet_WithSearch()
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(20).AsQueryable();
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 30, Search = "Car 1" };
 
-            Expression<Func<Car, bool>> filterPredicate = c => c.Name.Contains(pagingInfo.Search);
+            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, filterPredicate);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -69,16 +69,16 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
-        public void ShouldCreatePaginationSet_FilterItems_ItemsPerPageZero()
+        public void ShouldCreatePaginationSet_WithSearch_ItemsPerPageZero()
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(20).AsQueryable();
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 0, Search = "Car 1" };
 
-            Expression<Func<Car, bool>> filterPredicate = c => c.Name.Contains(pagingInfo.Search);
+            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, filterPredicate);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -87,15 +87,67 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(11);
             paginationSet.TotalCountUnfiltered.Should().Be(20);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_SingleProperty()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo { Filter = { { "Name", "bmw" } } };
+
+            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(6);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(6);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_MultipleProperties()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo { Filter = { { "Name", "bmw" }, { "model", "M" } } };
+
+            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
 
         [Fact]
         public void ShouldCreatePaginationSet_SortBy_Reverse()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", 3)
-                .Union(CarFactory.GenerateCarsList("Audi", 3))
-                .Union(CarFactory.GenerateCarsList("Mercedes", 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 5, SortBy = "Name", Reverse = true };
@@ -116,7 +168,6 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalCount.Should().Be(9);
             paginationSet.TotalCountUnfiltered.Should().Be(9);
         }
-
 
         [Fact]
         public void ShouldCreatePaginationSet_WithMapping()
