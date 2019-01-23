@@ -12,12 +12,12 @@ namespace Paging.Queryable
 {
     public static class PagingInfoExtensions
     {
-        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>> filterPredicate = null)
+        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>> searchPredicate = null)
         {
-            return pagingInfo.CreatePaginationSet(queryable, entities => entities);
+            return pagingInfo.CreatePaginationSet(queryable, entities => entities, searchPredicate);
         }
 
-        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> filterPredicate = null)
+        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> searchPredicate = null)
         {
             if (pagingInfo == null)
             {
@@ -29,10 +29,19 @@ namespace Paging.Queryable
             {
                 var totalCountUnfiltered = queryable.Count();
 
-                // Filter
-                if (filterPredicate != null && pagingInfo.Search != null)
+                // Free-text search using custom search predicate
+                if (pagingInfo.Search != null && searchPredicate != null)
                 {
-                    queryable = queryable.Where(filterPredicate);
+                    queryable = queryable.Where(searchPredicate);
+                }
+
+                // Property-based filter
+                if (pagingInfo.Filter != null)
+                {
+                    foreach (var filter in pagingInfo.Filter)
+                    {
+                        queryable = queryable.Where($"{filter.Key}.ToLower().Contains(\"{filter.Value.ToLower()}\")");
+                    }
                 }
 
                 var totalCount = queryable.Count();
