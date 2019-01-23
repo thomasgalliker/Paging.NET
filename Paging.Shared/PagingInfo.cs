@@ -1,7 +1,12 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 
 namespace Paging
 {
+    /// <summary>
+    /// PagingInfo is the paging specification used to instruct the data source
+    /// on sorting, filtering and paging.
+    /// </summary>
     public class PagingInfo : IEquatable<PagingInfo>
     {
         public static readonly PagingInfo Default = new PagingInfo();
@@ -9,17 +14,52 @@ namespace Paging
         public PagingInfo()
         {
             this.CurrentPage = 1;
+            this.ItemsPerPage = 0;
+            this.Filter = new Dictionary<string, string>();
         }
 
+        /// <summary>
+        /// The currently selected page.
+        /// Default CurrentPage = 1.
+        /// </summary>
         public int CurrentPage { get; set; }
 
+        /// <summary>
+        /// Number of items returned per page.
+        /// Default ItemsPerPage = 0, which means, if ItemsPerPage is not specified,
+        /// the request returns one page with all items.
+        /// </summary>
         public int ItemsPerPage { get; set; }
 
+        /// <summary>
+        /// SortBy is a comma-separated sort specification.
+        /// </summary>
+        /// <example>
+        /// Sorting a single property in ascending order:
+        /// SortBy = "property1"
+        /// SortBy = "property1 ascending"
+        /// 
+        /// Sorting a multiple properties with mixed ordering:
+        /// SortBy = "property1 descending, property2 ascending"
+        /// </example>
         public string SortBy { get; set; }
 
+        /// <summary>
+        /// The whole result list is reversed.
+        /// </summary>
         public bool Reverse { get; set; }
 
+        /// <summary>
+        /// Free-text which is used to search trough the target collection of items.
+        /// Search text is only used if a search predicated is specified.
+        /// </summary>
         public string Search { get; set; }
+
+        /// <summary>
+        /// Property-based filtering. All specified {key, value} pairs are used to OR-filter
+        /// the underlying collection.
+        /// </summary>
+        public IDictionary<string, string> Filter { get; set; }
 
         public static bool operator ==(PagingInfo pi1, PagingInfo pi2)
         {
