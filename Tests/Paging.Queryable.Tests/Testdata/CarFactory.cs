@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,14 +8,32 @@ namespace Paging.Queryable.Tests.Testdata
     {
         internal static IEnumerable<Car> GenerateCarsList(int count)
         {
-            return GenerateCarsList("Car", "Model", count);
+            return GenerateCarsList(name: "Car", model: "Model", count: count);
         }
 
         internal static IEnumerable<Car> GenerateCarsList(string name, string model, int count)
         {
+            return GenerateCarsList(name: name, model: model, price: null, year: 2019, count: count);
+        }
+
+        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, int count)
+        {
+            return GenerateCarsList(name: name, model: model, price: price, year: year, lastService: null, count: count);
+        }
+
+        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, DateTime? lastService, int count)
+        {
             for (var i = 0; i < count; i++)
             {
-                yield return new Car { Id = i, Name = $"{name} {i}", Model = model };
+                yield return new Car
+                {
+                    Id = i,
+                    Name = $"{name}",
+                    Model = $"{model} {i}",
+                    Price = price,
+                    Year = year,
+                    LastService = lastService,
+                };
             }
         }
 
@@ -25,7 +44,10 @@ namespace Paging.Queryable.Tests.Testdata
             {
                 Id = car.Id,
                 Name = car.Name,
-                Model = car.Model
+                Model = car.Model,
+                Price = car.Price,
+                Year = car.Year,
+                LastService = car.LastService
             });
         }
     }
