@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
@@ -17,7 +18,8 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 4 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet =
+                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -36,7 +38,8 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { ItemsPerPage = 1 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet =
+                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -52,9 +55,9 @@ namespace Paging.Queryable.Tests
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(20).AsQueryable();
-            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 30, Search = "Car 1" };
+            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 30, Search = "Model 1" };
 
-            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
+            Expression<Func<Car, bool>> searchPredicate = c => c.Model.Contains(pagingInfo.Search);
 
             // Act
             var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
@@ -73,12 +76,13 @@ namespace Paging.Queryable.Tests
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(20).AsQueryable();
-            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 0, Search = "Car 1" };
+            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 0, Search = "Model 1" };
 
-            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
+            Expression<Func<Car, bool>> searchPredicate = c => c.Model.Contains(pagingInfo.Search);
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+            var paginationSet =
+                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -101,10 +105,8 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo { Filter = { { "Name", "bmw" } } };
 
-            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
-
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -119,22 +121,105 @@ namespace Paging.Queryable.Tests
         public void ShouldCreatePaginationSet_WithFilter_MultipleProperties()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
-                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
-                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
-                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, 3))
                 .AsQueryable();
 
-            var pagingInfo = new PagingInfo { Filter = { { "Name", "bmw" }, { "model", "M" } } };
-
-            Expression<Func<Car, bool>> searchPredicate = c => c.Name.Contains(pagingInfo.Search);
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {"Name", "bmw"},
+                    {"model", "x"},
+                    {"Price", 10000m},
+                    {"year", 2010}
+                }
+            };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
 
             // Assert
             paginationSet.Should().NotBeNull();
             paginationSet.Items.Should().HaveCount(3);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithNumberRanges()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {"Name", "bmw"},
+                    {"model", "x"},
+                    {"Price", ">=5000"},
+                    {"year", "<2010"}
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2005");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2005");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2005");
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithDateTimeRanges()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .AsQueryable();
+
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {
+                        "LastService", new Dictionary<string, object>
+                        {
+                            {">", "2012-01-01T00:00:00Z" },
+                            {"<=", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc) },
+                        }
+                    }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2015");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2015");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2015");
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(3);
@@ -150,7 +235,7 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
                 .AsQueryable();
 
-            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 5, SortBy = "Name", Reverse = true };
+            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 5, SortBy = "Model", Reverse = true };
 
             // Act
             var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
@@ -158,11 +243,11 @@ namespace Paging.Queryable.Tests
             // Assert
             paginationSet.Should().NotBeNull();
             paginationSet.Items.Should().HaveCount(5);
-            paginationSet.Items.ElementAt(0).Name.Should().Be("Mercedes 2");
-            paginationSet.Items.ElementAt(1).Name.Should().Be("Mercedes 1");
-            paginationSet.Items.ElementAt(2).Name.Should().Be("Mercedes 0");
-            paginationSet.Items.ElementAt(3).Name.Should().Be("BMW 2");
-            paginationSet.Items.ElementAt(4).Name.Should().Be("BMW 1");
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 2, Year 2019");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2019");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 0, Year 2019");
+            paginationSet.Items.ElementAt(3).ToString().Should().Be("Mercedes G 2, Year 2019");
+            paginationSet.Items.ElementAt(4).ToString().Should().Be("Mercedes G 1, Year 2019");
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(2);
             paginationSet.TotalCount.Should().Be(9);
