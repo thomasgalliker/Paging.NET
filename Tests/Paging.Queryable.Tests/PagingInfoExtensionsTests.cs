@@ -119,10 +119,10 @@ namespace Paging.Queryable.Tests
         public void ShouldCreatePaginationSet_WithFilter_MultipleProperties()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, 3)
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, null, true, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, null, false, 3))
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
@@ -132,7 +132,8 @@ namespace Paging.Queryable.Tests
                     {"Name", "bmw"},
                     {"model", "x"},
                     {"Price", 10000m},
-                    {"year", 2010}
+                    {"year", 2010},
+                    {"isElectric", true}
                 }
             };
 
@@ -252,10 +253,10 @@ namespace Paging.Queryable.Tests
         public void ShouldCreatePaginationSet_WithFilter_WithDateTimeRanges()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
                 .AsQueryable();
 
 
@@ -292,10 +293,10 @@ namespace Paging.Queryable.Tests
         public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeKey()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
@@ -327,10 +328,10 @@ namespace Paging.Queryable.Tests
         public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeValue()
         {
             // Arrange
-            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
-                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
