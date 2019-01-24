@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+
 using System.Linq.Expressions;
 #if NETSTANDARD1_3
 using System.Linq.Dynamic.Core;
+using System.Linq.Dynamic.Core.Exceptions;
 #else
 using System.Linq.Dynamic;
 #endif
@@ -88,7 +91,7 @@ namespace Paging.Queryable
                                     }
                                     else
                                     {
-                                        queryable = queryable.Where($"{filter.Key} {range.Key} @0", range.Value);
+                                        queryable = queryable.TryWhere($"{filter.Key} {range.Key} @0", range.Value);
                                     }
 
                                 }
@@ -152,11 +155,29 @@ namespace Paging.Queryable
                 value is ushort ||
                 value is int ||
                 value is uint ||
-                value is ulong ||
                 value is long ||
+                value is ulong ||
                 value is float ||
                 value is double ||
                 value is decimal;
+        }
+
+        /// <summary>
+        /// TryWhere is a Where filter which catches <see cref="ParseException"/>.
+        /// We use it in situations where we want to omit wrong filter values, e.g. invalid comparisons like DateTime > new object()
+        /// </summary>
+        private static IQueryable<TSource> TryWhere<TSource>(this IQueryable<TSource> source, string predicate, params object[] args)
+        {
+            try
+            {
+                return source.Where(predicate, args);
+            }
+            catch (ParseException parseException)
+            {
+                Trace.WriteLine($"{parseException.Message}{Environment.NewLine}{parseException.StackTrace}", "ParseException");
+            }
+
+            return source;
         }
     }
 }
