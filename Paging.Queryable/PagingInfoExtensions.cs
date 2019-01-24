@@ -70,7 +70,7 @@ namespace Paging.Queryable
                                 queryable = queryable.TryWhere($"{filter.Key}.ToString().ToLower().Contains(\"{stringValue.Replace("\"", "").ToLower()}\")");
                             }
                         }
-                        else if (filter.Value.IsNumericType())
+                        else if (filter.Value.IsNumericType() || filter.Value is bool)
                         {
                             queryable = queryable.TryWhere($"{filter.Key} == {filter.Value}");
                         }
