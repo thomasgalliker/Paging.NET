@@ -44,11 +44,17 @@ namespace Paging.Queryable
                 {
                     foreach (var filter in pagingInfo.Filter)
                     {
+                        if (filter.Value == null)
+                        {
+                            // Ignore null values
+                            continue;
+                        }
+
                         if (filter.Value is string stringValue)
                         {
                             if (string.IsNullOrEmpty(stringValue))
                             {
-                                // Ignore null/empty operator
+                                // Ignore null/empty values
                                 continue;
                             }
 
@@ -60,8 +66,8 @@ namespace Paging.Queryable
                             }
                             else
                             {
-                                // No comparison operator mean: key.Contains(value)
-                                queryable = queryable.TryWhere($"{filter.Key}.ToLower().Contains(\"{stringValue.ToLower()}\")");
+                                // No comparison operator means: key.Contains(value)
+                                queryable = queryable.TryWhere($"{filter.Key}.ToString().ToLower().Contains(\"{stringValue.Replace("\"", "").ToLower()}\")");
                             }
                         }
                         else if (filter.Value.IsNumericType())
