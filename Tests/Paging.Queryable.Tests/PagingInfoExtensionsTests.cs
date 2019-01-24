@@ -241,7 +241,7 @@ namespace Paging.Queryable.Tests
                     {
                         "LastService", new Dictionary<string, object>
                         {
-                            {"", null },
+                            {"", null }
                         }
                     }
                 }
@@ -273,10 +273,12 @@ namespace Paging.Queryable.Tests
             {
                 Filter = new Dictionary<string, object>
                 {
+                    { "Year", "> "},
                     {
                         "LastService", new Dictionary<string, object>
                         {
                             {">", new object() },
+                            //{">=", "" }
                         }
                     }
                 }
