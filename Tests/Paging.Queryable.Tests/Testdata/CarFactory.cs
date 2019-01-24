@@ -18,10 +18,10 @@ namespace Paging.Queryable.Tests.Testdata
 
         internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, int count)
         {
-            return GenerateCarsList(name: name, model: model, price: price, year: year, lastService: null, count: count);
+            return GenerateCarsList(name: name, model: model, price: price, year: year, lastService: null, isElectric: false, count: count);
         }
 
-        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, DateTime? lastService, int count)
+        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, DateTime? lastService, bool isElectric, int count)
         {
             for (var i = 0; i < count; i++)
             {
@@ -33,6 +33,7 @@ namespace Paging.Queryable.Tests.Testdata
                     Price = price,
                     Year = year,
                     LastService = lastService,
+                    IsElectric = isElectric,
                 };
             }
         }
@@ -47,7 +48,8 @@ namespace Paging.Queryable.Tests.Testdata
                 Model = car.Model,
                 Price = car.Price,
                 Year = car.Year,
-                LastService = car.LastService
+                LastService = car.LastService,
+                IsElectric = car.IsElectric
             });
         }
     }
