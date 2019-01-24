@@ -17,6 +17,8 @@ namespace Paging.Queryable.Tests.Testdata
         public int Year { get; set; }
 
         public DateTime? LastService { get; set; }
+
+        public bool IsElectric { get; set; }
     }
 
     [DebuggerDisplay("CarDto: {this.Id} {this.Name} {this.Model} {this.Year}")]
@@ -33,6 +35,8 @@ namespace Paging.Queryable.Tests.Testdata
         public int Year { get; set; }
 
         public DateTime? LastService { get; set; }
+
+        public bool IsElectric { get; set; }
 
         public override string ToString()
         {
