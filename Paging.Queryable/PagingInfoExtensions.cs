@@ -56,21 +56,21 @@ namespace Paging.Queryable
                             if (op == '>' || op == '<' || op == '=')
                             {
                                 // If the given string value contains a comparison operator, we apply it
-                                queryable = queryable.Where($"{filter.Key} {filter.Value}");
+                                queryable = queryable.TryWhere($"{filter.Key} {filter.Value}");
                             }
                             else
                             {
                                 // No comparison operator mean: key.Contains(value)
-                                queryable = queryable.Where($"{filter.Key}.ToLower().Contains(\"{stringValue.ToLower()}\")");
+                                queryable = queryable.TryWhere($"{filter.Key}.ToLower().Contains(\"{stringValue.ToLower()}\")");
                             }
                         }
                         else if (filter.Value.IsNumericType())
                         {
-                            queryable = queryable.Where($"{filter.Key} == {filter.Value}");
+                            queryable = queryable.TryWhere($"{filter.Key} == {filter.Value}");
                         }
                         else if (filter.Value is DateTime dateTimeValue)
                         {
-                            queryable = queryable.Where($"{filter.Key} == @0", dateTimeValue);
+                            queryable = queryable.TryWhere($"{filter.Key} == @0", dateTimeValue);
                         }
                         else if (filter.Value is IDictionary<string, object> ranges)
                         {
@@ -87,7 +87,7 @@ namespace Paging.Queryable
                                 {
                                     if (range.Value is string && DateTime.TryParse($"{range.Value}", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var parsedDateTimeValue))
                                     {
-                                        queryable = queryable.Where($"{filter.Key} {range.Key} @0", parsedDateTimeValue);
+                                        queryable = queryable.TryWhere($"{filter.Key} {range.Key} @0", parsedDateTimeValue);
                                     }
                                     else
                                     {
@@ -174,7 +174,7 @@ namespace Paging.Queryable
             }
             catch (ParseException parseException)
             {
-                Trace.WriteLine($"{parseException.Message}{Environment.NewLine}{parseException.StackTrace}", "ParseException");
+                Trace.WriteLine($"{parseException.Message}. Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}{Environment.NewLine}{parseException.StackTrace}", "ParseException");
             }
 
             return source;
