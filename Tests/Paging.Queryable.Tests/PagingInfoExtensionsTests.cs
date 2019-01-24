@@ -18,8 +18,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 4 };
 
             // Act
-            var paginationSet =
-                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -38,8 +37,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { ItemsPerPage = 1 };
 
             // Act
-            var paginationSet =
-                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -206,7 +204,6 @@ namespace Paging.Queryable.Tests
                         {
                             {">", "2012-01-01T00:00:00Z" },
                             {"<=", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc) },
-                            {"", null }
                         }
                     }
                 }
@@ -224,6 +221,76 @@ namespace Paging.Queryable.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeKey()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {
+                        "LastService", new Dictionary<string, object>
+                        {
+                            {"", null },
+                        }
+                    }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(12);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(12);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeValue()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {
+                        "LastService", new Dictionary<string, object>
+                        {
+                            {">", new object() },
+                        }
+                    }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(12);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(12);
             paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
 
