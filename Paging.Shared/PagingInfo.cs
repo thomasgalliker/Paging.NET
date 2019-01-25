@@ -16,6 +16,7 @@ namespace Paging
             this.CurrentPage = 1;
             this.ItemsPerPage = 0;
             this.Filter = new Dictionary<string, object>();
+            this.Sorting = new Dictionary<string, SortOrder>();
         }
 
         /// <summary>
@@ -43,6 +44,9 @@ namespace Paging
         /// SortBy = "property1 descending, property2 ascending"
         /// </example>
         public string SortBy { get; set; }
+
+        [Obsolete("Not yet implemented!")]
+        public IDictionary<string, SortOrder> Sorting { get; set; }
 
         /// <summary>
         /// The whole result list is reversed.
@@ -130,5 +134,11 @@ namespace Paging
         {
             return this.ToQueryString();
         }
+    }
+
+    public enum SortOrder
+    {
+        Asc,
+        Desc,
     }
 }
