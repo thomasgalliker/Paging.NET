@@ -141,17 +141,10 @@ namespace Paging.Queryable
                     queryable = queryable.Skip((pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage).Take(pagingInfo.ItemsPerPage);
                 }
 
-                var dtos = mapEntitiesToDtos(queryable);
+                var dtos = mapEntitiesToDtos(queryable.ToList());
                 var paginationSet = new PaginationSet<TDto>(pagingInfo, dtos, totalCount, totalCountUnfiltered);
                 return paginationSet;
             }
-        }
-
-        public static PaginationSet<TTarget> Map<TSource, TTarget>(this PagingInfo pagingInfo, PaginationSet<TSource> paginationSet, Func<IEnumerable<TSource>, IEnumerable<TTarget>> mapSourceToTarget)
-        {
-            var targetItems = mapSourceToTarget(paginationSet.Items);
-            var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
-            return paginationSetTarget;
         }
 
         private static bool IsNumericType(this object value)
