@@ -176,6 +176,7 @@ namespace Paging.Queryable
         {
             try
             {
+                Trace.WriteLine($"Paging.TryWhere. Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
                 return source.Where(predicate, args);
             }
             catch (ParseException parseException)
