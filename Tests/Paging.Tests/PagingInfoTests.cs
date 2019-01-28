@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+using System.Collections.Generic;
+using FluentAssertions;
 using Xunit;
 
 namespace Paging.Tests
@@ -31,8 +32,45 @@ namespace Paging.Tests
             pagingInfo.CurrentPage.Should().Be(1);
             pagingInfo.ItemsPerPage.Should().Be(0);
             pagingInfo.Search.Should().BeNull();
+            pagingInfo.Filter.Should().BeEmpty();
             pagingInfo.SortBy.Should().BeNull();
+            pagingInfo.Sorting.Should().BeEmpty();
             pagingInfo.Reverse.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldSetSortByEqualToSorting()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.SortBy = "Venue.Name asc, Name desc";
+
+            // Assert
+            pagingInfo.Sorting.Should().HaveCount(2);
+            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder>
+            {
+                { "Venue.Name", SortOrder.Asc },
+                { "Name", SortOrder.Desc }
+            });
+        }
+
+        [Fact]
+        public void ShouldSetSortingEqualToSortBy()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = new Dictionary<string, SortOrder>
+            {
+                { "Venue.Name", SortOrder.Asc },
+                { "Name", SortOrder.Desc }
+            };
+
+            // Assert
+            pagingInfo.SortBy.Should().Be("Venue.Name Asc, Name Desc");
         }
 
         [Theory]
@@ -52,7 +90,9 @@ namespace Paging.Tests
             {
                 this.Add(new PagingInfo(), "CurrentPage=1&ItemsPerPage=0");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name", Reverse = true }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name&Reverse=True");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc } }, Reverse = true }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc&Reverse=True");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name asc, Name asc" }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20asc%2C%20Name%20asc");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Asc } } }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc%2C%20Name%20Asc");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" }, "CurrentPage=2&ItemsPerPage=30&Search=Test%20value");
             }
         }
