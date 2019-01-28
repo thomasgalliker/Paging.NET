@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Xunit;
 
@@ -39,7 +41,7 @@ namespace Paging.Tests
         }
 
         [Fact]
-        public void ShouldSetSortByEqualToSorting()
+        public void ShouldSetSortByEqualToSorting_Valid()
         {
             // Arrange
             var pagingInfo = new PagingInfo();
@@ -57,7 +59,21 @@ namespace Paging.Tests
         }
 
         [Fact]
-        public void ShouldSetSortingEqualToSortBy()
+        public void ShouldSetSortByEqualToSorting_ThrowsExceptionIfInvalidSortOrder()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+            pagingInfo.SortBy = "Venue.Name xxx, Name yyy";
+
+            // Act
+            Action action = () => pagingInfo.Sorting.ToList();
+
+            // Assert
+            action.Should().Throw<ArgumentException>().Which.Message.Should().Contain("Requested value 'xxx' was not found");
+        }
+
+        [Fact]
+        public void ShouldSetSortingEqualToSortBy_Valid()
         {
             // Arrange
             var pagingInfo = new PagingInfo();
@@ -71,6 +87,20 @@ namespace Paging.Tests
 
             // Assert
             pagingInfo.SortBy.Should().Be("Venue.Name Asc, Name Desc");
+        }
+
+
+        [Fact]
+        public void ShouldSetSortingEqualToSortBy_NullSetsNull()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = null;
+
+            // Assert
+            pagingInfo.SortBy.Should().BeNull();
         }
 
         [Theory]
