@@ -1,11 +1,28 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Paging
 {
-    internal static class PagingInfoExtensions
+    public static class PagingInfoExtensions
     {
+        /// <summary>
+        /// Maps Items of <paramref name="paginationSet"/> into a new <see cref="PaginationSet{TTarget}"/>
+        /// using the mapping logic in parameter <paramref name="mapSourceToTarget"/>.
+        /// </summary>
+        /// <typeparam name="TSource">Source type (e.g. entity type).</typeparam>
+        /// <typeparam name="TTarget">Target type (e.g. DTO, ViewModel type).</typeparam>
+        /// <param name="pagingInfo">The source paginationInfo.</param>
+        /// <param name="paginationSet">The source paginationSet.</param>
+        /// <param name="mapSourceToTarget">The mapping logic which maps <see cref="IEnumerable{TSource}"/> to <see cref="IEnumerable{TTarget}"/>.</param>
+        public static PaginationSet<TTarget> Map<TSource, TTarget>(this PagingInfo pagingInfo, PaginationSet<TSource> paginationSet, Func<IEnumerable<TSource>, IEnumerable<TTarget>> mapSourceToTarget)
+        {
+            var sourceItems = paginationSet.Items;
+            var targetItems = mapSourceToTarget(sourceItems);
+            var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
+            return paginationSetTarget;
+        }
+
         internal static string ToQueryString(this PagingInfo pagingInfo)
         {
             // Get all properties on the object
