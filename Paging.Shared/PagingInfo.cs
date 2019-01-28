@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Paging
 {
@@ -16,7 +17,6 @@ namespace Paging
             this.CurrentPage = 1;
             this.ItemsPerPage = 0;
             this.Filter = new Dictionary<string, object>();
-            this.Sorting = new Dictionary<string, SortOrder>();
         }
 
         /// <summary>
@@ -34,6 +34,7 @@ namespace Paging
 
         /// <summary>
         /// SortBy is a comma-separated sort specification.
+        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
         /// </summary>
         /// <example>
         /// Sorting a single property in ascending order:
@@ -45,8 +46,70 @@ namespace Paging
         /// </example>
         public string SortBy { get; set; }
 
-        [Obsolete("Not yet implemented!")]
-        public IDictionary<string, SortOrder> Sorting { get; set; }
+        /// <summary>
+        /// Property-based sort specification.
+        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
+        /// </summary>
+        /// <example>
+        /// Sorting a single property in ascending order:
+        /// Sorting = {{"property1", SortOrder.Asc}}
+        /// 
+        /// Sorting a multiple properties with mixed ordering:
+        /// Sorting = {
+        ///     {"property1", SortOrder.Desc},
+        ///     {"property2", SortOrder.Asc}
+        /// }
+        /// </example>
+        public IReadOnlyDictionary<string, SortOrder> Sorting
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(this.SortBy))
+                {
+                    return new Dictionary<string, SortOrder>();
+                }
+
+                var sorting = this.SortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s =>
+                    {
+                        var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        string key = null;
+                        if (sortSplit.Length >= 1)
+                        {
+                            key = sortSplit[0];
+                        }
+
+                        var value = SortOrder.Asc;
+                        if (sortSplit.Length == 2)
+                        {
+                            value = (SortOrder)Enum.Parse(typeof(SortOrder), sortSplit[1], ignoreCase: true);
+                        }
+
+                        return new { Key = key, Value = value };
+                    })
+                    .ToDictionary(s => s.Key, pair => pair.Value);
+
+                return sorting;
+            }
+            set
+            {
+                string sortBy;
+                if (value == null)
+                {
+                    sortBy = null;
+                }
+                else
+                {
+                    sortBy = string.Join(", ", value.Select(kvp => $"{kvp.Key} {kvp.Value}"));
+                    if (sortBy == string.Empty)
+                    {
+                        sortBy = null;
+                    }
+                }
+                
+                this.SortBy = sortBy;
+            }
+        }
 
         /// <summary>
         /// The whole result list is reversed.
