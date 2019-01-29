@@ -119,15 +119,21 @@ namespace Paging.Queryable
                 // Order
                 if (!string.IsNullOrEmpty(pagingInfo.SortBy))
                 {
-                    var sortBy = pagingInfo.SortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (sortBy.Length == 1)
+                    IReadOnlyDictionary<string, SortOrder> sorting;
+                    if (pagingInfo.Reverse)
                     {
-                        queryable = queryable.OrderBy(sortBy[0] + (pagingInfo.Reverse ? " descending" : ""));
+                        sorting = pagingInfo.Sorting
+                            .Select(s => new { s.Key, Value = s.Value == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc })
+                            .ToDictionary(s => s.Key, s => s.Value);
                     }
-                    if (sortBy.Length > 1)
+                    else
                     {
-                        queryable = queryable.OrderBy(pagingInfo.SortBy);
+                        sorting = pagingInfo.Sorting;
                     }
+
+                    var sortBy = sorting.ToSortByString();
+                    Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(pagingInfo.Reverse ? " (Reversed)" : "")}");
+                    queryable = queryable.OrderBy(sortBy);
                 }
                 else
                 {
@@ -138,7 +144,10 @@ namespace Paging.Queryable
                 // Page
                 if (pagingInfo.ItemsPerPage > 0)
                 {
-                    queryable = queryable.Skip((pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage).Take(pagingInfo.ItemsPerPage);
+                    var skip = (pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage;
+                    var take = pagingInfo.ItemsPerPage;
+                    Trace.WriteLine($"Paging.Skip({skip}).Take({take})");
+                    queryable = queryable.Skip(skip).Take(take);
                 }
 
                 var dtos = mapEntitiesToDtos(queryable.ToList());
