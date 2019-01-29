@@ -38,6 +38,22 @@ namespace Paging.Queryable.Tests.Testdata
             }
         }
 
+        internal static IEnumerable<Car> Union(this IEnumerable<Car> first, IEnumerable<Car> second)
+        {
+            return Enumerable.Concat(first, second).WithUnitqueIds();
+        }
+
+        internal static IEnumerable<Car> WithUnitqueIds(this IEnumerable<Car> cars)
+        {
+            var carsArray = cars.ToArray();
+            for (var i = 0; i < carsArray.Length; i++)
+            {
+                carsArray[i].Id = i;
+            }
+
+            return carsArray;
+        }
+
         internal static IEnumerable<CarDto> MapCarsToCarDtos(IEnumerable<Car> cars)
         {
             // Use some more sophisticated mapping logic here (e.g. AutoMapper)
