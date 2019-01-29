@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -33,7 +33,7 @@ namespace Paging.Queryable
                     }
 
                     var op = stringValue[0];
-                    if (op == '>' || op == '<' || op == '=')
+                    if (op.IsOperator())
                     {
                         // If the given string value contains a comparison operator, we apply it
                         queryable = queryable.TryWhere($"{filter.Key} {filter.Value}");
@@ -63,7 +63,7 @@ namespace Paging.Queryable
                         }
 
                         var op = range.Key[0];
-                        if (op == '>' || op == '<' || op == '=')
+                        if (op.IsOperator())
                         {
                             if (range.Value is string && DateTime.TryParse($"{range.Value}", CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var parsedDateTimeValue))
                             {
@@ -73,7 +73,6 @@ namespace Paging.Queryable
                             {
                                 queryable = queryable.TryWhere($"{filter.Key} {range.Key} @0", range.Value);
                             }
-
                         }
                         else
                         {
@@ -88,6 +87,11 @@ namespace Paging.Queryable
             }
 
             return queryable;
+        }
+
+        private static bool IsOperator(this char op)
+        {
+            return (op == '>' || op == '<' || op == '=');
         }
 
         private static bool IsNumericType(this object value)
