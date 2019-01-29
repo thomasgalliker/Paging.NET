@@ -62,53 +62,9 @@ namespace Paging
         /// </example>
         public IReadOnlyDictionary<string, SortOrder> Sorting
         {
-            get
-            {
-                if (string.IsNullOrEmpty(this.SortBy))
-                {
-                    return new Dictionary<string, SortOrder>();
-                }
-
-                var sorting = this.SortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s =>
-                    {
-                        var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        string key = null;
-                        if (sortSplit.Length >= 1)
-                        {
-                            key = sortSplit[0];
-                        }
-
-                        var value = SortOrder.Asc;
-                        if (sortSplit.Length == 2)
-                        {
-                            value = (SortOrder)Enum.Parse(typeof(SortOrder), sortSplit[1], ignoreCase: true);
-                        }
-
-                        return new { Key = key, Value = value };
-                    })
-                    .ToDictionary(s => s.Key, pair => pair.Value);
-
-                return sorting;
-            }
-            set
-            {
-                string sortBy;
-                if (value == null)
-                {
-                    sortBy = null;
-                }
-                else
-                {
-                    sortBy = string.Join(", ", value.Select(kvp => $"{kvp.Key} {kvp.Value}"));
-                    if (sortBy == string.Empty)
-                    {
-                        sortBy = null;
-                    }
-                }
-                
-                this.SortBy = sortBy;
-            }
+            //TODO: Check if Sorting as wrapper for SortBy is practical (serialization/deserialization issues)
+            get => this.SortBy.ToSorting();
+            set => this.SortBy = value.ToSortByString();
         }
 
         /// <summary>
