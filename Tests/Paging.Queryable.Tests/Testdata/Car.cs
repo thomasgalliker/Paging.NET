@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Paging.Queryable.Tests.Testdata
 {
     [DebuggerDisplay("Car: {this.Id} {this.Name} {this.Model} {this.Year}")]
-    public class Car
+    public class Car : IEquatable<Car>
     {
         public int Id { get; set; }
 
@@ -19,10 +19,29 @@ namespace Paging.Queryable.Tests.Testdata
         public DateTime? LastService { get; set; }
 
         public bool IsElectric { get; set; }
+
+        public bool Equals(Car other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is Car other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id;
+        }
     }
 
     [DebuggerDisplay("CarDto: {this.Id} {this.Name} {this.Model} {this.Year}")]
-    public class CarDto
+    public class CarDto : IEquatable<CarDto>
     {
         public int Id { get; set; }
 
@@ -40,7 +59,26 @@ namespace Paging.Queryable.Tests.Testdata
 
         public override string ToString()
         {
-            return $"{this.Name} {this.Model}, Year {this.Year}";
+            return $"{Name} {Model}, Year {Year}";
+        }
+
+        public bool Equals(CarDto other)
+        {
+            if (ReferenceEquals(null, other)) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            return obj is CarDto other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return Id;
         }
     }
 }
