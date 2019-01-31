@@ -11,6 +11,25 @@ namespace Paging.Queryable.Tests
     public class PagingInfoExtensionsTests
     {
         [Fact]
+        public void ShouldCreatePaginationSet_PagingInfoIsNullReturnsDefaultPage()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
+            PagingInfo pagingInfo = null;
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet(queryable);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(10);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(10);
+            paginationSet.TotalCountUnfiltered.Should().Be(10);
+        }
+
+        [Fact]
         public void ShouldCreatePaginationSet_ItemsPerPageZeroReturnsSinglePage()
         {
             // Arrange
