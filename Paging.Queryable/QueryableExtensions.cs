@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -80,6 +81,10 @@ namespace Paging.Queryable
                         }
                     }
                 }
+                else if (filter.Value is IEnumerable enumerable)
+                {
+                    queryable = queryable.TryWhere($"@0.Contains({filter.Key})", new object[] { enumerable });
+                }
                 else
                 {
                     throw new NotSupportedException($"Filter values of type '{filter.Value.GetType().Name}' is currently not supported. Affected property: {filter.Key}.");
@@ -116,12 +121,13 @@ namespace Paging.Queryable
         {
             try
             {
-                Trace.WriteLine($"Paging.TryWhere. Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
                 return source.Where(predicate, args);
             }
-            catch (ParseException parseException)
+            catch (Exception ex)
             {
-                Trace.WriteLine($"{parseException.Message}. Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}{Environment.NewLine}{parseException.StackTrace}", "ParseException");
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\" failed. {ex.Message} {Environment.NewLine}" +
+                                $"{ex.StackTrace}", ex.GetType().Name);
             }
 
             return source;
