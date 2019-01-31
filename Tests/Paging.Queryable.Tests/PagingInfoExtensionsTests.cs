@@ -355,6 +355,51 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithOrFilterValues()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    { "Id", new []{ 7, 6, 9, 10 }},
+                    { "Name", new []
+                        {
+                            "Mercedes", // Exact match
+                            "Audi", // Exact match
+                            "bmw", // Wrong case
+                            "non-existent" // Invalid name
+                        }
+                    },
+                    { "Year", new []{ 2019, 2020 }},
+                    { "Price", new []{ "wrong-type" }} // Type mismatch
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(4);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("Audi A 0, Year 2019");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("Audi A 1, Year 2019");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("Mercedes G 0, Year 2019");
+            paginationSet.Items.ElementAt(3).ToString().Should().Be("Mercedes G 1, Year 2019");
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(4);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+
+        [Fact]
         public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeKey()
         {
             // Arrange
