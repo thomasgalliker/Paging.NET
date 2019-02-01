@@ -149,5 +149,30 @@ namespace Paging.Queryable
 
             return source;
         }
+
+        public static IQueryable<TEntity> OrderBy<TEntity>(this IQueryable<TEntity> queryable, IReadOnlyDictionary<string, SortOrder> sorting, bool reverse)
+        {
+            if (reverse)
+            {
+                sorting = sorting
+                    .Select(s => new { s.Key, Value = s.Value == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc })
+                    .ToDictionary(s => s.Key, s => s.Value);
+            }
+
+            var sortBy = sorting.ToSortByString();
+            Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
+
+            try
+            {
+                return queryable.OrderBy(sortBy);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed.  {ex.Message} {Environment.NewLine}" +
+                                $"{ex.StackTrace}", ex.GetType().Name);
+            }
+
+            return queryable;
+        }
     }
 }
