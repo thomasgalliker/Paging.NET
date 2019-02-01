@@ -49,21 +49,7 @@ namespace Paging.Queryable
                 // Order
                 if (!string.IsNullOrEmpty(pagingInfo.SortBy))
                 {
-                    IReadOnlyDictionary<string, SortOrder> sorting;
-                    if (pagingInfo.Reverse)
-                    {
-                        sorting = pagingInfo.Sorting
-                            .Select(s => new { s.Key, Value = s.Value == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc })
-                            .ToDictionary(s => s.Key, s => s.Value);
-                    }
-                    else
-                    {
-                        sorting = pagingInfo.Sorting;
-                    }
-
-                    var sortBy = sorting.ToSortByString();
-                    Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(pagingInfo.Reverse ? " (Reversed)" : "")}");
-                    queryable = queryable.OrderBy(sortBy);
+                    queryable = queryable.OrderBy(pagingInfo.Sorting, pagingInfo.Reverse);
                 }
                 else
                 {
