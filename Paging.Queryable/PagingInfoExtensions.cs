@@ -53,8 +53,7 @@ namespace Paging.Queryable
                 }
                 else
                 {
-                    // Need to OrderBy before Skip/Take. Maybe we should throw an exception here?
-                    queryable = queryable.OrderBy("Id");
+                    queryable = queryable.OrderByDefault();
                 }
 
                 // Page
