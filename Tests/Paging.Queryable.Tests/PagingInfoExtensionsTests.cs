@@ -641,6 +641,40 @@ namespace Paging.Queryable.Tests
                     "Mercedes G 1, Year 2019",
                     "Mercedes G 0, Year 2019"
                 });
+
+                // sortBy: "nonexistent", reverse: false
+                // Non-existent properties are not sorted, also, reverse has no effect
+                this.Add("nonexistent", false, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019"
+                }, new[]
+                {
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019"
+                });
+
+                // sortBy: "", reverse: true
+                // Non-existent properties are not sorted, also, reverse has no effect
+                this.Add("", true, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019"
+                }, new[]
+                {
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019"
+                });
             }
         }
 
