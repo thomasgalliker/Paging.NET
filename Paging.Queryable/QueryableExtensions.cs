@@ -30,6 +30,7 @@ namespace Paging.Queryable
                     if (string.IsNullOrEmpty(stringValue))
                     {
                         // Ignore null/empty values
+                        Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.", "Warning");
                         continue;
                     }
 
@@ -60,6 +61,7 @@ namespace Paging.Queryable
                         if (string.IsNullOrEmpty(range.Key))
                         {
                             // Ignore null/empty operator
+                            Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.", "Warning");
                             continue;
                         }
 
@@ -83,15 +85,26 @@ namespace Paging.Queryable
                 }
                 else if (filter.Value is IEnumerable enumerable)
                 {
-                    var prefix = "";
+                    var enumerator = enumerable.GetEnumerator();
+                    if (enumerator.MoveNext())
+                    {
+                        var elementType = enumerator.Current.GetType();
+                        var castList = enumerable.Cast(elementType);
 #if NET45
-                    prefix = "outerIt.";
+                        const string prefix = "outerIt.";
+#else
+                        const string prefix = "";
 #endif
-                    queryable = queryable.TryWhere($"@0.Contains({prefix}{filter.Key})", args: enumerable);
+                        queryable = queryable.TryWhere($"@0.Contains({prefix}{filter.Key})", new object[] { castList });
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"Filter collection for key '{filter.Key}' is empty.", "Warning");
+                    }
                 }
                 else
                 {
-                    throw new NotSupportedException($"Filter values of type '{filter.Value.GetType().Name}' is currently not supported. Affected property: {filter.Key}.");
+                    throw new NotSupportedException($"Filter values of type '{filter.Value.GetType().Name}' are currently not supported. Affected property: {filter.Key}.");
                 }
             }
 
