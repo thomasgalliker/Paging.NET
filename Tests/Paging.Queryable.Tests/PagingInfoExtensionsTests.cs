@@ -368,7 +368,7 @@ namespace Paging.Queryable.Tests
             {
                 Filter = new Dictionary<string, object>
                 {
-                    { "Id", new []{ 7, 6, 9, 10 }},
+                    { "Id", new object[]{ 7, 6, 9, 10 }},
                     { "Name", new []
                         {
                             "Mercedes", // Exact match
@@ -377,7 +377,7 @@ namespace Paging.Queryable.Tests
                             "non-existent" // Invalid name
                         }
                     },
-                    { "Year", new []{ 2019, 2020 }},
+                    { "Year", new int[]{}},
                     { "Price", new []{ "wrong-type" }} // Type mismatch
                 }
             };
@@ -397,7 +397,6 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalCount.Should().Be(4);
             paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
-
 
         [Fact]
         public void ShouldCreatePaginationSet_WithFilter_WithInvalidRangeKey()
