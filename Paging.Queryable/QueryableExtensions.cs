@@ -83,7 +83,11 @@ namespace Paging.Queryable
                 }
                 else if (filter.Value is IEnumerable enumerable)
                 {
-                    queryable = queryable.TryWhere($"@0.Contains({filter.Key})", new object[] { enumerable });
+                    var prefix = "";
+#if NET45
+                    prefix = "outerIt.";
+#endif
+                    queryable = queryable.TryWhere($"@0.Contains({prefix}{filter.Key})", args: enumerable);
                 }
                 else
                 {
