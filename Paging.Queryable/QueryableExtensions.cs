@@ -164,11 +164,40 @@ namespace Paging.Queryable
 
             try
             {
-                return queryable.OrderBy(sortBy);
+                queryable = queryable.OrderBy(sortBy);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed.  {ex.Message} {Environment.NewLine}" +
+                queryable = queryable.OrderByDefault();
+
+                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed. {ex.Message} {Environment.NewLine}" +
+                                $"{ex.StackTrace}", ex.GetType().Name);
+            }
+
+            return queryable;
+        }
+
+        // Need to OrderBy before Skip/Take.
+        public static IQueryable<TEntity> OrderByDefault<TEntity>(this IQueryable<TEntity> queryable)
+        {
+            //try
+            //{
+            //    queryable = queryable.OrderBy("Id");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Trace.WriteLine($"Paging.OrderByDefault (using Id) failed. {ex.Message} {Environment.NewLine}" +
+            //                    $"{ex.StackTrace}", ex.GetType().Name);
+            //}
+
+            try
+            {
+                Trace.WriteLine("Paging.OrderByDefault");
+                return queryable.OrderBy("x => false");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Paging.OrderByDefault (using \"x => false\") failed. {ex.Message} {Environment.NewLine}" +
                                 $"{ex.StackTrace}", ex.GetType().Name);
             }
 
