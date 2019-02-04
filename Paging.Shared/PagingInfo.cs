@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Paging
 {
@@ -16,7 +17,6 @@ namespace Paging
             this.CurrentPage = 1;
             this.ItemsPerPage = 0;
             this.Filter = new Dictionary<string, object>();
-            this.Sorting = new Dictionary<string, SortOrder>();
         }
 
         /// <summary>
@@ -34,6 +34,7 @@ namespace Paging
 
         /// <summary>
         /// SortBy is a comma-separated sort specification.
+        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
         /// </summary>
         /// <example>
         /// Sorting a single property in ascending order:
@@ -45,8 +46,26 @@ namespace Paging
         /// </example>
         public string SortBy { get; set; }
 
-        [Obsolete("Not yet implemented!")]
-        public IDictionary<string, SortOrder> Sorting { get; set; }
+        /// <summary>
+        /// Property-based sort specification.
+        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
+        /// </summary>
+        /// <example>
+        /// Sorting a single property in ascending order:
+        /// Sorting = {{"property1", SortOrder.Asc}}
+        /// 
+        /// Sorting a multiple properties with mixed ordering:
+        /// Sorting = {
+        ///     {"property1", SortOrder.Desc},
+        ///     {"property2", SortOrder.Asc}
+        /// }
+        /// </example>
+        public IReadOnlyDictionary<string, SortOrder> Sorting
+        {
+            //TODO: Check if Sorting as wrapper for SortBy is practical (serialization/deserialization issues)
+            get => this.SortBy.ToSorting();
+            set => this.SortBy = value.ToSortByString();
+        }
 
         /// <summary>
         /// The whole result list is reversed.

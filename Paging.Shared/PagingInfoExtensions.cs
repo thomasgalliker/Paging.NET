@@ -23,6 +23,55 @@ namespace Paging
             return paginationSetTarget;
         }
 
+        public static IReadOnlyDictionary<string, SortOrder> ToSorting(this string sortBy)
+        {
+            if (string.IsNullOrEmpty(sortBy))
+            {
+                return null;
+            }
+
+            var sorting = sortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s =>
+                {
+                    var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    string key = null;
+                    if (sortSplit.Length >= 1)
+                    {
+                        key = sortSplit[0];
+                    }
+
+                    var value = SortOrder.Asc;
+                    if (sortSplit.Length == 2)
+                    {
+                        value = (SortOrder)Enum.Parse(typeof(SortOrder), sortSplit[1], ignoreCase: true);
+                    }
+
+                    return new { Key = key, Value = value };
+                })
+                .ToDictionary(s => s.Key, pair => pair.Value);
+
+            return sorting;
+        }
+
+        public static string ToSortByString(this IReadOnlyDictionary<string, SortOrder> sorting)
+        {
+            string sortBy;
+            if (sorting == null)
+            {
+                sortBy = null;
+            }
+            else
+            {
+                sortBy = string.Join(", ", sorting.Select(kvp => $"{kvp.Key} {kvp.Value}"));
+                if (sortBy == string.Empty)
+                {
+                    sortBy = null;
+                }
+            }
+
+            return sortBy;
+        }
+
         internal static string ToQueryString(this PagingInfo pagingInfo)
         {
             // Get all properties on the object

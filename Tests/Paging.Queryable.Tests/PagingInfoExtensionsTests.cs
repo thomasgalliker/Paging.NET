@@ -11,6 +11,25 @@ namespace Paging.Queryable.Tests
     public class PagingInfoExtensionsTests
     {
         [Fact]
+        public void ShouldCreatePaginationSet_PagingInfoIsNullReturnsDefaultPage()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
+            PagingInfo pagingInfo = null;
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet(queryable);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(10);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(10);
+            paginationSet.TotalCountUnfiltered.Should().Be(10);
+        }
+
+        [Fact]
         public void ShouldCreatePaginationSet_ItemsPerPageZeroReturnsSinglePage()
         {
             // Arrange
@@ -101,7 +120,15 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
                 .AsQueryable();
 
-            var pagingInfo = new PagingInfo { Filter = { { "Name", "bmw" } } };
+            var pagingInfo = new PagingInfo
+            {
+                Filter =
+                {
+                    {
+                        "Name", "bmw"
+                    }
+                }
+            };
 
             // Act
             var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
@@ -123,6 +150,7 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, null, true, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, null, false, 3))
+                .WithUnitqueIds()
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
@@ -191,7 +219,7 @@ namespace Paging.Queryable.Tests
             {
                 Filter = new Dictionary<string, object>
                 {
-                    {"Price", "5000"},
+                    {"Price", "5000"} // Matches Prices with string equivalents of "5000" and "15000"
                 }
             };
 
@@ -202,10 +230,10 @@ namespace Paging.Queryable.Tests
             paginationSet.Should().NotBeNull();
             paginationSet.Items.Should().HaveCount(6);
             paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2005");
-            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 0, Year 2015");
-            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 1, Year 2005");
-            paginationSet.Items.ElementAt(3).ToString().Should().Be("BMW X 1, Year 2015");
-            paginationSet.Items.ElementAt(4).ToString().Should().Be("BMW X 2, Year 2005");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2005");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2005");
+            paginationSet.Items.ElementAt(3).ToString().Should().Be("BMW X 0, Year 2015");
+            paginationSet.Items.ElementAt(4).ToString().Should().Be("BMW X 1, Year 2015");
             paginationSet.Items.ElementAt(5).ToString().Should().Be("BMW X 2, Year 2015");
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
@@ -221,13 +249,14 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "X", 15000m, 2015, 3))
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
             {
                 Filter = new Dictionary<string, object>
                 {
-                    {"Name", "bmw"},
+                    {"Name", "bm"},
                     {"model", ""},
                     {"Price", ">=5000"},
                     {"year", "<2010"}
@@ -243,6 +272,42 @@ namespace Paging.Queryable.Tests
             paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2005");
             paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2005");
             paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2005");
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(15);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithDateTime()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .AsQueryable();
+
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {
+                        "LastService", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc)
+                    }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2015");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2015");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2015");
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(3);
@@ -267,7 +332,7 @@ namespace Paging.Queryable.Tests
                     {
                         "LastService", new Dictionary<string, object>
                         {
-                            {">", "2012-01-01T00:00:00Z" },
+                            {">", "2012-01-01T00:00:00Z" }, // DateTime can be an ISO-serialized string
                             {"<=", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc) },
                         }
                     }
@@ -286,6 +351,50 @@ namespace Paging.Queryable.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithOrFilterValues()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    { "Id", new object[]{ 7, 6, 9, 10 }},
+                    { "Name", new []
+                        {
+                            "Mercedes", // Exact match
+                            "Audi", // Exact match
+                            "bmw", // Wrong case
+                            "non-existent" // Invalid name
+                        }
+                    },
+                    { "Year", new int[]{}},
+                    { "Price", new []{ "wrong-type" }} // Type mismatch
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(4);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("Audi A 0, Year 2019");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("Audi A 1, Year 2019");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("Mercedes G 0, Year 2019");
+            paginationSet.Items.ElementAt(3).ToString().Should().Be("Mercedes G 1, Year 2019");
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(4);
             paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
 
@@ -360,8 +469,9 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
 
-        [Fact]
-        public void ShouldCreatePaginationSet_SortBy_Reverse()
+        [Theory]
+        [ClassData(typeof(SortByTestData))]
+        public void ShouldCreatePaginationSet_SortBy(string sortBy, bool reverse, ICollection<string> expectedItemStrings1, ICollection<string> expectedItemStrings2)
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
@@ -369,23 +479,203 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
                 .AsQueryable();
 
-            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 5, SortBy = "Model", Reverse = true };
+            var pagingInfo1 = new PagingInfo { CurrentPage = 1, ItemsPerPage = 5, SortBy = sortBy, Reverse = reverse };
+            var pagingInfo2 = new PagingInfo { CurrentPage = 2, ItemsPerPage = 5, SortBy = sortBy, Reverse = reverse };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet1 = pagingInfo1.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet2 = pagingInfo2.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
 
             // Assert
-            paginationSet.Should().NotBeNull();
-            paginationSet.Items.Should().HaveCount(5);
-            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 2, Year 2019");
-            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2019");
-            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 0, Year 2019");
-            paginationSet.Items.ElementAt(3).ToString().Should().Be("Mercedes G 2, Year 2019");
-            paginationSet.Items.ElementAt(4).ToString().Should().Be("Mercedes G 1, Year 2019");
-            paginationSet.CurrentPage.Should().Be(1);
-            paginationSet.TotalPages.Should().Be(2);
-            paginationSet.TotalCount.Should().Be(9);
-            paginationSet.TotalCountUnfiltered.Should().Be(9);
+            paginationSet1.Should().NotBeNull();
+            paginationSet2.Should().NotBeNull();
+
+            paginationSet1.Items.Should().HaveCount(expectedItemStrings1.Count);
+            paginationSet2.Items.Should().HaveCount(expectedItemStrings2.Count);
+
+            paginationSet1.Items.Select(i => i.ToString()).Should().ContainInOrder(expectedItemStrings1);
+            paginationSet2.Items.Select(i => i.ToString()).Should().ContainInOrder(expectedItemStrings2);
+
+            paginationSet1.CurrentPage.Should().Be(1);
+            paginationSet1.TotalPages.Should().Be(2);
+            paginationSet1.TotalCount.Should().Be(9);
+            paginationSet1.TotalCountUnfiltered.Should().Be(9);
+
+            paginationSet2.CurrentPage.Should().Be(2);
+            paginationSet2.TotalPages.Should().Be(2);
+            paginationSet2.TotalCount.Should().Be(9);
+            paginationSet2.TotalCountUnfiltered.Should().Be(9);
+        }
+
+        /// <summary>
+        /// SortBy -> Expected list of {cars, page 1} and  {cars, page 2}
+        /// </summary>
+        public class SortByTestData : TheoryData<string, bool, ICollection<string>, ICollection<string>>
+        {
+            public SortByTestData()
+            {
+                // sortBy: "Model", reverse: false
+                this.Add("Model", false, new[]
+                {
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019"
+                }, new[]
+                {
+                    "Mercedes G 2, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019"
+                });
+
+                // sortBy: "Model", reverse: true
+                this.Add("Model", true, new[]
+                {
+                    "BMW X 2, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "Mercedes G 2, Year 2019",
+                    "Mercedes G 1, Year 2019"
+                }, new[]
+                {
+                    "Mercedes G 0, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 0, Year 2019"
+                });
+
+                // sortBy: "Model asc", reverse: false
+                this.Add("Model asc", false, new[]
+                {
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019"
+                }, new[]
+                {
+                    "Mercedes G 2, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019"
+                });
+
+                // sortBy: "Model desc", reverse: false
+                this.Add("Model desc", false, new[]
+                {
+                    "BMW X 2, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "Mercedes G 2, Year 2019",
+                    "Mercedes G 1, Year 2019"
+                }, new[]
+                {
+                    "Mercedes G 0, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 0, Year 2019"
+                });
+
+                // sortBy: "Name, Model", reverse: false
+                this.Add("Name, Model", false, new[]
+                {
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019"
+                }, new[]
+                {
+                    "BMW X 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019"
+                });
+
+                // sortBy: "Name, Model", reverse: true
+                this.Add("Name, Model", true, new[]
+                {
+                    "Mercedes G 2, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "BMW X 1, Year 2019"
+                }, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "Audi A 2, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 0, Year 2019"
+                });
+
+                // sortBy: "Name desc, Model asc", reverse: false
+                this.Add("Name desc, Model asc", false, new[]
+                {
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019",
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019"
+                }, new[]
+                {
+                    "BMW X 2, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 2, Year 2019"
+                });
+
+                // sortBy: "Name desc, Model asc", reverse: true
+                this.Add("Name desc, Model asc", true, new[]
+                {
+                    "Audi A 2, Year 2019",
+                    "Audi A 1, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "BMW X 1, Year 2019"
+                }, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "Mercedes G 2, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 0, Year 2019"
+                });
+
+                // sortBy: "nonexistent", reverse: false
+                // Non-existent properties are not sorted, also, reverse has no effect
+                this.Add("nonexistent", false, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019"
+                }, new[]
+                {
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019"
+                });
+
+                // sortBy: "", reverse: true
+                // Non-existent properties are not sorted, also, reverse has no effect
+                this.Add("", true, new[]
+                {
+                    "BMW X 0, Year 2019",
+                    "BMW X 1, Year 2019",
+                    "BMW X 2, Year 2019",
+                    "Audi A 0, Year 2019",
+                    "Audi A 1, Year 2019"
+                }, new[]
+                {
+                    "Audi A 2, Year 2019",
+                    "Mercedes G 0, Year 2019",
+                    "Mercedes G 1, Year 2019",
+                    "Mercedes G 2, Year 2019"
+                });
+            }
         }
 
         [Fact]
