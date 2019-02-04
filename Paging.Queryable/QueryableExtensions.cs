@@ -177,6 +177,15 @@ namespace Paging.Queryable
             return queryable;
         }
 
+        /// <summary>
+        /// The default OrderBy predicate if paging is used but no sort order is specified.
+        /// Default value is "0".
+        ///
+        /// WARNING: Consider using a SortBy or Sorting specification in <seealso cref="PagingInfo"/>
+        /// because paging does not work properly if the underlying collection is sorted randomly.
+        /// </summary>
+        public static string OrderByDefaultProperty = "0";
+
         // Need to OrderBy before Skip/Take.
         public static IQueryable<TEntity> OrderByDefault<TEntity>(this IQueryable<TEntity> queryable)
         {
@@ -192,8 +201,8 @@ namespace Paging.Queryable
 
             try
             {
-                Trace.WriteLine("Paging.OrderByDefault");
-                return queryable.OrderBy("x => false");
+                Trace.WriteLine($"Paging.OrderByDefault({OrderByDefaultProperty})");
+                return queryable.OrderBy(OrderByDefaultProperty);
             }
             catch (Exception ex)
             {
