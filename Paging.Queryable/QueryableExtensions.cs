@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 #if NETSTANDARD1_3
@@ -30,7 +29,7 @@ namespace Paging.Queryable
                     if (string.IsNullOrEmpty(stringValue))
                     {
                         // Ignore null/empty values
-                        Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.", "Warning");
+                        Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
                         continue;
                     }
 
@@ -61,7 +60,7 @@ namespace Paging.Queryable
                         if (string.IsNullOrEmpty(range.Key))
                         {
                             // Ignore null/empty operator
-                            Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.", "Warning");
+                            Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
                             continue;
                         }
 
@@ -99,7 +98,7 @@ namespace Paging.Queryable
                     }
                     else
                     {
-                        Trace.WriteLine($"Filter collection for key '{filter.Key}' is empty.", "Warning");
+                        Logger.Warning($"Filter collection for key '{filter.Key}' is empty.");
                     }
                 }
                 else
@@ -138,13 +137,12 @@ namespace Paging.Queryable
         {
             try
             {
-                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
+                Logger.Debug($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
                 return source.Where(predicate, args);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\" failed. {ex.Message} {Environment.NewLine}" +
-                                $"{ex.StackTrace}", ex.GetType().Name);
+                Logger.Error($"Paging.TryWhere with Predicate: \"{predicate}\" failed.", ex);
             }
 
             return source;
@@ -160,7 +158,7 @@ namespace Paging.Queryable
             }
 
             var sortBy = sorting.ToSortByString();
-            Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
+            Logger.Debug($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
 
             try
             {
@@ -170,8 +168,7 @@ namespace Paging.Queryable
             {
                 queryable = queryable.OrderByDefault();
 
-                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed. {ex.Message} {Environment.NewLine}" +
-                                $"{ex.StackTrace}", ex.GetType().Name);
+                Logger.Error($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed.", ex);
             }
 
             return queryable;
@@ -195,19 +192,18 @@ namespace Paging.Queryable
             //}
             //catch (Exception ex)
             //{
-            //    Trace.WriteLine($"Paging.OrderByDefault (using Id) failed. {ex.Message} {Environment.NewLine}" +
+            //    Logger.Error($"Paging.OrderByDefault (using Id) failed. {ex.Message} {Environment.NewLine}" +
             //                    $"{ex.StackTrace}", ex.GetType().Name);
             //}
 
             try
             {
-                Trace.WriteLine($"Paging.OrderByDefault({OrderByDefaultProperty})");
+                Logger.Info($"Paging.OrderByDefault({OrderByDefaultProperty})");
                 return queryable.OrderBy(OrderByDefaultProperty);
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.OrderByDefault (using \"x => false\") failed. {ex.Message} {Environment.NewLine}" +
-                                $"{ex.StackTrace}", ex.GetType().Name);
+                Logger.Error("Paging.OrderByDefault failed.", ex);
             }
 
             return queryable;
