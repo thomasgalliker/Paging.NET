@@ -18,6 +18,8 @@ namespace Paging.Queryable.Tests.Testdata
 
         public DateTime? LastService { get; set; }
 
+        public DateTimeOffset LastOilChange { get; set; }
+
         public bool IsElectric { get; set; }
 
         public bool Equals(Car other)
@@ -54,6 +56,8 @@ namespace Paging.Queryable.Tests.Testdata
         public int Year { get; set; }
 
         public DateTime? LastService { get; set; }
+
+        public DateTimeOffset LastOilChange { get; set; }
 
         public bool IsElectric { get; set; }
 
