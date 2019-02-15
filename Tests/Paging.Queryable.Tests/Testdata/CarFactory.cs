@@ -33,6 +33,7 @@ namespace Paging.Queryable.Tests.Testdata
                     Price = price,
                     Year = year,
                     LastService = lastService,
+                    LastOilChange = lastService ?? DateTimeOffset.MinValue,
                     IsElectric = isElectric,
                 };
             }
@@ -65,6 +66,7 @@ namespace Paging.Queryable.Tests.Testdata
                 Price = car.Price,
                 Year = car.Year,
                 LastService = car.LastService,
+                LastOilChange = car.LastOilChange,
                 IsElectric = car.IsElectric
             });
         }
