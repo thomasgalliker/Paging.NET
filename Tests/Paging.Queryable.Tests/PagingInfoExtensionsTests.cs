@@ -3,13 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
+using Paging.Queryable.Tests.Logging;
 using Paging.Queryable.Tests.Testdata;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Paging.Queryable.Tests
 {
     public class PagingInfoExtensionsTests
     {
+        private readonly ITestOutputHelper testOutputHelper;
+
+        public PagingInfoExtensionsTests(ITestOutputHelper testOutputHelper)
+        {
+            Logger.SetLogger(new TestOutputHelperLogger(testOutputHelper));
+        }
+
         [Fact]
         public void ShouldCreatePaginationSet_PagingInfoIsNullReturnsDefaultPage()
         {
@@ -334,6 +343,44 @@ namespace Paging.Queryable.Tests
                         {
                             {">", "2012-01-01T00:00:00Z" }, // DateTime can be an ISO-serialized string
                             {"<=", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc) },
+                        }
+                    }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.Items.ElementAt(0).ToString().Should().Be("BMW X 0, Year 2015");
+            paginationSet.Items.ElementAt(1).ToString().Should().Be("BMW X 1, Year 2015");
+            paginationSet.Items.ElementAt(2).ToString().Should().Be("BMW X 2, Year 2015");
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_WithDateTimeOffsetRanges()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", null, 2000, null, false, 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, new DateTime(2012, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc), false, 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new Dictionary<string, object>
+                {
+                    {
+                        "LastOilChange", new Dictionary<string, object>
+                        {
+                            {">", new DateTimeOffset(2012, 1, 1, 00, 00, 00, TimeSpan.Zero) },
                         }
                     }
                 }
