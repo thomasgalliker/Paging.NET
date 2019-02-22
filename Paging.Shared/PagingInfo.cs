@@ -115,12 +115,28 @@ namespace Paging
             }
 
             return
-                   this.CurrentPage == other.CurrentPage &&
-                   this.ItemsPerPage == other.ItemsPerPage &&
-                   string.Equals(this.SortBy, other.SortBy) &&
-                   this.Reverse == other.Reverse &&
-                   string.Equals(this.Search, other.Search) &&
-                   Equals(Filter, other.Filter);
+                this.CurrentPage == other.CurrentPage &&
+                this.ItemsPerPage == other.ItemsPerPage &&
+                string.Equals(this.SortBy, other.SortBy) &&
+                this.Reverse == other.Reverse &&
+                string.Equals(this.Search, other.Search) &&
+                FilterEquals(this.Filter, other.Filter);
+        }
+
+        private static bool FilterEquals(IDictionary<string, object> filter, IDictionary<string, object> other)
+        {
+            if (ReferenceEquals(null, filter) || ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(filter, other))
+            {
+                return true;
+            }
+
+            var sequenceEqual = filter.SequenceEqual(other);
+            return sequenceEqual;
         }
 
         public override bool Equals(object obj)
@@ -151,7 +167,15 @@ namespace Paging
                 hashCode = (hashCode * 397) ^ (this.SortBy != null ? this.SortBy.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ this.Reverse.GetHashCode();
                 hashCode = (hashCode * 397) ^ (this.Search != null ? this.Search.GetHashCode() : 0);
-                hashCode = (hashCode * 397) ^ (this.Filter != null ? this.Filter.GetHashCode() : 0);
+
+                if (this.Filter != null)
+                {
+                    foreach (var filter in this.Filter)
+                    {
+                        hashCode = (hashCode * 397) ^ filter.GetHashCode();
+                    }
+                }
+             
                 return hashCode;
             }
         }
