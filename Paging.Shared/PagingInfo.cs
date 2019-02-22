@@ -34,7 +34,8 @@ namespace Paging
 
         /// <summary>
         /// SortBy is a comma-separated sort specification.
-        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
+        /// Use either <seealso cref="Sorting" /> or <seealso cref="SortBy" /> to specify single- or multi-property sort
+        /// orders.
         /// </summary>
         /// <example>
         /// Sorting a single property in ascending order:
@@ -48,12 +49,12 @@ namespace Paging
 
         /// <summary>
         /// Property-based sort specification.
-        /// Use either <seealso cref="Sorting"/> or <seealso cref="SortBy"/> to specify single- or multi-property sort orders.
+        /// Use either <seealso cref="Sorting" /> or <seealso cref="SortBy" /> to specify single- or multi-property sort
+        /// orders.
         /// </summary>
         /// <example>
         /// Sorting a single property in ascending order:
         /// Sorting = {{"property1", SortOrder.Asc}}
-        /// 
         /// Sorting a multiple properties with mixed ordering:
         /// Sorting = {
         ///     {"property1", SortOrder.Desc},
@@ -96,6 +97,11 @@ namespace Paging
             return !(pi1 == pi2);
         }
 
+        public override string ToString()
+        {
+            return this.ToQueryString();
+        }
+
         public bool Equals(PagingInfo other)
         {
             if (ReferenceEquals(null, other))
@@ -109,11 +115,12 @@ namespace Paging
             }
 
             return
-                this.CurrentPage == other.CurrentPage &&
-                this.ItemsPerPage == other.ItemsPerPage &&
-                string.Equals(this.SortBy, other.SortBy) &&
-                this.Reverse == other.Reverse &&
-                string.Equals(this.Search, other.Search);
+                   this.CurrentPage == other.CurrentPage &&
+                   this.ItemsPerPage == other.ItemsPerPage &&
+                   string.Equals(this.SortBy, other.SortBy) &&
+                   this.Reverse == other.Reverse &&
+                   string.Equals(this.Search, other.Search) &&
+                   Equals(Filter, other.Filter);
         }
 
         public override bool Equals(object obj)
@@ -132,8 +139,7 @@ namespace Paging
             {
                 return false;
             }
-
-            return this.Equals((PagingInfo)obj);
+            return this.Equals((PagingInfo) obj);
         }
 
         public override int GetHashCode()
@@ -145,13 +151,9 @@ namespace Paging
                 hashCode = (hashCode * 397) ^ (this.SortBy != null ? this.SortBy.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ this.Reverse.GetHashCode();
                 hashCode = (hashCode * 397) ^ (this.Search != null ? this.Search.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (this.Filter != null ? this.Filter.GetHashCode() : 0);
                 return hashCode;
             }
-        }
-
-        public override string ToString()
-        {
-            return this.ToQueryString();
         }
     }
 
