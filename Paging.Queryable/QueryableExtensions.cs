@@ -36,7 +36,8 @@ namespace Paging.Queryable
                     var op = stringValue[0];
                     if (op.IsOperator())
                     {
-                        // If the given string value contains a comparison operator, we apply it
+                        // If the given string value contains a comparison operator,
+                        // we apply it together with the rest of the expression
                         queryable = queryable.TryWhere($"{filter.Key} {filter.Value}");
                     }
                     else
@@ -45,13 +46,9 @@ namespace Paging.Queryable
                         queryable = queryable.TryWhere($"{filter.Key}.ToString().ToLower().Contains(\"{stringValue.Replace("\"", "").ToLower()}\")");
                     }
                 }
-                else if (filter.Value.IsNumericType() || filter.Value is bool)
+                else if (filter.Value.IsNumericType() || filter.Value is bool || filter.Value is DateTime)
                 {
-                    queryable = queryable.TryWhere($"{filter.Key} == {filter.Value}");
-                }
-                else if (filter.Value is DateTime dateTimeValue)
-                {
-                    queryable = queryable.TryWhere($"{filter.Key} == @0", dateTimeValue);
+                    queryable = queryable.TryWhere($"{filter.Key} == @0", filter.Value);
                 }
                 else if (filter.Value is IDictionary<string, object> ranges)
                 {

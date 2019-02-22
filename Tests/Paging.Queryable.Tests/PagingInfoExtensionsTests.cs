@@ -120,7 +120,7 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
-        public void ShouldCreatePaginationSet_WithFilter_SingleProperty()
+        public void ShouldCreatePaginationSet_WithFilter_SingleString()
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
@@ -148,6 +148,36 @@ namespace Paging.Queryable.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(6);
+            paginationSet.TotalCountUnfiltered.Should().Be(12);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithFilter_SingleInt()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList("BMW", "X", 3)
+                .Union(CarFactory.GenerateCarsList("BMW", "M", 3))
+                .Union(CarFactory.GenerateCarsList("Audi", "A", 3))
+                .Union(CarFactory.GenerateCarsList("Mercedes", "G", 3))
+                .AsQueryable();
+
+            var pagingInfo = new PagingInfo
+            {
+                Filter =
+                {
+                    { "id", 1 }
+                }
+            };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(1);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(1);
             paginationSet.TotalCountUnfiltered.Should().Be(12);
         }
 
