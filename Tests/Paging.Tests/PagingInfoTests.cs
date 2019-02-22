@@ -18,11 +18,32 @@ namespace Paging.Tests
             // Act
             var pagingInfoDefault = PagingInfo.Default;
 
-            // Assert
+            // Assert GetHashCode
+            var hashCodeHashCode = pagingInfo.GetHashCode();
+            var pagingInfoDefaultHashCode = pagingInfoDefault.GetHashCode();
+            hashCodeHashCode.Should().Be(pagingInfoDefaultHashCode);
+
+            // Assert Equals
             pagingInfoDefault.Should().BeEquivalentTo(pagingInfo);
             pagingInfoDefault.Equals(pagingInfo).Should().BeTrue();
+
+            // Assert Operators
             (pagingInfoDefault == pagingInfo).Should().BeTrue();
             (pagingInfoDefault != pagingInfo).Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldNotEqualToDefault_IfFilterIsDifferent()
+        {
+            // Arrange
+            var pagingInfo1 = new PagingInfo { Filter = null };
+            var pagingInfo2 = new PagingInfo { Filter = new Dictionary<string, object> { { "key", "value" } } };
+
+            // Act
+            var equal = pagingInfo1.Equals(pagingInfo2);
+
+            // Assert
+            equal.Should().BeFalse();
         }
 
         [Fact]
