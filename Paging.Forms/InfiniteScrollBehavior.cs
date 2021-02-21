@@ -89,8 +89,7 @@ namespace Paging.Forms
 
         private bool ShouldLoadMore(object item)
         {
-            var list = this.ItemsSource as IList;
-            if (list != null)
+            if (this.ItemsSource is IList list)
             {
                 if (list.Count == 0)
                 {
@@ -110,15 +109,13 @@ namespace Paging.Forms
             var behavior = bindable as InfiniteScrollBehavior;
             if (behavior != null)
             {
-                var oldLoading = oldValue as IInfiniteScrollLoading;
-                if (oldLoading != null)
+                if (oldValue is IInfiniteScrollLoading oldLoading)
                 {
                     oldLoading.LoadingMore -= behavior.OnLoadingMore;
                     behavior.UpdateIsLoadingMore(null, false);
                 }
 
-                var newLoading = oldValue as IInfiniteScrollLoading;
-                if (newLoading != null)
+                if (newValue is IInfiniteScrollLoading newLoading)
                 {
                     newLoading.LoadingMore += behavior.OnLoadingMore;
                     behavior.UpdateIsLoadingMore(null, newLoading.IsLoadingMore);
