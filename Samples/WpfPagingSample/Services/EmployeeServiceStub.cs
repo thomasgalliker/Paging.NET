@@ -19,7 +19,13 @@ namespace WpfPagingSample.Services
 
         public Task<PaginationSet<Employee>> GetEmployeesAsync(PagingInfo pagingInfo)
         {
-            // Use Paging.Queryable NuGet package to perform search/sort/group/paging
+            // Important information:
+            // In a real-world implementation this implementation of IEmployeeService
+            // would send the PagingInfo object to the backend where the database is
+            // performing searching, sorting, grouping and paging.
+            // 
+            // --> Use Paging.Queryable NuGet package for any .NET / EntityFramework-based backends
+
             var skip = (pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage;
             var take = pagingInfo.ItemsPerPage;
             var queryable = this.employees.Skip(skip).Take(take);
