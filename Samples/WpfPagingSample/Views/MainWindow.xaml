@@ -24,14 +24,8 @@
         </DataGrid>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Label>
-                <Label.Content>
-                    <Binding Path="CurrentPage">
-                        <Binding.StringFormat>Current Page: {0}</Binding.StringFormat>
-                    </Binding>
-                </Label.Content>
-            </Label>
             <Button Content="Next" Command="{Binding NextPageCommand}"/>
+            <Label Content="{Binding CurrentPage}" ContentStringFormat="Current Page: {0}" />
             <Button Content="Previous" Command="{Binding PreviousPageCommand}" />
         </StackPanel>
     </Grid>
