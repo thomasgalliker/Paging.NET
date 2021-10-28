@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <PackageReference Include="System.Linq.Dynamic" Version="1.0.7" />
+    <PackageReference Include="System.Linq.Dynamic" Version="1.0.8" />
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45' ">
