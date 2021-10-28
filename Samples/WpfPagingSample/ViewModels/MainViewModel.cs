@@ -22,7 +22,7 @@ namespace WpfPagingSample.ViewModels
 
             this.pagingInfo = new PagingInfo
             {
-                CurrentPage = 1,
+                CurrentPage = currentPage,
                 ItemsPerPage = 10,
             };
 
@@ -36,6 +36,7 @@ namespace WpfPagingSample.ViewModels
 
         private void GoToPreviousPage()
         {
+            // TODO: Check if lower bound is reached
             this.CurrentPage--;
             this.DisplayAllEmployees(this.pagingInfo);
         }
@@ -44,6 +45,7 @@ namespace WpfPagingSample.ViewModels
 
         private void GoToNextPage()
         {
+            // TODO: Check if upper bound is reached
             this.CurrentPage++;
             this.DisplayAllEmployees(this.pagingInfo);
         }
