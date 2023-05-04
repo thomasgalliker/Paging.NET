@@ -43,7 +43,7 @@
     <PackageReleaseNotes>
 
     </PackageReleaseNotes>
-    <Copyright>Copyright 2018</Copyright>
+    <Copyright>Copyright 2023</Copyright>
   </PropertyGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net40|net45'">

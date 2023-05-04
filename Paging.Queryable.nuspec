@@ -34,10 +34,10 @@
         <dependency id="Paging.NET" version="[$version$,)" />
       </group>
       <group targetFramework="net45">
-        <dependency id="System.Linq.Dynamic" version="[1.0.7,)" />
+        <dependency id="System.Linq.Dynamic" version="[1.0.8,)" />
       </group>
       <group targetFramework="netstandard1.3">
-        <dependency id="System.Linq.Dynamic.Core" version="[1.0.8.11,)" />
+        <dependency id="System.Linq.Dynamic.Core" version="[1.3.2,)" />
       </group>
     </dependencies>
   </metadata>
