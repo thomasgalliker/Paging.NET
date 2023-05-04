@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -33,7 +32,7 @@ namespace Paging
             this.Items = items ?? Enumerable.Empty<T>();
             if (pagingInfo.ItemsPerPage > 0)
             {
-                this.TotalPages = (int)Math.Ceiling((decimal)totalCount / pagingInfo.ItemsPerPage);
+                this.TotalPages = Math.Ceiling((decimal)totalCount / pagingInfo.ItemsPerPage);
             }
             else
             {

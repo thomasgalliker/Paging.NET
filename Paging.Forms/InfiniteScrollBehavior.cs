@@ -75,8 +75,7 @@ namespace Paging.Forms
                 return;
             }
 
-            var loader = this.ItemsSource as IInfiniteScrollLoader;
-            if (loader != null)
+            if (this.ItemsSource is IInfiniteScrollLoader loader)
             {
                 if (loader.CanLoadMore && this.ShouldLoadMore(e.Item))
                 {
@@ -106,8 +105,7 @@ namespace Paging.Forms
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            var behavior = bindable as InfiniteScrollBehavior;
-            if (behavior != null)
+            if (bindable is InfiniteScrollBehavior behavior)
             {
                 if (oldValue is IInfiniteScrollLoading oldLoading)
                 {
