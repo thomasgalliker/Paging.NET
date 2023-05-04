@@ -1,13 +1,13 @@
 ####################################################################
 # VSTS Build Configuration, Version 1.4
 #
-# (c)2021 superdev GmbH
+# (c)2022 superdev GmbH
 ####################################################################
 
 name: $[format('{0}', variables['buildName'])]
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'windows-2022'
 
 trigger:
   branches:
@@ -19,8 +19,6 @@ trigger:
 
   paths:
     exclude:
-    - README.md
-    - Images/*
     - Samples/*
 
 variables:
@@ -70,24 +68,22 @@ steps:
     FailOnWarning: false
     DisableTelemetry: false'
 
-
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 6.x'
   inputs:
     versionSpec: 6.x
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   displayName: 'NuGet restore'
   inputs:
-    restoreSolution: '$(solution)'
+    command: restore
+    projects: '$(solution)'
 
-- task: VSBuild@1
+- task: DotNetCoreCLI@2
   displayName: 'Build solution'
   inputs:
-    solution: '$(solution)'
-    msbuildArgs: ''
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    projects: '$(solution)'
+    arguments: '--no-restore --configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: 'Run UnitTests'
@@ -99,16 +95,24 @@ steps:
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: 'Create Code Coverage Report'
   inputs:
-    reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura.xml'
+    reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura*.xml'
     targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
     reporttypes: 'Cobertura'
     assemblyfilters: '-xunit*'
-
+    
 - task: NuGetCommand@2
   displayName: 'Pack Paging'
   inputs:
     command: custom
     arguments: pack $(nuspecFile) -Version $(semVersion) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
+    
+#- task: DotNetCoreCLI@2
+#  displayName: 'Pack Paging'
+#  inputs:
+#    command: pack
+#    packagesToPack: Paging/Paging.csproj
+#    versioningScheme: byEnvVar
+#    versionEnvVar: semVersion
     
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
@@ -116,7 +120,7 @@ steps:
     SourceFolder: '$(system.defaultworkingdirectory)'
 
     Contents: |
-     **\bin\$(buildConfiguration)\**
+     **\bin\$(BuildConfiguration)\**
      **\bin\*.nupkg
 
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
