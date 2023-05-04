@@ -1,19 +1,38 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Paging.Tests.Testdata;
 using Xunit;
-using Paging;
 
 namespace Paging.Tests
 {
     public class PaginationSetTests
     {
         [Fact]
-        public void ShouldInitializePaginationSetWithDefaultValues()
+        public void ShouldInitializePaginationSetWithDefaultValues_EmptyConstructor()
+        {
+            // Act
+            var paginationSet = new PaginationSet<Car>();
+
+            // Assert
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalCount.Should().Be(0);
+            paginationSet.TotalCountUnfiltered.Should().Be(0);
+            paginationSet.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ShouldInitializePaginationSetWithDefaultValues_WithDefaultParameters()
         {
             // Arrange
-            var paginationSet = new PaginationSet<Car>();
+            PagingInfo pagingInfo = null;
+            IEnumerable<Car> items = null;
+            const int totalCount = 0;
+            const int totalCountUnfiltered = 0;
+
+            // Act
+            var paginationSet = new PaginationSet<Car>(pagingInfo, items, totalCount, totalCountUnfiltered);
 
             // Assert
             paginationSet.CurrentPage.Should().Be(1);

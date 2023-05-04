@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 
+using System.Linq.Expressions;
 #if NETSTANDARD1_3
 using System.Linq.Dynamic.Core;
+using System.Linq.Dynamic.Core.Exceptions;
 #else
 using System.Linq.Dynamic;
 #endif
@@ -13,7 +15,12 @@ namespace Paging.Queryable
 {
     public static class PagingInfoExtensions
     {
-        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> filterPredicate = null)
+        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>> searchPredicate = null)
+        {
+            return pagingInfo.CreatePaginationSet(queryable, entities => entities, searchPredicate);
+        }
+
+        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> searchPredicate = null)
         {
             if (pagingInfo == null)
             {
@@ -25,10 +32,16 @@ namespace Paging.Queryable
             {
                 var totalCountUnfiltered = queryable.Count();
 
-                // Filter
-                if (filterPredicate != null && pagingInfo.Search != null)
+                // Free-text search using custom search predicate
+                if (pagingInfo.Search != null && searchPredicate != null)
                 {
-                    queryable = queryable.Where(filterPredicate);
+                    queryable = queryable.Where(searchPredicate);
+                }
+
+                // Property-based filter
+                if (pagingInfo.Filter != null)
+                {
+                    queryable = queryable.ApplyFilter(pagingInfo.Filter);
                 }
 
                 var totalCount = queryable.Count();
@@ -36,29 +49,23 @@ namespace Paging.Queryable
                 // Order
                 if (!string.IsNullOrEmpty(pagingInfo.SortBy))
                 {
-                    var sortBy = pagingInfo.SortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (sortBy.Length == 1)
-                    {
-                        queryable = queryable.OrderBy(sortBy[0] + (pagingInfo.Reverse ? " descending" : ""));
-                    }
-                    if (sortBy.Length > 1)
-                    {
-                        queryable = queryable.OrderBy(pagingInfo.SortBy);
-                    }
+                    queryable = queryable.OrderBy(pagingInfo.Sorting, pagingInfo.Reverse);
                 }
                 else
                 {
-                    // Need to OrderBy before Skip/Take. Maybe we should throw an exception here?
-                    queryable = queryable.OrderBy("Id");
+                    queryable = queryable.OrderByDefault();
                 }
 
                 // Page
                 if (pagingInfo.ItemsPerPage > 0)
                 {
-                    queryable = queryable.Skip((pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage).Take(pagingInfo.ItemsPerPage);
+                    var skip = (pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage;
+                    var take = pagingInfo.ItemsPerPage;
+                    Trace.WriteLine($"Paging.Skip({skip}).Take({take})");
+                    queryable = queryable.Skip(skip).Take(take);
                 }
 
-                var dtos = mapEntitiesToDtos(queryable);
+                var dtos = mapEntitiesToDtos(queryable.ToList());
                 var paginationSet = new PaginationSet<TDto>(pagingInfo, dtos, totalCount, totalCountUnfiltered);
                 return paginationSet;
             }

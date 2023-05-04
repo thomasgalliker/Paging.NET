@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2011
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Shared", "Paging.Shared\Paging.Shared.shproj", "{A9D5A23A-94BC-4A2A-91A7-BB843210E653}"
 EndProject
@@ -23,6 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging", "Paging\Paging.csp
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Paging.Shared\Paging.Shared.projitems*{786c4365-894d-458e-9321-075450dc5312}*SharedItemsImports = 5
 		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

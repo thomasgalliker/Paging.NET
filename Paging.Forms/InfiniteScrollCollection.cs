@@ -76,7 +76,9 @@ namespace Paging.Forms
         public void AddRange(IEnumerable<T> collection)
         {
             if (collection == null)
+            {
                 throw new ArgumentNullException(nameof(collection));
+            }
 
             this.CheckReentrancy();
 
@@ -84,7 +86,9 @@ namespace Paging.Forms
             var changedItems = new List<T>(collection);
 
             foreach (var i in changedItems)
+            {
                 this.Items.Add(i);
+            }
 
             this.OnPropertyChanged(new PropertyChangedEventArgs("Count"));
             this.OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));

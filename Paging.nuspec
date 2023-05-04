@@ -14,9 +14,11 @@
     <tags>
       infinite scrolling scroll paging pagination paged server-side filtering filter sorting sort
     </tags>
-    <releaseNotes>  
+    <releaseNotes>2.2.0
+- Maintenance update
+
 2.0.0
-- Add support for .net standard
+- Add support for .NET standard
 
 1.0.3
 - Added PagingInfo == and != operators
@@ -27,7 +29,7 @@
 1.0.1
 - Initial release
     </releaseNotes>
-    <copyright>Copyright 2018</copyright>
+    <copyright>Copyright 2023</copyright>
     <language>en-US</language>
     <dependencies/>
   </metadata>
