@@ -1,13 +1,13 @@
 ####################################################################
 # VSTS Build Configuration, Version 1.4
 #
-# (c)2022 superdev GmbH
+# (c)2021 superdev GmbH
 ####################################################################
 
 name: $[format('{0}', variables['buildName'])]
 
 pool:
-  vmImage: 'windows-2022'
+  vmImage: 'windows-2019'
 
 trigger:
   branches:
@@ -73,17 +73,18 @@ steps:
   inputs:
     versionSpec: 6.x
 
-- task: DotNetCoreCLI@2
+- task: NuGetCommand@2
   displayName: 'NuGet restore'
   inputs:
-    command: restore
-    projects: '$(solution)'
+    restoreSolution: '$(solution)'
 
-- task: DotNetCoreCLI@2
+- task: VSBuild@1
   displayName: 'Build solution'
   inputs:
-    projects: '$(solution)'
-    arguments: '--no-restore --configuration $(buildConfiguration)'
+    solution: '$(solution)'
+    msbuildArgs: ''
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   displayName: 'Run UnitTests'
@@ -99,20 +100,12 @@ steps:
     targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
     reporttypes: 'Cobertura'
     assemblyfilters: '-xunit*'
-    
+
 - task: NuGetCommand@2
   displayName: 'Pack Paging.Forms'
   inputs:
     command: custom
     arguments: pack $(nuspecFile) -Version $(semVersion) -NoPackageAnalysis -outputdirectory $(Build.ArtifactStagingDirectory)\artifacts
-    
-#- task: DotNetCoreCLI@2
-#  displayName: 'Pack Paging.Forms'
-#  inputs:
-#    command: pack
-#    packagesToPack: Paging.Forms/Paging.Forms.csproj
-#    versioningScheme: byEnvVar
-#    versionEnvVar: semVersion
     
 - task: CopyFiles@2
   displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
