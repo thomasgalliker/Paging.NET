@@ -19,8 +19,6 @@ trigger:
 
   paths:
     exclude:
-    - README.md
-    - Images/*
     - Samples/*
 
 variables:
@@ -29,7 +27,7 @@ variables:
   buildConfiguration: 'Release'
   nuspecFile: 'Paging.Forms.nuspec'
   majorVersion: 2
-  minorVersion: 1
+  minorVersion: 2
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
     # Versioning: 1.0.0
@@ -70,7 +68,6 @@ steps:
     FailOnWarning: false
     DisableTelemetry: false'
 
-
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 5.x'
   inputs:
@@ -99,7 +96,7 @@ steps:
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: 'Create Code Coverage Report'
   inputs:
-    reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura.xml'
+    reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura*.xml'
     targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
     reporttypes: 'Cobertura'
     assemblyfilters: '-xunit*'
@@ -116,7 +113,7 @@ steps:
     SourceFolder: '$(system.defaultworkingdirectory)'
 
     Contents: |
-     **\bin\$(buildConfiguration)\**
+     **\bin\$(BuildConfiguration)\**
      **\bin\*.nupkg
 
     TargetFolder: '$(Build.ArtifactStagingDirectory)'

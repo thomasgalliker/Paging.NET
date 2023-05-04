@@ -104,7 +104,7 @@ namespace Paging
 
         public bool Equals(PagingInfo other)
         {
-            if (ReferenceEquals(null, other))
+            if (other is null)
             {
                 return false;
             }
@@ -125,7 +125,7 @@ namespace Paging
 
         private static bool FilterEquals(IDictionary<string, object> filter, IDictionary<string, object> other)
         {
-            if (ReferenceEquals(null, filter) || ReferenceEquals(null, other))
+            if (filter is null || other is null)
             {
                 return false;
             }
@@ -141,7 +141,7 @@ namespace Paging
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
+            if (obj is null)
             {
                 return false;
             }
@@ -155,7 +155,7 @@ namespace Paging
             {
                 return false;
             }
-            return this.Equals((PagingInfo) obj);
+            return this.Equals((PagingInfo)obj);
         }
 
         public override int GetHashCode()
@@ -175,7 +175,7 @@ namespace Paging
                         hashCode = (hashCode * 397) ^ filter.GetHashCode();
                     }
                 }
-             
+
                 return hashCode;
             }
         }
