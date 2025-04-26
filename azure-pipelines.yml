@@ -24,7 +24,7 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  workloadsCache: $(Pipeline.Workspace)\workloadscache
+  workloadsCache: $(Pipeline.Workspace)/workloadscache
   majorVersion: 3
   minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
