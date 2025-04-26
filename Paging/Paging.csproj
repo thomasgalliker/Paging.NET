@@ -19,7 +19,7 @@
     <Version>1.0.0</Version>
     <Authors>Thomas Galliker</Authors>
     <PackageId>Paging.NET</PackageId>
-    <PackageTags>segmentedcontrol;maui;segmented;control;segment</PackageTags>
+    <PackageTags>infinite;scrolling;scroll;paging;pagination;paged;server-side;filtering;filter;sorting;sort</PackageTags>
     <PackageIcon>logo.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/thomasgalliker/Paging.NET</PackageProjectUrl>

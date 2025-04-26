@@ -1,14 +1,7 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-#if NETSTANDARD1_3
 using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
-#else
-using System.Linq.Dynamic;
-#endif
 
 namespace Paging.Queryable
 {
@@ -86,11 +79,7 @@ namespace Paging.Queryable
                     {
                         var elementType = enumerator.Current.GetType();
                         var castList = enumerable.Cast(elementType);
-#if NET45
-                        const string prefix = "outerIt.";
-#else
                         const string prefix = "";
-#endif
                         queryable = queryable.TryWhere($"@0.Contains({prefix}{filter.Key})", new object[] { castList });
                     }
                     else
