@@ -5,8 +5,6 @@ VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging", "Paging\Paging.csproj", "{12C3A1A2-C021-4159-AEFE-2A999F994655}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Paging.Shared", "Paging.Shared\Paging.Shared.shproj", "{A9D5A23A-94BC-4A2A-91A7-BB843210E653}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{163068B4-1A1C-406E-B44C-B00FBDB81EF5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Tests", "Tests\Paging.Tests\Paging.Tests.csproj", "{7681747C-4FD3-46C4-AFDF-6707BC51FAF0}"
@@ -84,9 +82,5 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Paging.Shared\Paging.Shared.projitems*{12c3a1a2-c021-4159-aefe-2a999f994655}*SharedItemsImports = 5
-		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

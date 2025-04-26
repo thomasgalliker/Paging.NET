@@ -41,6 +41,4 @@
     <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
   </ItemGroup>
 
-  <Import Project="..\Paging.Shared\Paging.Shared.projitems" Label="Shared" />
-
 </Project>
