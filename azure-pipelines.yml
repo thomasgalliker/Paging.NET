@@ -72,6 +72,14 @@ steps:
     version: 8.x
     
 - task: Bash@3
+  displayName: Install .NET MAUI (Experimental)
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet workload restore --download-to-cache --from-cache
+      dotnet workload install maui --ignore-failed-sources --download-to-cache --from-cache
+      
+- task: Bash@3
   displayName: Install .NET MAUI
   inputs:
     targetType: 'inline'
