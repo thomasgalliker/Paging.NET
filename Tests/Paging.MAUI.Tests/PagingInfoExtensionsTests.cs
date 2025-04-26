@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Paging.Forms.Tests
+namespace Paging.MAUI.Tests
 {
     public class PagingInfoExtensionsTests
     {

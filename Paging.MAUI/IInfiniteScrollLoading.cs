@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Paging.Forms
+namespace Paging.MAUI
 {
     public interface IInfiniteScrollLoading
     {

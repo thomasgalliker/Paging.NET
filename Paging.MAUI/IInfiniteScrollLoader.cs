@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Paging.Forms
+﻿namespace Paging.MAUI
 {
     public interface IInfiniteScrollLoader
     {

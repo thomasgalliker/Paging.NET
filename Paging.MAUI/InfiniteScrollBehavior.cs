@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 
-namespace Paging.Forms
+namespace Paging.MAUI
 {
     public class InfiniteScrollBehavior : Behavior<ListView>
     {
