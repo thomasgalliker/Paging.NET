@@ -65,19 +65,27 @@ steps:
     LogLevel: 'verbose'
     FailOnWarning: false
     DisableTelemetry: true
-    
+
+ - task: Cache@2
+   inputs:
+     key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+     restoreKeys: |
+       nuget | "$(Agent.OS)"
+     path: $(Agent.ToolsDirectory)/nuget
+   displayName: 'Cache NuGet pack§ages'
+
 - task: UseDotNet@2
   displayName: 'Use .NET 8.x'
   inputs:
     version: 8.x
     
-- task: Bash@3
-  displayName: Install .NET MAUI (Experimental)
-  inputs:
-    targetType: 'inline'
-    script: |
-      dotnet workload restore --download-to-cache --from-cache
-      dotnet workload install maui --ignore-failed-sources --download-to-cache --from-cache
+ - powershell: |
+     if (-not (dotnet workload list | Select-String 'maui')) {
+       dotnet workload install maui
+     } else {
+       Write-Host "MAUI workload is already installed."
+     }
+   displayName: 'Check and Install MAUI workload'
 
 - task: JavaToolInstaller@0
   displayName: "Install Java"
