@@ -24,7 +24,7 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  workloadsCache: $(Pipeline.Workspace)/workloadscache
+  workloadsCache: $(Pipeline.Workspace)\workloadscache
   majorVersion: 3
   minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
@@ -80,10 +80,14 @@ steps:
   displayName: 'Use .NET 8.x'
   inputs:
     version: 8.x
-
-- script: |
-    dotnet workload install maui --download-to-cache $(workloadsCache)
-  displayName: 'Install MAUI workloads'
+    
+- task: Bash@3
+  displayName: Install .NET MAUI
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet nuget locals all --clear 
+      dotnet workload install maui android ios maui-android maui-ios --source https://api.nuget.org/v3/index.json --download-to-cache $(workloadsCache)
   condition: and(not(canceled()), not(failed()), ne(variables.workloadsCacheHit, 'true'))
 
 - task: Bash@3
@@ -91,7 +95,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      dotnet workload install maui --from-cache $(workloadsCache)
+      dotnet workload install maui android ios maui-android maui-ios --from-cache $(workloadsCache)
   condition: and(not(canceled()), not(failed()), eq(variables.workloadsCacheHit, 'true'))
 
 - task: JavaToolInstaller@0
