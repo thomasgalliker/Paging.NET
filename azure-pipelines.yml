@@ -24,6 +24,7 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  workloadsCache: $(Agent.ToolsDirectory)/.workloads
   majorVersion: 3
   minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
@@ -68,24 +69,30 @@ steps:
 
 - task: Cache@2
   inputs:
-    key: 'nuget | "$(Agent.OS)" | **/*.csproj'
+    key: 'workloads | "$(Agent.OS)" | **/*.csproj | **/azure-pipelines.yml'
     restoreKeys: |
       nuget | "$(Agent.OS)"
-    path: $(Agent.ToolsDirectory)/nuget
-  displayName: 'Cache NuGet packages'
+    path: $(workloadsCache)
+    cacheHitVar: workloadsCacheHit
+  displayName: 'Cache workloads'
 
 - task: UseDotNet@2
   displayName: 'Use .NET 8.x'
   inputs:
     version: 8.x
-    
+
+- script: |
+    mkdir -p $(workloadsCache)
+    dotnet workload install maui --download-to-cache $(workloadsCache)
+  displayName: 'Install MAUI workloads'
+  condition: and(not(canceled()), not(failed()), ne(variables.workloadsCacheHit, 'true'))
+
 - task: Bash@3
-  displayName: Install .NET MAUI (Fast)
+  displayName: Restore MAUI workloads
   inputs:
     targetType: 'inline'
     script: |
-      dotnet workload restore
-      dotnet workload install maui --from-cache --skip-manifest-update
+      dotnet workload install maui --from-cache $(workloadsCache)
 
 - task: JavaToolInstaller@0
   displayName: "Install Java"
