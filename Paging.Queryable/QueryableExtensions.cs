@@ -36,7 +36,7 @@ namespace Paging.Queryable
                     else
                     {
                         // No comparison operator means: key.Contains(value)
-                        queryable = queryable.TryWhere($"{filter.Key}.ToString().ToLower().Contains(\"{stringValue.Replace("\"", "").ToLower()}\")");
+                        queryable = queryable.TryWhere(searchProperty: filter.Key, "cn", stringValue.Replace("\"", "").ToLowerInvariant());
                     }
                 }
                 else if (filter.Value.IsNumericType() || filter.Value is bool || filter.Value is DateTime)
@@ -134,6 +134,22 @@ namespace Paging.Queryable
             return source;
         }
 
+        internal static IQueryable<TSource> TryWhere<TSource>(this IQueryable<TSource> source, string searchProperty, string searchOper, string searchString)
+        {
+            try
+            {
+                Logger.Debug($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString}");
+                var queryable = QueryExtensions.Where(source, searchProperty, searchOper, searchString);
+                return queryable;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString} failed.", ex);
+            }
+
+            return source;
+        }
+
         public static IQueryable<TEntity> OrderBy<TEntity>(this IQueryable<TEntity> queryable, IReadOnlyDictionary<string, SortOrder> sorting, bool reverse)
         {
             if (reverse)
@@ -172,16 +188,6 @@ namespace Paging.Queryable
         // Need to OrderBy before Skip/Take.
         public static IQueryable<TEntity> OrderByDefault<TEntity>(this IQueryable<TEntity> queryable)
         {
-            //try
-            //{
-            //    queryable = queryable.OrderBy("Id");
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Error($"Paging.OrderByDefault (using Id) failed. {ex.Message} {Environment.NewLine}" +
-            //                    $"{ex.StackTrace}", ex.GetType().Name);
-            //}
-
             try
             {
                 Logger.Info($"Paging.OrderByDefault({OrderByDefaultProperty})");
