@@ -72,7 +72,7 @@ steps:
     restoreKeys: |
       nuget | "$(Agent.OS)"
     path: $(Agent.ToolsDirectory)/nuget
-  displayName: 'Cache NuGet pack§ages'
+  displayName: 'Cache NuGet packages'
 
 - task: UseDotNet@2
   displayName: 'Use .NET 8.x'
