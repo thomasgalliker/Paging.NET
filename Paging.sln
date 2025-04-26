@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.MAUI", "Paging.MAUI\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Queryable", "Paging.Queryable\Paging.Queryable.csproj", "{F58AA23C-923D-2C0D-559F-AF420C37E994}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Queryable.Tests", "Tests\Paging.Queryable.Tests\Paging.Queryable.Tests.csproj", "{4A990E75-3CEE-8823-185C-327CEA019094}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.MAUI.Tests", "Tests\Paging.MAUI.Tests\Paging.MAUI.Tests.csproj", "{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +63,14 @@ Global
 		{F58AA23C-923D-2C0D-559F-AF420C37E994}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F58AA23C-923D-2C0D-559F-AF420C37E994}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F58AA23C-923D-2C0D-559F-AF420C37E994}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A990E75-3CEE-8823-185C-327CEA019094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A990E75-3CEE-8823-185C-327CEA019094}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A990E75-3CEE-8823-185C-327CEA019094}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A990E75-3CEE-8823-185C-327CEA019094}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -67,6 +79,8 @@ Global
 		{7681747C-4FD3-46C4-AFDF-6707BC51FAF0} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
 		{7F82A1F4-0E5E-4095-9519-7D4C324DE0E6} = {72F59CFF-03A0-4DC2-80C7-13FB8831EED2}
 		{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F} = {72F59CFF-03A0-4DC2-80C7-13FB8831EED2}
+		{4A990E75-3CEE-8823-185C-327CEA019094} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
+		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}
