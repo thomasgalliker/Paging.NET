@@ -79,13 +79,13 @@ steps:
   inputs:
     version: 8.x
     
-- powershell: |
-    if (-not (dotnet workload list | Select-String 'maui')) {
-      dotnet workload install maui
-    } else {
-      Write-Host "MAUI workload is already installed."
-    }
-  displayName: 'Check and Install MAUI workload'
+- task: Bash@3
+  displayName: Install .NET MAUI (Fast)
+  inputs:
+    targetType: 'inline'
+    script: |
+      dotnet workload restore
+      dotnet workload install maui --from-cache --skip-manifest-update
 
 - task: JavaToolInstaller@0
   displayName: "Install Java"
