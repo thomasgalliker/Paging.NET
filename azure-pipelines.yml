@@ -24,7 +24,7 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  workloadsCache: $(Agent.ToolsDirectory)/.workloads
+  workloadsCache: $(Pipeline.Workspace)/workloadscache
   majorVersion: 3
   minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
@@ -82,7 +82,6 @@ steps:
     version: 8.x
 
 - script: |
-    mkdir -p $(workloadsCache)
     dotnet workload install maui --download-to-cache $(workloadsCache)
   displayName: 'Install MAUI workloads'
   condition: and(not(canceled()), not(failed()), ne(variables.workloadsCacheHit, 'true'))
@@ -93,6 +92,7 @@ steps:
     targetType: 'inline'
     script: |
       dotnet workload install maui --from-cache $(workloadsCache)
+  condition: and(not(canceled()), not(failed()), eq(variables.workloadsCacheHit, 'true'))
 
 - task: JavaToolInstaller@0
   displayName: "Install Java"
