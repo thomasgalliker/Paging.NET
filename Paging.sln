@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31729.503
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging", "Paging\Paging.csproj", "{12C3A1A2-C021-4159-AEFE-2A999F994655}"
 EndProject
@@ -18,17 +18,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D6F3C1E3-9894-41A6-ABC3-F38EA4DDE2ED}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		azure-pipelines.yml = azure-pipelines.yml
 		Paging.nuspec = Paging.nuspec
 		Paging.yml = Paging.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfPagingSample", "Samples\WpfPagingSample\WpfPagingSample.csproj", "{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.MAUI", "Paging.MAUI\Paging.MAUI.csproj", "{73562DC2-1B3A-48BF-96C6-31831BDB9FA0}"
+EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Paging.Shared\Paging.Shared.projitems*{12c3a1a2-c021-4159-aefe-2a999f994655}*SharedItemsImports = 5
-		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -50,6 +49,10 @@ Global
 		{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73562DC2-1B3A-48BF-96C6-31831BDB9FA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73562DC2-1B3A-48BF-96C6-31831BDB9FA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73562DC2-1B3A-48BF-96C6-31831BDB9FA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73562DC2-1B3A-48BF-96C6-31831BDB9FA0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -61,5 +64,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Paging.Shared\Paging.Shared.projitems*{12c3a1a2-c021-4159-aefe-2a999f994655}*SharedItemsImports = 5
+		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

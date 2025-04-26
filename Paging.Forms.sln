@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31729.503
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging", "Paging\Paging.csproj", "{12C3A1A2-C021-4159-AEFE-2A999F994655}"
 EndProject
@@ -17,15 +17,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Paging.Forms.yml = Paging.Forms.yml
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Forms", "Paging.Forms\Paging.Forms.csproj", "{581B624A-7402-4E0F-B074-71DAC2545629}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Paging.Forms.Tests", "Tests\Paging.Forms.Tests\Paging.Forms.Tests.csproj", "{E207570D-4212-4193-95E6-14F3530CF5FC}"
 EndProject
 Global
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		Paging.Shared\Paging.Shared.projitems*{12c3a1a2-c021-4159-aefe-2a999f994655}*SharedItemsImports = 5
-		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
 		Ad-Hoc|iPhone = Ad-Hoc|iPhone
@@ -65,30 +59,6 @@ Global
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Release|iPhone.Build.0 = Release|Any CPU
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
 		{12C3A1A2-C021-4159-AEFE-2A999F994655}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|Any CPU.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|Any CPU.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|iPhone.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|iPhone.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Ad-Hoc|iPhoneSimulator.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|Any CPU.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|Any CPU.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|iPhone.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|iPhone.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.AppStore|iPhoneSimulator.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|iPhone.ActiveCfg = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|iPhone.Build.0 = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|Any CPU.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|iPhone.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|iPhone.Build.0 = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
-		{581B624A-7402-4E0F-B074-71DAC2545629}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
 		{E207570D-4212-4193-95E6-14F3530CF5FC}.Ad-Hoc|Any CPU.ActiveCfg = Release|Any CPU
 		{E207570D-4212-4193-95E6-14F3530CF5FC}.Ad-Hoc|Any CPU.Build.0 = Release|Any CPU
 		{E207570D-4212-4193-95E6-14F3530CF5FC}.Ad-Hoc|iPhone.ActiveCfg = Release|Any CPU
@@ -122,5 +92,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Paging.Shared\Paging.Shared.projitems*{a9d5a23a-94bc-4a2a-91a7-bb843210e653}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

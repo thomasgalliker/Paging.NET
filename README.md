@@ -1,8 +1,5 @@
 # Paging.NET
-[![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)
-
-<img src="https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png" height="100" alt="Paging.NET" align="right">
-Paging provides tools which are commonly used for handling paged data loading.
+[![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) [![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-FFDD00)](https://buymeacoffee.com/thomasgalliker)
 
 ### Download and Install Paging.NET
 This library is available on NuGet: https://www.nuget.org/packages/Paging.NET/
@@ -13,12 +10,11 @@ Use the following command to install Paging using NuGet package manager console:
 You can use this library in any .Net project which is compatible to .Net Standard 1.0 and higher as well as with legacy PCL projects.
 
 
-### Latest Builds
+### Latest Releases
 
 |   | Paging.NET| Paging.Forms.NET | Paging.Queryable.NET |
 | - | ---------- | ---------------- | -------------------- |
 |Version| [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
-|Pre-Release| [![Version](https://img.shields.io/nuget/vpre/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Version](https://img.shields.io/nuget/vpre/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Version](https://img.shields.io/nuget/vpre/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
 |Downloads| [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
 
 ### API Usage
@@ -36,6 +32,3 @@ TODO: Document the usage of PagingInfo and PaginationSet in some concrete exampl
 
 ### Contribution
 Contributors welcome! If you find a bug or you want to propose a new feature, feel free to do so by opening a new issue on github.com.
-
-### License
-This project is Copyright &copy; 2019 [Thomas Galliker](https://ch.linkedin.com/in/thomasgalliker). Free for non-commercial use. For commercial use please contact the author.

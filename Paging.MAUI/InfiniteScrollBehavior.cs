@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using Xamarin.Forms;
 
 namespace Paging.Forms
 {
