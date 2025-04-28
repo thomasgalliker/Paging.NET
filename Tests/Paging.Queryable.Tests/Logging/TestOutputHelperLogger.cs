@@ -1,28 +1,58 @@
-﻿using System;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Paging.Queryable.Tests.Logging
 {
-    internal class TestOutputHelperLogger : ILogger
+    public class TestOutputHelperLogger<T> : TestOutputHelperLogger, ILogger<T>
     {
-        private readonly ITestOutputHelper testOutputHelper;
-
         public TestOutputHelperLogger(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper, typeof(T).Name)
         {
+        }
+    }
+
+    public class TestOutputHelperLogger : ILogger
+    {
+        private const string EndOfLine = "[EOL]";
+        private readonly ITestOutputHelper testOutputHelper;
+        private readonly string targetName;
+
+        public TestOutputHelperLogger(ITestOutputHelper testOutputHelper, string targetName)
+        {
+            this.targetName = targetName;
             this.testOutputHelper = testOutputHelper;
         }
 
-        public void Log(LogLevel level, string message)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             try
             {
-                this.testOutputHelper.WriteLine($"{DateTime.UtcNow} - {level} - {message} [EOL]");
+                var message = formatter?.Invoke(state, exception);
+                var messageLine = $"{DateTime.UtcNow} - {logLevel} - {this.targetName} - {message} {EndOfLine}";
+                this.testOutputHelper.WriteLine(messageLine);
+                Debug.WriteLine(messageLine);
             }
             catch (InvalidOperationException)
             {
                 // TestOutputHelperLogger throws an InvalidOperationException
                 // if it is no longer associated with a test case.
             }
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return new NonDisposable();
+        }
+
+        private class NonDisposable : IDisposable
+        {
+            public void Dispose() { }
         }
     }
 }

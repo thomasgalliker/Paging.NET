@@ -1,7 +1,9 @@
 using System.Collections;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Paging.Queryable
 {
@@ -22,7 +24,7 @@ namespace Paging.Queryable
                     if (string.IsNullOrEmpty(stringValue))
                     {
                         // Ignore null/empty values
-                        Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
+                        Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.");
                         continue;
                     }
 
@@ -50,7 +52,7 @@ namespace Paging.Queryable
                         if (string.IsNullOrEmpty(range.Key))
                         {
                             // Ignore null/empty operator
-                            Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
+                            Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.");
                             continue;
                         }
 
@@ -84,7 +86,7 @@ namespace Paging.Queryable
                     }
                     else
                     {
-                        Logger.Warning($"Filter collection for key '{filter.Key}' is empty.");
+                        Trace.WriteLine($"Filter collection for key '{filter.Key}' is empty.");
                     }
                 }
                 else
@@ -123,12 +125,12 @@ namespace Paging.Queryable
         {
             try
             {
-                Logger.Debug($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
                 return source.Where(predicate, args);
             }
             catch (Exception ex)
             {
-                Logger.Error($"Paging.TryWhere with Predicate: \"{predicate}\" failed.", ex);
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\" failed with exception: {ex}");
             }
 
             return source;
@@ -138,13 +140,13 @@ namespace Paging.Queryable
         {
             try
             {
-                Logger.Debug($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString}");
+                Trace.WriteLine($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString}");
                 var queryable = QueryExtensions.Where(source, searchProperty, searchOper, searchString);
                 return queryable;
             }
             catch (Exception ex)
             {
-                Logger.Error($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString} failed.", ex);
+                Trace.WriteLine($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString} failed with exception: {ex}");
             }
 
             return source;
@@ -160,7 +162,7 @@ namespace Paging.Queryable
             }
 
             var sortBy = sorting.ToSortByString();
-            Logger.Debug($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
+            Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
 
             try
             {
@@ -170,7 +172,7 @@ namespace Paging.Queryable
             {
                 queryable = queryable.OrderByDefault();
 
-                Logger.Error($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed.", ex);
+                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed with exception: {ex}");
             }
 
             return queryable;
@@ -190,12 +192,12 @@ namespace Paging.Queryable
         {
             try
             {
-                Logger.Info($"Paging.OrderByDefault({OrderByDefaultProperty})");
+                Trace.WriteLine($"Paging.OrderByDefault({OrderByDefaultProperty})");
                 return queryable.OrderBy(OrderByDefaultProperty);
             }
             catch (Exception ex)
             {
-                Logger.Error("Paging.OrderByDefault failed.", ex);
+                Trace.WriteLine($"Paging.OrderByDefault failed with exception: {ex}");
             }
 
             return queryable;

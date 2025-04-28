@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Paging.Queryable.Tests.Logging;
 using Paging.Queryable.Tests.Testdata;
 using Xunit;
@@ -12,11 +13,11 @@ namespace Paging.Queryable.Tests
 {
     public class PagingInfoExtensionsTests
     {
-        private readonly ITestOutputHelper testOutputHelper;
+        private readonly ILogger logger;
 
         public PagingInfoExtensionsTests(ITestOutputHelper testOutputHelper)
         {
-            Logger.SetLogger(new TestOutputHelperLogger(testOutputHelper));
+            this.logger = new TestOutputHelperLogger<PagingInfo>(testOutputHelper);
         }
 
         [Fact]

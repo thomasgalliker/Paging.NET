@@ -27,9 +27,18 @@
     <RepositoryUrl>https://github.com/thomasgalliker/Paging.NET</RepositoryUrl>
     <Company>superdev GmbH</Company>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageReleaseNotes>
-      1.0
-      - Initial release.
+    <PackageReleaseNotes>3.0
+- Drop support for Xamarin and .NET Framework
+- Add support for .NET MAUI
+
+2.2
+- Maintenance updates
+
+2.0
+- Add support for .NET standard
+
+1.0
+- Initial release
     </PackageReleaseNotes>
     <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -40,8 +49,7 @@
     <None Include="..\LICENSE" Pack="True" PackagePath="\" />
     <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
   </ItemGroup>
-
-
+  
   <ItemGroup>
     <PackageReference Include="System.Linq.Dynamic.Core" Version="[1.6.0,)" />
   </ItemGroup>

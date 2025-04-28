@@ -24,12 +24,12 @@ namespace Paging
         /// <param name="totalCountUnfiltered">Total number of items (if no filter/search applied).</param>
         public PaginationSet(PagingInfo pagingInfo, IEnumerable<T> items, int totalCount, int totalCountUnfiltered)
         {
-            pagingInfo = pagingInfo ?? PagingInfo.Default;
+            pagingInfo ??= PagingInfo.Default;
             this.CurrentPage = pagingInfo.CurrentPage;
             this.Items = items ?? Enumerable.Empty<T>();
             if (pagingInfo.ItemsPerPage > 0)
             {
-                this.TotalPages = Math.Ceiling((decimal)totalCount / pagingInfo.ItemsPerPage);
+                this.TotalPages = (int)Math.Ceiling((double)totalCount / pagingInfo.ItemsPerPage);
             }
             else
             {
