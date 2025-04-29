@@ -27,7 +27,7 @@ namespace Paging.MAUI
 
         public Func<Task<IEnumerable<T>>> OnLoadMore { get; set; }
 
-        public virtual bool CanLoadMore => this.OnCanLoadMore?.Invoke() ?? true;
+        public virtual bool CanLoadMore => this.OnCanLoadMore?.Invoke() ?? false;
 
         public bool IsLoadingMore
         {
