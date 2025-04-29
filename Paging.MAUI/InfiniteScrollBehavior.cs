@@ -1,19 +1,19 @@
 ﻿using System.Collections;
+using Paging.MAUI.Internals;
 
 namespace Paging.MAUI
 {
-    public class InfiniteScrollBehavior : Behavior<ListView>
+    public class InfiniteScrollBehavior : BehaviorBase<ListView>
     {
         private bool isLoadingMoreFromScroll;
         private bool isLoadingMoreFromLoader;
-        private ListView associatedListView;
 
         public static readonly BindableProperty IsLoadingMoreProperty =
             BindableProperty.Create(
                 nameof(IsLoadingMore),
                 typeof(bool),
                 typeof(InfiniteScrollBehavior),
-                default(bool),
+                false,
                 BindingMode.OneWayToSource);
 
         public static readonly BindableProperty ItemsSourceProperty =
@@ -21,52 +21,42 @@ namespace Paging.MAUI
                 nameof(ItemsSource),
                 typeof(IEnumerable),
                 typeof(InfiniteScrollBehavior),
-                default(IEnumerable),
-                BindingMode.OneWay,
                 propertyChanged: OnItemsSourceChanged);
 
         public bool IsLoadingMore
         {
-            get { return (bool)this.GetValue(IsLoadingMoreProperty); }
-            private set { this.SetValue(IsLoadingMoreProperty, value); }
+            get => (bool)this.GetValue(IsLoadingMoreProperty);
+            private set => this.SetValue(IsLoadingMoreProperty, value);
         }
 
         public IEnumerable ItemsSource
         {
-            get { return (IEnumerable)this.GetValue(ItemsSourceProperty); }
-            set { this.SetValue(ItemsSourceProperty, value); }
+            get => (IEnumerable)this.GetValue(ItemsSourceProperty);
+            set => this.SetValue(ItemsSourceProperty, value);
         }
 
         protected override void OnAttachedTo(ListView bindable)
         {
             base.OnAttachedTo(bindable);
 
-            this.associatedListView = bindable;
-
-            //this.SetBinding(ItemsSourceProperty, new Binding(ListView.ItemsSourceProperty.PropertyName, source: this.associatedListView));
-
-            bindable.BindingContextChanged += this.OnListViewBindingContextChanged;
             bindable.ItemAppearing += this.OnListViewItemAppearing;
-
-            this.BindingContext = this.associatedListView.BindingContext;
         }
 
         protected override void OnDetachingFrom(ListView bindable)
         {
             this.RemoveBinding(ItemsSourceProperty);
 
-            bindable.BindingContextChanged -= this.OnListViewBindingContextChanged;
             bindable.ItemAppearing -= this.OnListViewItemAppearing;
 
             base.OnDetachingFrom(bindable);
         }
 
-        private void OnListViewBindingContextChanged(object sender, EventArgs e)
+        private async void OnListViewItemAppearing(object sender, ItemVisibilityEventArgs e)
         {
-            this.BindingContext = this.associatedListView.BindingContext;
+            await this.OnListViewItemAppearingAsync(e.Item);
         }
 
-        private async void OnListViewItemAppearing(object sender, ItemVisibilityEventArgs e)
+        internal async Task OnListViewItemAppearingAsync(object item)
         {
             if (this.IsLoadingMore)
             {
@@ -75,7 +65,7 @@ namespace Paging.MAUI
 
             if (this.ItemsSource is IInfiniteScrollLoader loader)
             {
-                if (loader.CanLoadMore && this.ShouldLoadMore(e.Item))
+                if (loader.CanLoadMore && this.ShouldLoadMore(item))
                 {
                     this.UpdateIsLoadingMore(true, null);
                     await loader.LoadMoreAsync();
@@ -103,15 +93,18 @@ namespace Paging.MAUI
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            if (bindable is InfiniteScrollBehavior behavior)
+            var behavior = bindable as InfiniteScrollBehavior;
+            if (behavior != null)
             {
-                if (oldValue is IInfiniteScrollLoading oldLoading)
+                var oldLoading = oldValue as IInfiniteScrollLoading;
+                if (oldLoading != null)
                 {
                     oldLoading.LoadingMore -= behavior.OnLoadingMore;
                     behavior.UpdateIsLoadingMore(null, false);
                 }
 
-                if (newValue is IInfiniteScrollLoading newLoading)
+                var newLoading = newValue as IInfiniteScrollLoading;
+                if (newLoading != null)
                 {
                     newLoading.LoadingMore += behavior.OnLoadingMore;
                     behavior.UpdateIsLoadingMore(null, newLoading.IsLoadingMore);
