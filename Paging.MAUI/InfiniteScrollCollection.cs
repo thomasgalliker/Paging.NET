@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Threading.Tasks;
 
 namespace Paging.MAUI
 {
@@ -34,7 +31,7 @@ namespace Paging.MAUI
 
         public bool IsLoadingMore
         {
-            get { return this.isLoadingMore; }
+            get => this.isLoadingMore;
             private set
             {
                 if (this.isLoadingMore != value)

@@ -93,11 +93,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Platforms\Android\" />
-    <Folder Include="Platforms\iOS\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Paging\Paging.csproj" />
   </ItemGroup>
 
