@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Paging.Tests.Testdata;
+using Paging.Tests.TestData;
 using Xunit;
 
 namespace Paging.Tests

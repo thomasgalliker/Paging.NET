@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace Paging.Queryable.Tests.Testdata
+﻿namespace Paging.MAUI.Tests.TestData
 {
-    internal static class CarFactory
+    internal static class Cars
     {
-        internal static IEnumerable<Car> GenerateCarsList(int count)
+        internal static IEnumerable<Car> CreateCars(int count)
         {
             for (var i = 0; i < count; i++)
             {

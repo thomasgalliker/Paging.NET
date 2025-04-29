@@ -72,7 +72,8 @@ namespace Paging.Tests
             pagingInfo.Sorting.Should().HaveCount(2);
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder>
             {
-                { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Desc }
+                { "Venue.Name", SortOrder.Asc },
+                { "Name", SortOrder.Desc }
             });
         }
 
@@ -97,7 +98,11 @@ namespace Paging.Tests
             var pagingInfo = new PagingInfo();
 
             // Act
-            pagingInfo.Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Desc } };
+            pagingInfo.Sorting = new Dictionary<string, SortOrder>
+            {
+                { "Venue.Name", SortOrder.Asc },
+                { "Name", SortOrder.Desc }
+            };
 
             // Assert
             pagingInfo.SortBy.Should().Be("Venue.Name Asc, Name Desc");
