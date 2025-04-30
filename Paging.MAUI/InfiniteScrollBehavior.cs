@@ -93,22 +93,21 @@ namespace Paging.MAUI
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            var behavior = bindable as InfiniteScrollBehavior;
-            if (behavior != null)
+            if (bindable is not InfiniteScrollBehavior behavior)
             {
-                var oldLoading = oldValue as IInfiniteScrollLoading;
-                if (oldLoading != null)
-                {
-                    oldLoading.LoadingMore -= behavior.OnLoadingMore;
-                    behavior.UpdateIsLoadingMore(null, false);
-                }
+                return;
+            }
 
-                var newLoading = newValue as IInfiniteScrollLoading;
-                if (newLoading != null)
-                {
-                    newLoading.LoadingMore += behavior.OnLoadingMore;
-                    behavior.UpdateIsLoadingMore(null, newLoading.IsLoadingMore);
-                }
+            if (oldValue is IInfiniteScrollLoading oldLoading)
+            {
+                oldLoading.LoadingMore -= behavior.OnLoadingMore;
+                behavior.UpdateIsLoadingMore(null, false);
+            }
+
+            if (newValue is IInfiniteScrollLoading newLoading)
+            {
+                newLoading.LoadingMore += behavior.OnLoadingMore;
+                behavior.UpdateIsLoadingMore(null, newLoading.IsLoadingMore);
             }
         }
 
