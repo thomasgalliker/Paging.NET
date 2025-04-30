@@ -4,5 +4,5 @@
 [assembly: InternalsVisibleTo("Paging.Queryable.Tests")]
 [assembly: InternalsVisibleTo("Paging.MAUI.Tests")]
 
-[assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://paging.maui", "p")]
-[assembly: XmlnsDefinition("http://paging.maui", "Paging.MAUI")]
+// [assembly: Microsoft.Maui.Controls.XmlnsPrefix("http://paging.maui", "p")]
+// [assembly: XmlnsDefinition("http://paging.maui", "Paging.MAUI")]
