@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.Queryable.Tests", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Paging.MAUI.Tests", "Tests\Paging.MAUI.Tests\Paging.MAUI.Tests.csproj", "{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MauiPagingSample", "Samples\MauiPagingSample\MauiPagingSample.csproj", "{FA3A22AD-C62D-4619-9456-6C8AA9A94E95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA3A22AD-C62D-4619-9456-6C8AA9A94E95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA3A22AD-C62D-4619-9456-6C8AA9A94E95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA3A22AD-C62D-4619-9456-6C8AA9A94E95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA3A22AD-C62D-4619-9456-6C8AA9A94E95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,6 +83,7 @@ Global
 		{E7D0BD90-4DA8-4C3B-AFFF-A8FAFC19881F} = {72F59CFF-03A0-4DC2-80C7-13FB8831EED2}
 		{4A990E75-3CEE-8823-185C-327CEA019094} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
 		{ACCE180A-32A9-4C39-9FCC-2F332F9C4C61} = {163068B4-1A1C-406E-B44C-B00FBDB81EF5}
+		{FA3A22AD-C62D-4619-9456-6C8AA9A94E95} = {72F59CFF-03A0-4DC2-80C7-13FB8831EED2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {989A5E88-C177-4161-9741-2B0DF34856E6}

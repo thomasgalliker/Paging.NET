@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:android="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;assembly=Microsoft.Maui.Controls"
+    xmlns:itemTemplates="clr-namespace:MauiPagingSample.Views.ItemTemplates"
+    xmlns:p="clr-namespace:Paging.MAUI;assembly=Paging.MAUI"
+    xmlns:viewModels="clr-namespace:MauiPagingSample.ViewModels"
+    x:Class="MauiPagingSample.Views.MainPage"
+    Title="Paging.MAUI Demo"
+    x:DataType="viewModels:MainViewModel">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <DataTemplate x:Key="CarItemTemplate">
+                <itemTemplates:CarItemTemplate />
+            </DataTemplate>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <Grid
+        RowDefinitions="Auto,*"
+        RowSpacing="16">
+        <Grid
+            Grid.Row="0"
+            Padding="16"
+            ColumnDefinitions="Auto, *"
+            ColumnSpacing="10">
+            <Image
+                Grid.Column="0"
+                Source="logo.png"
+                HeightRequest="100" />
+            <Label Grid.Column="1">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="This sample app is used to demonstrate and test the main features of the nuget package " />
+                        <Span
+                            Style="{StaticResource HyperlinkSpanStyle}"
+                            Text="Paging.MAUI">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding OpenUrlCommand}"
+                                    CommandParameter="https://www.nuget.org/packages/Paging.MAUI" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                        <Span Text="." />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+        </Grid>
+
+        <ListView
+            Grid.Row="1"
+            android:ListView.IsFastScrollEnabled="True"
+            CachingStrategy="RecycleElement"
+            HasUnevenRows="True"
+            ItemTemplate="{StaticResource CarItemTemplate}"
+            ItemsSource="{Binding Cars, Mode=OneWay}"
+            SeparatorColor="{StaticResource Gray500}">
+            <ListView.Behaviors>
+                <p:InfiniteScrollBehavior
+                    IsLoadingMore="{Binding IsLoadingMore}"
+                    ItemsSource="{Binding Cars, Mode=OneWay}" />
+            </ListView.Behaviors>
+
+            <ListView.Triggers>
+                <DataTrigger
+                    Binding="{Binding IsLoadingMore}"
+                    TargetType="ListView"
+                    Value="False">
+                    <Setter Property="Footer" Value="" />
+                </DataTrigger>
+                <DataTrigger
+                    Binding="{Binding IsLoadingMore}"
+                    TargetType="ListView"
+                    Value="True">
+                    <Setter Property="Footer">
+                        <Grid Padding="16">
+                            <ActivityIndicator
+                                IsRunning="True"
+                                IsVisible="{Binding IsLoadingMore, Mode=OneWay}" />
+                        </Grid>
+                    </Setter>
+                </DataTrigger>
+            </ListView.Triggers>
+        </ListView>
+    </Grid>
+
+</ContentPage>
