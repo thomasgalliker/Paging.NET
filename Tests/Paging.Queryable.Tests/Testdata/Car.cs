@@ -1,4 +1,3 @@
-using System;
 using System.Diagnostics;
 
 namespace Paging.Queryable.Tests.Testdata
@@ -24,21 +23,37 @@ namespace Paging.Queryable.Tests.Testdata
 
         public bool Equals(Car other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Id == other.Id;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return this.Id == other.Id;
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            return obj is Car other && Equals(other);
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return obj is Car other && this.Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return Id;
+            return this.Id;
         }
     }
 
@@ -63,26 +78,42 @@ namespace Paging.Queryable.Tests.Testdata
 
         public override string ToString()
         {
-            return $"{Name} {Model}, Year {Year}";
+            return $"{this.Name} {this.Model}, Year {this.Year}";
         }
 
         public bool Equals(CarDto other)
         {
-            if (ReferenceEquals(null, other)) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Id == other.Id;
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return this.Id == other.Id;
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            return obj is CarDto other && Equals(other);
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return obj is CarDto other && this.Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return Id;
+            return this.Id;
         }
     }
 }

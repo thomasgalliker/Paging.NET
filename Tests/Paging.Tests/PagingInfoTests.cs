@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Xunit;
@@ -141,11 +138,27 @@ namespace Paging.Tests
             public ToStringTestData()
             {
                 this.Add(new PagingInfo(), "CurrentPage=1&ItemsPerPage=0");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name", Reverse = true }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name&Reverse=True");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc } }, Reverse = true }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc&Reverse=True");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name asc, Name asc" }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20asc%2C%20Name%20asc");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Asc } } }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc%2C%20Name%20Asc");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" }, "CurrentPage=2&ItemsPerPage=30&Search=Test%20value");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name", Reverse = true },
+                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name&Reverse=True");
+                this.Add(
+                    new PagingInfo
+                    {
+                        CurrentPage = 2,
+                        ItemsPerPage = 30,
+                        Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc } },
+                        Reverse = true
+                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc&Reverse=True");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name asc, Name asc" },
+                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20asc%2C%20Name%20asc");
+                this.Add(
+                    new PagingInfo
+                    {
+                        CurrentPage = 2,
+                        ItemsPerPage = 30,
+                        Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Asc } }
+                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc%2C%20Name%20Asc");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" },
+                    "CurrentPage=2&ItemsPerPage=30&Search=Test%20value");
             }
         }
 
@@ -158,11 +171,7 @@ namespace Paging.Tests
                 CurrentPage = 2,
                 ItemsPerPage = 30,
                 //SortBy = "Venue.Name asc, Name desc"
-                Sorting = new Dictionary<string, SortOrder>
-                {
-                    { "Venue.Name", SortOrder.Asc },
-                    { "Name", SortOrder.Desc }
-                }
+                Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Desc } }
             };
 
             // Act
@@ -177,42 +186,42 @@ namespace Paging.Tests
         public void ShouldDeserializePagingInfo_SortingFromJson()
         {
             // Arrange
-            const string serializeObject = "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sorting\": {\r\n    \"valueDate\": \"desc\"\r\n  },\r\n  \"filter\": {}\r\n}";
+            const string serializeObject =
+                "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sorting\": {\r\n    \"valueDate\": \"desc\"\r\n  },\r\n  \"filter\": {}\r\n}";
 
             // Act
             var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
-            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder>
-            {
-                { "valueDate", SortOrder.Desc }
-            });
+            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
             // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
             var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
-            serializeObject2.Should().Be("{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+            serializeObject2.Should()
+                .Be(
+                    "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
         }
 
         [Fact]
         public void ShouldDeserializePagingInfo_SortByFromJson()
         {
             // Arrange
-            const string serializeObject = "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": {}\r\n}";
+            const string serializeObject =
+                "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": {}\r\n}";
 
             // Act
             var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
-            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder>
-            {
-                { "valueDate", SortOrder.Desc }
-            });
+            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
             // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
             var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
-            serializeObject2.Should().Be("{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+            serializeObject2.Should()
+                .Be(
+                    "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
         }
 
         [Fact]
@@ -220,21 +229,21 @@ namespace Paging.Tests
         {
             // Arrange
             // Hint: If both given, SortBy and Sorting, only SortBy has effect
-            const string serializeObject = "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":{}}";
+            const string serializeObject =
+                "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":{}}";
 
             // Act
             var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
-            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder>
-            {
-                { "valueDate", SortOrder.Desc }
-            });
+            pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
             // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
             var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
-            serializeObject2.Should().Be("{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+            serializeObject2.Should()
+                .Be(
+                    "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
         }
     }
 }

@@ -1,8 +1,7 @@
 # Paging.NET
-[![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)
+[![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) [![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-FFDD00)](https://buymeacoffee.com/thomasgalliker)
 
-<img src="https://github.com/thomasgalliker/Paging.NET/raw/master/logo.png" height="100" alt="Paging.NET" align="right">
-Paging provides tools which are commonly used for handling paged data loading.
+Paging.NET is a lightweight and flexible library designed to simplify incremental server-side data loading. It provides an easy-to-use toolkit for efficiently managing large datasets by fetching data in small, controlled chunks. Ideal for applications that require smooth paging, reduced memory usage, and responsive data access patterns, Paging.NET helps you streamline your backend communication without unnecessary complexity.
 
 ### Download and Install Paging.NET
 This library is available on NuGet: https://www.nuget.org/packages/Paging.NET/
@@ -10,16 +9,17 @@ Use the following command to install Paging using NuGet package manager console:
 
     PM> Install-Package Paging.NET
 
-You can use this library in any .Net project which is compatible to .Net Standard 1.0 and higher as well as with legacy PCL projects.
+You can use this library in any .NET project which is compatible to .NET Standard 2.0 and higher as well as with .NET MAUI.
 
 
-### Latest Builds
+### Latest Releases
 
-|   | Paging.NET| Paging.Forms.NET | Paging.Queryable.NET |
-| - | ---------- | ---------------- | -------------------- |
-|Version| [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
-|Pre-Release| [![Version](https://img.shields.io/nuget/vpre/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Version](https://img.shields.io/nuget/vpre/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Version](https://img.shields.io/nuget/vpre/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
-|Downloads| [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Forms.NET.svg)](https://www.nuget.org/packages/Paging.Forms.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET)
+| Package               | Version                                                                                                                    | Downlods                                                                                                                      | 
+|-----------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| Paging.NET            | [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     | [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     |
+| Paging.Queryable.NET  | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) |
+| Paging.MAUI           | [![Version](https://img.shields.io/nuget/v/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | [![Downloads](https://img.shields.io/nuget/dt/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | 
+
 
 ### API Usage
 Paging or pagination is a process of slicing a certain (usually big and costly) collection into subsets of items in order to improve query performance. Paging is not only a matter of splitting collections into chunks, it also has to consider sorting and filtering. Paging involves the requesting client in specifying a paging request and the responding service to respond with a result set.
@@ -36,6 +36,3 @@ TODO: Document the usage of PagingInfo and PaginationSet in some concrete exampl
 
 ### Contribution
 Contributors welcome! If you find a bug or you want to propose a new feature, feel free to do so by opening a new issue on github.com.
-
-### License
-This project is Copyright &copy; 2019 [Thomas Galliker](https://ch.linkedin.com/in/thomasgalliker). Free for non-commercial use. For commercial use please contact the author.
