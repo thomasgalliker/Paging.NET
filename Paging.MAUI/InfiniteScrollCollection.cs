@@ -77,6 +77,10 @@ namespace Paging.MAUI
                 throw new ArgumentNullException(nameof(collection));
             }
 
+            // Similar to ObservableRangeCollection we want to efficiently update an ObservableCollection
+            // with a new range of items.
+            // https://raw.githubusercontent.com/haefele/MatchMaker/dev/src/frontend/MatchMaker.UI/Helpers/ObservableRangeCollection.cs
+
             this.CheckReentrancy();
 
             var startIndex = this.Count;

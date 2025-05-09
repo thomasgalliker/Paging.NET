@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Specialized;
+using FluentAssertions;
 using Paging.MAUI.Tests.TestData;
 using Xunit;
 
@@ -69,6 +70,9 @@ namespace Paging.MAUI.Tests
             var items = Cars.CreateCars(pageCount);
             var infiniteScrollCollection = new InfiniteScrollCollection<Car>(items);
 
+            var collectionChangedEventArgs = new List<NotifyCollectionChangedEventArgs>();
+            infiniteScrollCollection.CollectionChanged += (_, args) => { collectionChangedEventArgs.Add(args); };
+
             infiniteScrollCollection.OnCanLoadMore = () => true;
             infiniteScrollCollection.OnLoadMore = () =>
             {
@@ -84,6 +88,11 @@ namespace Paging.MAUI.Tests
             infiniteScrollCollection.CanLoadMore.Should().BeTrue();
             infiniteScrollCollection.OnLoadMore.Should().NotBeNull();
             infiniteScrollCollection.IsLoadingMore.Should().BeFalse();
+
+            collectionChangedEventArgs.Should().HaveCount(1);
+            collectionChangedEventArgs.ElementAt(0).Action.Should().Be(NotifyCollectionChangedAction.Add);
+            collectionChangedEventArgs.ElementAt(0).OldStartingIndex.Should().Be(-1);
+            collectionChangedEventArgs.ElementAt(0).NewStartingIndex.Should().Be(10);
         }
     }
 }
