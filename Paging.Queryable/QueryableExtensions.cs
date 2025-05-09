@@ -1,14 +1,9 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
-#if NETSTANDARD1_3
 using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
-#else
-using System.Linq.Dynamic;
-#endif
+using Microsoft.Extensions.Logging;
 
 namespace Paging.Queryable
 {
@@ -29,7 +24,7 @@ namespace Paging.Queryable
                     if (string.IsNullOrEmpty(stringValue))
                     {
                         // Ignore null/empty values
-                        Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
+                        Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.");
                         continue;
                     }
 
@@ -43,7 +38,7 @@ namespace Paging.Queryable
                     else
                     {
                         // No comparison operator means: key.Contains(value)
-                        queryable = queryable.TryWhere($"{filter.Key}.ToString().ToLower().Contains(\"{stringValue.Replace("\"", "").ToLower()}\")");
+                        queryable = queryable.TryWhere(searchProperty: filter.Key, "cn", stringValue.Replace("\"", "").ToLowerInvariant());
                     }
                 }
                 else if (filter.Value.IsNumericType() || filter.Value is bool || filter.Value is DateTime)
@@ -57,7 +52,7 @@ namespace Paging.Queryable
                         if (string.IsNullOrEmpty(range.Key))
                         {
                             // Ignore null/empty operator
-                            Logger.Warning($"Filter value for key '{filter.Key}' is null or empty.");
+                            Trace.WriteLine($"Filter value for key '{filter.Key}' is null or empty.");
                             continue;
                         }
 
@@ -86,16 +81,12 @@ namespace Paging.Queryable
                     {
                         var elementType = enumerator.Current.GetType();
                         var castList = enumerable.Cast(elementType);
-#if NET45
-                        const string prefix = "outerIt.";
-#else
                         const string prefix = "";
-#endif
                         queryable = queryable.TryWhere($"@0.Contains({prefix}{filter.Key})", new object[] { castList });
                     }
                     else
                     {
-                        Logger.Warning($"Filter collection for key '{filter.Key}' is empty.");
+                        Trace.WriteLine($"Filter collection for key '{filter.Key}' is empty.");
                     }
                 }
                 else
@@ -134,12 +125,28 @@ namespace Paging.Queryable
         {
             try
             {
-                Logger.Debug($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\". Args.Count: {args.Length}. {(args.Length > 0 ? $"Args: {string.Join(", ", args)}." : "")}");
                 return source.Where(predicate, args);
             }
             catch (Exception ex)
             {
-                Logger.Error($"Paging.TryWhere with Predicate: \"{predicate}\" failed.", ex);
+                Trace.WriteLine($"Paging.TryWhere with Predicate: \"{predicate}\" failed with exception: {ex}");
+            }
+
+            return source;
+        }
+
+        internal static IQueryable<TSource> TryWhere<TSource>(this IQueryable<TSource> source, string searchProperty, string searchOper, string searchString)
+        {
+            try
+            {
+                Trace.WriteLine($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString}");
+                var queryable = QueryExtensions.Where(source, searchProperty, searchOper, searchString);
+                return queryable;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Paging.TryWhere with searchProperty={searchProperty}, searchOper={searchOper}, searchString={searchString} failed with exception: {ex}");
             }
 
             return source;
@@ -155,7 +162,7 @@ namespace Paging.Queryable
             }
 
             var sortBy = sorting.ToSortByString();
-            Logger.Debug($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
+            Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
 
             try
             {
@@ -165,7 +172,7 @@ namespace Paging.Queryable
             {
                 queryable = queryable.OrderByDefault();
 
-                Logger.Error($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed.", ex);
+                Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")} failed with exception: {ex}");
             }
 
             return queryable;
@@ -183,24 +190,14 @@ namespace Paging.Queryable
         // Need to OrderBy before Skip/Take.
         public static IQueryable<TEntity> OrderByDefault<TEntity>(this IQueryable<TEntity> queryable)
         {
-            //try
-            //{
-            //    queryable = queryable.OrderBy("Id");
-            //}
-            //catch (Exception ex)
-            //{
-            //    Logger.Error($"Paging.OrderByDefault (using Id) failed. {ex.Message} {Environment.NewLine}" +
-            //                    $"{ex.StackTrace}", ex.GetType().Name);
-            //}
-
             try
             {
-                Logger.Info($"Paging.OrderByDefault({OrderByDefaultProperty})");
+                Trace.WriteLine($"Paging.OrderByDefault({OrderByDefaultProperty})");
                 return queryable.OrderBy(OrderByDefaultProperty);
             }
             catch (Exception ex)
             {
-                Logger.Error("Paging.OrderByDefault failed.", ex);
+                Trace.WriteLine($"Paging.OrderByDefault failed with exception: {ex}");
             }
 
             return queryable;

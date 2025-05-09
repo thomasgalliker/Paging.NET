@@ -1,7 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
-using Paging.Tests.Testdata;
+using Paging.Tests.TestData;
 using Xunit;
 
 namespace Paging.Tests
@@ -61,7 +59,8 @@ namespace Paging.Tests
 
         [Theory]
         [ClassData(typeof(SelectedPageTestData))]
-        public void ShouldReturnSelectedPage(IEnumerable<Car> items, PagingInfo pagingInfo, int totalCount, int totalCountUnfiltered, int totalPages)
+        public void ShouldReturnSelectedPage(IEnumerable<Car> items, PagingInfo pagingInfo, int totalCount, int totalCountUnfiltered,
+            int totalPages)
         {
             // Arrange
 
