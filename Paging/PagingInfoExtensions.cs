@@ -82,7 +82,7 @@ namespace Paging
 
             if (!string.IsNullOrEmpty(pagingInfo.SortBy))
             {
-                properties.Add(nameof(PagingInfo.SortBy), pagingInfo.SortBy);
+                properties.Add(nameof(PagingInfo.SortBy), pagingInfo.SortBy!);
             }
 
             if (pagingInfo.Reverse)
@@ -92,7 +92,7 @@ namespace Paging
 
             if (!string.IsNullOrEmpty(pagingInfo.Search))
             {
-                properties.Add(nameof(PagingInfo.Search), pagingInfo.Search);
+                properties.Add(nameof(PagingInfo.Search), pagingInfo.Search!);
             }
 
             // Concat all key/value pairs into a string separated by ampersand

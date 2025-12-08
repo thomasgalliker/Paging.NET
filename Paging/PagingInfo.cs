@@ -4,15 +4,15 @@ namespace Paging
     /// PagingInfo is the paging specification used to instruct the data source
     /// on sorting, filtering and paging.
     /// </summary>
-    public class PagingInfo : IEquatable<PagingInfo>
+    public class PagingInfo : IEquatable<PagingInfo?>
     {
-        public static readonly PagingInfo Default = new PagingInfo();
+        private IDictionary<string, object?> filter;
 
         public PagingInfo()
         {
             this.CurrentPage = 1;
             this.ItemsPerPage = 0;
-            this.Filter = new Dictionary<string, object>();
+            this.filter = new Dictionary<string, object?>();
         }
 
         /// <summary>
@@ -81,14 +81,18 @@ namespace Paging
         /// - Key is of type string and contains the property name of the property to be filtered.
         /// - Value is an arbitrary filter value (currently supported: string, decimal, DateTime).
         /// </summary>
-        public IDictionary<string, object> Filter { get; set; }
+        public IDictionary<string, object?> Filter
+        {
+            get => this.filter;
+            set => this.filter = value ?? new Dictionary<string, object?>();
+        }
 
-        public static bool operator ==(PagingInfo pi1, PagingInfo pi2)
+        public static bool operator ==(PagingInfo? pi1, PagingInfo? pi2)
         {
             return Equals(pi1, pi2);
         }
 
-        public static bool operator !=(PagingInfo pi1, PagingInfo pi2)
+        public static bool operator !=(PagingInfo? pi1, PagingInfo? pi2)
         {
             return !(pi1 == pi2);
         }
@@ -98,7 +102,7 @@ namespace Paging
             return this.ToQueryString();
         }
 
-        public bool Equals(PagingInfo other)
+        public bool Equals(PagingInfo? other)
         {
             if (other is null)
             {
@@ -119,7 +123,7 @@ namespace Paging
                 FilterEquals(this.Filter, other.Filter);
         }
 
-        private static bool FilterEquals(IDictionary<string, object> filter, IDictionary<string, object> other)
+        private static bool FilterEquals(IDictionary<string, object?> filter, IDictionary<string, object?> other)
         {
             if (filter is null || other is null)
             {
@@ -135,7 +139,7 @@ namespace Paging
             return sequenceEqual;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -151,6 +155,7 @@ namespace Paging
             {
                 return false;
             }
+
             return this.Equals((PagingInfo)obj);
         }
 

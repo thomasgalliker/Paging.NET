@@ -17,15 +17,15 @@ namespace Paging.MAUI
         {
         }
 
-        public Action OnBeforeLoadMore { get; set; }
+        public Action? OnBeforeLoadMore { get; set; }
 
-        public Action OnAfterLoadMore { get; set; }
+        public Action? OnAfterLoadMore { get; set; }
 
-        public Action<Exception> OnError { get; set; }
+        public Action<Exception>? OnError { get; set; }
 
-        public Func<bool> OnCanLoadMore { get; set; }
+        public Func<bool>? OnCanLoadMore { get; set; }
 
-        public Func<Task<IEnumerable<T>>> OnLoadMore { get; set; }
+        public Func<Task<IEnumerable<T>>>? OnLoadMore { get; set; }
 
         public virtual bool CanLoadMore => this.OnCanLoadMore?.Invoke() ?? false;
 
@@ -44,7 +44,7 @@ namespace Paging.MAUI
             }
         }
 
-        public event EventHandler<LoadingMoreEventArgs> LoadingMore;
+        public event EventHandler<LoadingMoreEventArgs>? LoadingMore;
 
         public async Task LoadMoreAsync()
         {
@@ -53,7 +53,12 @@ namespace Paging.MAUI
                 this.IsLoadingMore = true;
                 this.OnBeforeLoadMore?.Invoke();
 
-                var result = await this.OnLoadMore();
+                if (this.OnLoadMore is not Func<Task<IEnumerable<T>>> loadMoreTask)
+                {
+                    throw new InvalidOperationException("OnLoadMore must be set before calling LoadMoreAsync.");
+                }
+
+                var result = await loadMoreTask();
                 if (result != null)
                 {
                     this.AddRange(result);

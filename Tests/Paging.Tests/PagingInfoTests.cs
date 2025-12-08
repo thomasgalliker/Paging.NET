@@ -7,34 +7,32 @@ namespace Paging.Tests
     public class PagingInfoTests
     {
         [Fact]
-        public void ShouldEqualToDefault()
+        public void ShouldEqualTo()
         {
             // Arrange
-            var pagingInfo = new PagingInfo();
-
-            // Act
-            var pagingInfoDefault = PagingInfo.Default;
+            var pagingInfo1 = new PagingInfo();
+            var pagingInfo2 = new PagingInfo();
 
             // Assert GetHashCode
-            var hashCodeHashCode = pagingInfo.GetHashCode();
-            var pagingInfoDefaultHashCode = pagingInfoDefault.GetHashCode();
-            hashCodeHashCode.Should().Be(pagingInfoDefaultHashCode);
+            var hashCode1 = pagingInfo1.GetHashCode();
+            var hashCode2 = pagingInfo2.GetHashCode();
+            hashCode1.Should().Be(hashCode2);
 
             // Assert Equals
-            pagingInfoDefault.Should().BeEquivalentTo(pagingInfo);
-            pagingInfoDefault.Equals(pagingInfo).Should().BeTrue();
+            pagingInfo2.Should().BeEquivalentTo(pagingInfo1);
+            pagingInfo2.Equals(pagingInfo1).Should().BeTrue();
 
             // Assert Operators
-            (pagingInfoDefault == pagingInfo).Should().BeTrue();
-            (pagingInfoDefault != pagingInfo).Should().BeFalse();
+            (pagingInfo2 == pagingInfo1).Should().BeTrue();
+            (pagingInfo2 != pagingInfo1).Should().BeFalse();
         }
 
         [Fact]
         public void ShouldNotEqualToDefault_IfFilterIsDifferent()
         {
             // Arrange
-            var pagingInfo1 = new PagingInfo { Filter = null };
-            var pagingInfo2 = new PagingInfo { Filter = new Dictionary<string, object> { { "key", "value" } } };
+            var pagingInfo1 = new PagingInfo { Filter = new Dictionary<string, object?>() };
+            var pagingInfo2 = new PagingInfo { Filter = new Dictionary<string, object?> { { "key", "value" } } };
 
             // Act
             var equal = pagingInfo1.Equals(pagingInfo2);
@@ -116,7 +114,7 @@ namespace Paging.Tests
             var pagingInfo = new PagingInfo();
 
             // Act
-            pagingInfo.Sorting = null;
+            pagingInfo.Sorting = null!;
 
             // Assert
             pagingInfo.SortBy.Should().BeNull();
@@ -211,7 +209,7 @@ namespace Paging.Tests
                 "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": {}\r\n}";
 
             // Act
-            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
+            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject)!;
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
@@ -233,7 +231,7 @@ namespace Paging.Tests
                 "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":{}}";
 
             // Act
-            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
+            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject)!;
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");

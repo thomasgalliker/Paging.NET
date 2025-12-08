@@ -24,8 +24,8 @@ namespace Paging.Tests
         public void ShouldInitializePaginationSetWithDefaultValues_WithDefaultParameters()
         {
             // Arrange
-            PagingInfo pagingInfo = null;
-            IEnumerable<Car> items = null;
+            PagingInfo? pagingInfo = null;
+            IEnumerable<Car> items = Array.Empty<Car>();
             const int totalCount = 0;
             const int totalCountUnfiltered = 0;
 
@@ -62,8 +62,6 @@ namespace Paging.Tests
         public void ShouldReturnSelectedPage(IEnumerable<Car> items, PagingInfo pagingInfo, int totalCount, int totalCountUnfiltered,
             int totalPages)
         {
-            // Arrange
-
             // Act
             var paginationSet = new PaginationSet<Car>(pagingInfo, items, totalCount, totalCountUnfiltered);
 
