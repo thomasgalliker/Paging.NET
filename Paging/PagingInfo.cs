@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Paging
 {
     /// <summary>
@@ -45,7 +41,7 @@ namespace Paging
         /// Sorting a multiple properties with mixed ordering:
         /// SortBy = "property1 descending, property2 ascending"
         /// </example>
-        public string SortBy { get; set; }
+        public string? SortBy { get; set; }
 
         /// <summary>
         /// Property-based sort specification.
@@ -77,7 +73,7 @@ namespace Paging
         /// Free-text which is used to search trough the target collection of items.
         /// Search text is only used if a search predicated is specified.
         /// </summary>
-        public string Search { get; set; }
+        public string? Search { get; set; }
 
         /// <summary>
         /// Property-based filtering. All specified {Key, Value} pairs are used to OR-filter

@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace Paging
 {
     public static class PagingInfoExtensions
@@ -19,14 +21,14 @@ namespace Paging
             return paginationSetTarget;
         }
 
-        public static IReadOnlyDictionary<string, SortOrder> ToSorting(this string sortBy)
+        public static IReadOnlyDictionary<string, SortOrder> ToSorting(this string? sortBy)
         {
             if (string.IsNullOrEmpty(sortBy))
             {
-                return null;
+                return new ReadOnlyDictionary<string, SortOrder>(new Dictionary<string, SortOrder>());
             }
 
-            var sorting = sortBy.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+            var sorting = sortBy!.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(s =>
                 {
                     var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -49,9 +51,10 @@ namespace Paging
             return sorting;
         }
 
-        public static string ToSortByString(this IReadOnlyDictionary<string, SortOrder> sorting)
+        public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder> sorting)
         {
-            string sortBy;
+            string? sortBy;
+
             if (sorting == null)
             {
                 sortBy = null;
