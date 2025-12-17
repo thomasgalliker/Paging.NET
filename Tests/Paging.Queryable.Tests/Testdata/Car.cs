@@ -3,13 +3,13 @@ using System.Diagnostics;
 namespace Paging.Queryable.Tests.Testdata
 {
     [DebuggerDisplay("Car: {this.Id} {this.Name} {this.Model} {this.Year}")]
-    public class Car : IEquatable<Car>
+    public class Car : IEquatable<Car?>
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string Model { get; set; }
+        public string? Model { get; set; }
 
         public decimal? Price { get; set; }
 
@@ -21,7 +21,7 @@ namespace Paging.Queryable.Tests.Testdata
 
         public bool IsElectric { get; set; }
 
-        public bool Equals(Car other)
+        public bool Equals(Car? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -36,7 +36,7 @@ namespace Paging.Queryable.Tests.Testdata
             return this.Id == other.Id;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
             {
@@ -62,9 +62,9 @@ namespace Paging.Queryable.Tests.Testdata
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public string Model { get; set; }
+        public string? Model { get; set; }
 
         public decimal? Price { get; set; }
 
@@ -81,7 +81,7 @@ namespace Paging.Queryable.Tests.Testdata
             return $"{this.Name} {this.Model}, Year {this.Year}";
         }
 
-        public bool Equals(CarDto other)
+        public bool Equals(CarDto? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -96,7 +96,7 @@ namespace Paging.Queryable.Tests.Testdata
             return this.Id == other.Id;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
             {

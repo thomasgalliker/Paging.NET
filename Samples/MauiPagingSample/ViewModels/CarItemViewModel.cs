@@ -13,6 +13,6 @@ namespace MauiPagingSample.ViewModels
 
         public int Id { get; init; }
 
-        public string Name { get; init; }
+        public string? Name { get; init; }
     }
 }

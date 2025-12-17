@@ -51,7 +51,7 @@ namespace Paging.MAUI
             base.OnDetachingFrom(bindable);
         }
 
-        private async void OnListViewItemAppearing(object sender, ItemVisibilityEventArgs e)
+        private async void OnListViewItemAppearing(object? sender, ItemVisibilityEventArgs e)
         {
             await this.OnListViewItemAppearingAsync(e.Item);
         }
@@ -111,7 +111,7 @@ namespace Paging.MAUI
             }
         }
 
-        private void OnLoadingMore(object sender, LoadingMoreEventArgs e)
+        private void OnLoadingMore(object? sender, LoadingMoreEventArgs e)
         {
             this.UpdateIsLoadingMore(null, e.IsLoadingMore);
         }

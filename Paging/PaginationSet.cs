@@ -2,7 +2,8 @@ namespace Paging
 {
     public class PaginationSet<T>
     {
-        public PaginationSet() : this(new HashSet<T>())
+        public PaginationSet()
+            : this(new HashSet<T>())
         {
         }
 
@@ -11,7 +12,8 @@ namespace Paging
         /// Since no <seealso cref="PagingInfo"/> is specified, a single-page request is assumed.
         /// </summary>
         /// <param name="items">The collection of items.</param>
-        public PaginationSet(IEnumerable<T> items) : this(PagingInfo.Default, items, items.Count(), items.Count())
+        public PaginationSet(IEnumerable<T> items)
+            : this(new PagingInfo(), items, items.Count(), items.Count())
         {
         }
 
@@ -22,9 +24,9 @@ namespace Paging
         /// <param name="items">The collection of items for the current paging request.</param>
         /// <param name="totalCount">Total number of items available that match with the filter/search.</param>
         /// <param name="totalCountUnfiltered">Total number of items (if no filter/search applied).</param>
-        public PaginationSet(PagingInfo pagingInfo, IEnumerable<T> items, int totalCount, int totalCountUnfiltered)
+        public PaginationSet(PagingInfo? pagingInfo, IEnumerable<T> items, int totalCount, int totalCountUnfiltered)
         {
-            pagingInfo ??= PagingInfo.Default;
+            pagingInfo ??= new PagingInfo();
             this.CurrentPage = pagingInfo.CurrentPage;
             this.Items = items ?? Enumerable.Empty<T>();
             if (pagingInfo.ItemsPerPage > 0)

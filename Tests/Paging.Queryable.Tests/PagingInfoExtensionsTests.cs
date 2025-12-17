@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -25,7 +22,7 @@ namespace Paging.Queryable.Tests
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
-            PagingInfo pagingInfo = null;
+            PagingInfo? pagingInfo = null;
 
             // Act
             var paginationSet = pagingInfo.CreatePaginationSet(queryable);
@@ -195,7 +192,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {"Name", "bmw"},
                     {"model", "x"},
@@ -227,7 +224,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {"price", null}
                 }
@@ -257,7 +254,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {"Price", "5000"} // Matches Prices with string equivalents of "5000" and "15000"
                 }
@@ -294,7 +291,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {"Name", "bm"},
                     {"model", ""},
@@ -331,7 +328,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {
                         "LastService", new DateTime(2019, 1, 1, 00, 00, 00, DateTimeKind.Utc)
@@ -367,7 +364,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {
                         "LastService", new Dictionary<string, object>
@@ -406,7 +403,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {
                         "LastOilChange", new Dictionary<string, object>
@@ -444,7 +441,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     { "Id", new object[]{ 7, 6, 9, 10 }},
                     { "Name", new []
@@ -488,10 +485,10 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     {
-                        "LastService", new Dictionary<string, object>
+                        "LastService", new Dictionary<string, object?>
                         {
                             {"", null }
                         }
@@ -523,7 +520,7 @@ namespace Paging.Queryable.Tests
 
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object>
+                Filter = new Dictionary<string, object?>
                 {
                     { "Year", "> "},
                     {

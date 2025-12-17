@@ -3,13 +3,12 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.Exceptions;
-using Microsoft.Extensions.Logging;
 
 namespace Paging.Queryable
 {
     public static class QueryableExtensions
     {
-        public static IQueryable<TEntity> ApplyFilter<TEntity>(this IQueryable<TEntity> queryable, IDictionary<string, object> filters)
+        public static IQueryable<TEntity> ApplyFilter<TEntity>(this IQueryable<TEntity> queryable, IDictionary<string, object?> filters)
         {
             foreach (var filter in filters)
             {
@@ -154,6 +153,11 @@ namespace Paging.Queryable
 
         public static IQueryable<TEntity> OrderBy<TEntity>(this IQueryable<TEntity> queryable, IReadOnlyDictionary<string, SortOrder> sorting, bool reverse)
         {
+            if(sorting.Count == 0)
+            {
+                return queryable;
+            }
+
             if (reverse)
             {
                 sorting = sorting
@@ -163,6 +167,11 @@ namespace Paging.Queryable
 
             var sortBy = sorting.ToSortByString();
             Trace.WriteLine($"Paging.SortBy \"{sortBy}\"{(reverse ? " (Reversed)" : "")}");
+
+            if (sortBy == null)
+            {
+                return queryable;
+            }
 
             try
             {
