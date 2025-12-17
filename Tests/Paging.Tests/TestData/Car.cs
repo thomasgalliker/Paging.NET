@@ -7,7 +7,7 @@ namespace Paging.Tests.TestData
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     [DebuggerDisplay("CarDto: {this.Id}")]
@@ -15,6 +15,6 @@ namespace Paging.Tests.TestData
     {
         public int Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

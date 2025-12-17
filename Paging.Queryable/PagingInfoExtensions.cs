@@ -7,12 +7,12 @@ namespace Paging.Queryable
 {
     public static class PagingInfoExtensions
     {
-        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>> searchPredicate = null)
+        public static PaginationSet<TEntity> CreatePaginationSet<TEntity>(this PagingInfo? pagingInfo, IQueryable<TEntity> queryable, Expression<Func<TEntity, bool>>? searchPredicate = null)
         {
             return pagingInfo.CreatePaginationSet(queryable, entities => entities, searchPredicate);
         }
 
-        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>> searchPredicate = null)
+        public static PaginationSet<TDto> CreatePaginationSet<TEntity, TDto>(this PagingInfo? pagingInfo, IQueryable<TEntity> queryable, Func<IEnumerable<TEntity>, IEnumerable<TDto>> mapEntitiesToDtos, Expression<Func<TEntity, bool>>? searchPredicate = null)
         {
             if (pagingInfo == null)
             {

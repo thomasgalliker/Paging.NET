@@ -11,17 +11,17 @@ namespace Paging.Queryable.Tests.Testdata
             return GenerateCarsList(name: "Car", model: "Model", count: count);
         }
 
-        internal static IEnumerable<Car> GenerateCarsList(string name, string model, int count)
+        internal static IEnumerable<Car> GenerateCarsList(string? name, string model, int count)
         {
             return GenerateCarsList(name: name, model: model, price: null, year: 2019, count: count);
         }
 
-        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, int count)
+        internal static IEnumerable<Car> GenerateCarsList(string? name, string model, decimal? price, int year, int count)
         {
             return GenerateCarsList(name: name, model: model, price: price, year: year, lastService: null, isElectric: false, count: count);
         }
 
-        internal static IEnumerable<Car> GenerateCarsList(string name, string model, decimal? price, int year, DateTime? lastService, bool isElectric, int count)
+        internal static IEnumerable<Car> GenerateCarsList(string? name, string model, decimal? price, int year, DateTime? lastService, bool isElectric, int count)
         {
             for (var i = 0; i < count; i++)
             {

@@ -83,6 +83,7 @@ namespace Paging
             {
                 return source;
             }
+
             keyword = keyword.ToLower();
 
             var parameter = Expression.Parameter(source.ElementType, string.Empty);
@@ -92,7 +93,7 @@ namespace Paging
             var typeProperty = property.Type.FullName;
             var termConstant = Expression.Constant(keyword, typeof(string));
 
-            MethodCallExpression containsExpression = null;
+            MethodCallExpression? containsExpression = null;
             if (typeProperty == "System.String")
             {
                 var toLowerExpression = Expression.Call(property, toLowerMethod);
@@ -196,7 +197,7 @@ namespace Paging
             var endsWith = typeof(string).GetMethod("EndsWith", new[] { typeof(string) });
             var contains = typeof(string).GetMethod("Contains", new[] { typeof(string) });
 
-            Expression operation = null;
+            Expression? operation = null;
 
             switch (searchOper)
             {
@@ -251,7 +252,7 @@ namespace Paging
             return source.Provider.CreateQuery<TEntity>(resultExpression);
         }
 
-        private static MethodCallExpression ToStringExpression(Type type, Expression property, string format = null)
+        private static MethodCallExpression ToStringExpression(Type type, Expression property, string? format = null)
         {
             MethodCallExpression stringExpression;
 

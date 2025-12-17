@@ -16,9 +16,8 @@ namespace MauiPagingSample.ViewModels
         private readonly PagingInfo pagingInfo;
 
         private bool isLoadingMore;
-        private PaginationSet<Car> lastPaginationSet;
-        private InfiniteScrollCollection<CarItemViewModel> cars;
-        private IAsyncRelayCommand<string> openUrlCommand;
+        private PaginationSet<Car>? lastPaginationSet;
+        private IAsyncRelayCommand<string>? openUrlCommand;
 
         public MainViewModel(
             ILogger<MainViewModel> logger,
@@ -40,11 +39,7 @@ namespace MauiPagingSample.ViewModels
             _ = this.LoadData();
         }
 
-        public InfiniteScrollCollection<CarItemViewModel> Cars
-        {
-            get => this.cars;
-            private set => this.SetProperty(ref this.cars, value);
-        }
+        public InfiniteScrollCollection<CarItemViewModel> Cars { get; }
 
         public bool IsLoadingMore
         {
@@ -87,7 +82,7 @@ namespace MauiPagingSample.ViewModels
 
         public IAsyncRelayCommand<string> OpenUrlCommand
         {
-            get => this.openUrlCommand ??= new AsyncRelayCommand<string>(this.OpenUrlAsync);
+            get => this.openUrlCommand ??= new AsyncRelayCommand<string>(this.OpenUrlAsync!);
         }
 
         private async Task OpenUrlAsync(string url)
