@@ -33,27 +33,15 @@
     <PackageId>Paging.MAUI</PackageId>
     <PackageTags>infinite;scrolling;scroll;paging;pagination;paged;server-side;filtering;filter;sorting;sort</PackageTags>
     <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/thomasgalliker/Paging.NET</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/thomasgalliker/Paging.NET</RepositoryUrl>
     <Company>superdev GmbH</Company>
-    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0
-- Drop support for Xamarin and .NET Framework
-- Add support for .NET MAUI
-
-2.2
-- Maintenance updates
-
-2.0
-- Add support for .NET standard
-
-1.0
-- Initial release
-    </PackageReleaseNotes>
+    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../ReleaseNotes.txt"))</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
@@ -65,6 +53,10 @@
     <None Include="..\README.md" Pack="True" PackagePath="\" />
     <None Include="..\LICENSE" Pack="True" PackagePath="\" />
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
 
   <!-- Android build properties -->
   <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">
