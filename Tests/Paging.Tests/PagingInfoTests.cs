@@ -7,6 +7,33 @@ namespace Paging.Tests
     public class PagingInfoTests
     {
         [Fact]
+        public void PagingInfoDefault_ShouldNotBeEditable()
+        {
+            // Arrange
+            var pagingInfo = PagingInfo.Default;
+
+            // Act
+            Action action = () => pagingInfo.CurrentPage = 99;
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>();
+        }
+
+        [Fact]
+        public void PagingInfoDefault_ShouldCompareToDefaultInstance()
+        {
+            // Arrange
+            var pagingInfo1 = PagingInfo.Default;
+            var pagingInfo2 = new PagingInfo();
+
+            // Act
+            var equal = pagingInfo1 == pagingInfo2;
+
+            // Assert
+            equal.Should().BeTrue();
+        }
+
+        [Fact]
         public void ShouldEqualTo()
         {
             // Arrange

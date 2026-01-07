@@ -1,3 +1,5 @@
+using Paging.Internals;
+
 namespace Paging
 {
     /// <summary>
@@ -6,12 +8,16 @@ namespace Paging
     /// </summary>
     public class PagingInfo : IEquatable<PagingInfo?>
     {
+        public static readonly PagingInfo Default = new DefaultPagingInfo();
+
+        private int currentPage;
+        private int itemsPerPage;
         private IDictionary<string, object?> filter;
 
         public PagingInfo()
         {
-            this.CurrentPage = 1;
-            this.ItemsPerPage = 0;
+            this.currentPage = 1;
+            this.itemsPerPage = 0;
             this.filter = new Dictionary<string, object?>();
         }
 
@@ -19,14 +25,22 @@ namespace Paging
         /// The currently selected page.
         /// Default CurrentPage = 1.
         /// </summary>
-        public int CurrentPage { get; set; }
+        public virtual int CurrentPage
+        {
+            get => this.currentPage;
+            set => this.currentPage = value;
+        }
 
         /// <summary>
         /// Number of items returned per page.
         /// Default ItemsPerPage = 0, which means, if ItemsPerPage is not specified,
         /// the request returns one page with all items.
         /// </summary>
-        public int ItemsPerPage { get; set; }
+        public virtual int ItemsPerPage
+        {
+            get => this.itemsPerPage;
+            set => this.itemsPerPage = value;
+        }
 
         /// <summary>
         /// SortBy is a comma-separated sort specification.
@@ -41,7 +55,7 @@ namespace Paging
         /// Sorting a multiple properties with mixed ordering:
         /// SortBy = "property1 descending, property2 ascending"
         /// </example>
-        public string? SortBy { get; set; }
+        public virtual string? SortBy { get; set; }
 
         /// <summary>
         /// Property-based sort specification.
@@ -57,7 +71,7 @@ namespace Paging
         ///     {"property2", SortOrder.Asc}
         /// }
         /// </example>
-        public IReadOnlyDictionary<string, SortOrder> Sorting
+        public virtual IReadOnlyDictionary<string, SortOrder> Sorting
         {
             //TODO: Check if Sorting as wrapper for SortBy is practical (serialization/deserialization issues)
             get => this.SortBy.ToSorting();
@@ -67,13 +81,13 @@ namespace Paging
         /// <summary>
         /// The whole result list is reversed.
         /// </summary>
-        public bool Reverse { get; set; }
+        public virtual bool Reverse { get; set; }
 
         /// <summary>
         /// Free-text which is used to search trough the target collection of items.
         /// Search text is only used if a search predicated is specified.
         /// </summary>
-        public string? Search { get; set; }
+        public virtual string? Search { get; set; }
 
         /// <summary>
         /// Property-based filtering. All specified {Key, Value} pairs are used to OR-filter
@@ -81,20 +95,20 @@ namespace Paging
         /// - Key is of type string and contains the property name of the property to be filtered.
         /// - Value is an arbitrary filter value (currently supported: string, decimal, DateTime).
         /// </summary>
-        public IDictionary<string, object?> Filter
+        public virtual IDictionary<string, object?> Filter
         {
             get => this.filter;
             set => this.filter = value ?? new Dictionary<string, object?>();
         }
 
-        public static bool operator ==(PagingInfo? pi1, PagingInfo? pi2)
+        public static bool operator ==(PagingInfo? left, PagingInfo? right)
         {
-            return Equals(pi1, pi2);
+            return Equals(left, right);
         }
 
-        public static bool operator !=(PagingInfo? pi1, PagingInfo? pi2)
+        public static bool operator !=(PagingInfo? left, PagingInfo? right)
         {
-            return !(pi1 == pi2);
+            return !(left == right);
         }
 
         public override string ToString()
@@ -151,12 +165,12 @@ namespace Paging
                 return true;
             }
 
-            if (obj.GetType() != this.GetType())
+            if (obj is not PagingInfo p)
             {
                 return false;
             }
 
-            return this.Equals((PagingInfo)obj);
+            return this.Equals(p);
         }
 
         public override int GetHashCode()
