@@ -1,10 +1,10 @@
 # Paging.NET
 [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)  [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET) [![Buy Me a Coffee](https://img.shields.io/badge/support-buy%20me%20a%20coffee-FFDD00)](https://buymeacoffee.com/thomasgalliker)
 
-Paging.NET is a lightweight and flexible library designed to simplify incremental server-side data loading. It provides an easy-to-use toolkit for efficiently managing large datasets by fetching data in small, controlled chunks. Ideal for applications that require smooth paging, reduced memory usage, and responsive data access patterns, Paging.NET helps you streamline your backend communication without unnecessary complexity.
+Paging.NET is a lightweight and flexible library for server-side paging and incremental data loading. Large datasets can be handled more efficiently by retrieving items in smaller, predictable chunks, making data access easier to manage. The library is well suited for applications that need paging, sorting, filtering, and responsive loading behavior without adding unnecessary complexity.
 
 ### Download and Install Paging.NET
-This library is available on NuGet: https://www.nuget.org/packages/Paging.NET/
+This library is available on NuGet: https://www.nuget.org/packages/Paging.NET
 Use the following command to install Paging using NuGet package manager console:
 
     PM> Install-Package Paging.NET
