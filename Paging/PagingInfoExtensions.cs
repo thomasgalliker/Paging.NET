@@ -32,7 +32,7 @@ namespace Paging
                 .Select(s =>
                 {
                     var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    string key = null;
+                    string? key = null;
                     if (sortSplit.Length >= 1)
                     {
                         key = sortSplit[0];
@@ -51,7 +51,7 @@ namespace Paging
             return sorting;
         }
 
-        public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder> sorting)
+        public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder>? sorting)
         {
             string? sortBy;
 
