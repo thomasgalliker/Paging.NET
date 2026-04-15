@@ -88,9 +88,15 @@ PagingInfo.DefaultItemsPerPage = null; // null means return all items - no pagin
 
 ##### Choose the First Page Index (0- or 1-based)
 
-`PagingInfo.DefaultFirstPageIndex` is a library constant. It is not configurable at runtime.
-If you want zero-based paging, set `FirstPageIndex = 0` on the request itself. If you want one-based paging, use the
-default `FirstPageIndex = 1`.
+`PagingInfo.DefaultFirstPageIndex` is a global library default. Allowed values are `0` and `1`.
+If you want zero-based paging by default, set `PagingInfo.DefaultFirstPageIndex = 0`. You can still override
+`FirstPageIndex` per request.
+
+```csharp
+PagingInfo.DefaultFirstPageIndex = 0;
+```
+
+Or set it directly on a request:
 
 ```csharp
 var pagingInfo = new PagingInfo

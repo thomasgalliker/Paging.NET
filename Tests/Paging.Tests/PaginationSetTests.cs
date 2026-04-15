@@ -187,6 +187,7 @@ namespace Paging.Tests
 
         private static void ResetDefaults()
         {
+            PagingInfo.DefaultFirstPageIndex = 1;
             PagingInfo.DefaultItemsPerPage = null;
         }
     }

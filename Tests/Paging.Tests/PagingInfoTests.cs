@@ -136,6 +136,16 @@ namespace Paging.Tests
         }
 
         [Fact]
+        public void ShouldRejectInvalidDefaultFirstPageIndex()
+        {
+            // Act
+            Action action = () => PagingInfo.DefaultFirstPageIndex = 2;
+
+            // Assert
+            action.Should().Throw<ArgumentOutOfRangeException>();
+        }
+
+        [Fact]
         public void ShouldRejectCurrentPageBelowFirstPageIndex()
         {
             // Arrange
@@ -436,6 +446,7 @@ namespace Paging.Tests
 
         private static void ResetDefaults()
         {
+            PagingInfo.DefaultFirstPageIndex = 1;
             PagingInfo.DefaultItemsPerPage = null;
         }
     }

@@ -1,8 +1,7 @@
 4.0
-- Redesign paging semantics with explicit ItemsPerPage modes: `> 0` = paged, `0` = totals only, `null` = unpaged.
-- Replace the global page-base setting with request-level `PagingInfo.FirstPageIndex` (`0` or `1`), serialized over JSON and query strings when it differs from the default value `1`.
-- Keep `PagingInfo.DefaultItemsPerPage` as the configurable global default page size.
-- Change `PaginationSet.TotalPages` for totals-only requests to `0`.
+- Redesign paging semantics with explicit `ItemsPerPage` modes.
+- Add `DefaultFirstPageIndex` to define 0-based or 1-based paging.
+- Add `DefaultItemsPerPage` as the configurable global default page size.
 
 3.2
 - Update target framework to net9.0 and net10.0.

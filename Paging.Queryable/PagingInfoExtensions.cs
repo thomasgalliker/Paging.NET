@@ -9,7 +9,7 @@ namespace Paging.Queryable
         /// Creates a <see cref="PaginationSet{TEntity}"/> from a queryable source without mapping the entity type.
         /// </summary>
         /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
-        /// <param name="pagingInfo">The paging information to apply. If <see langword="null"/>, all items are returned.</param>
+        /// <param name="pagingInfo">The paging information to apply. If <c>null</c>, all items are returned.</param>
         /// <param name="queryable">The source query.</param>
         /// <param name="searchPredicate">An optional predicate used for free-text search.</param>
         /// <returns>A pagination set containing the queried entities.</returns>
@@ -23,7 +23,7 @@ namespace Paging.Queryable
         /// </summary>
         /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
         /// <typeparam name="TDto">The result type stored in the pagination set.</typeparam>
-        /// <param name="pagingInfo">The paging information to apply. If <see langword="null"/>, all items are returned.</param>
+        /// <param name="pagingInfo">The paging information to apply. If <c>null</c>, all items are returned.</param>
         /// <param name="queryable">The source query.</param>
         /// <param name="mapEntitiesToDtos">Maps the queried entities to the target result type.</param>
         /// <param name="searchPredicate">An optional predicate used for free-text search.</param>

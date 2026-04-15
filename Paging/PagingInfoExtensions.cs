@@ -58,8 +58,8 @@ namespace Paging
         /// </summary>
         /// <param name="sorting">The sorting dictionary to convert.</param>
         /// <returns>
-        /// A comma-separated sort expression, or <see langword="null"/> when <paramref name="sorting"/> is
-        /// <see langword="null"/> or empty.
+        /// A comma-separated sort expression, or <c>null</c> when <paramref name="sorting"/> is
+        /// <c>null</c> or empty.
         /// </returns>
         public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder>? sorting)
         {

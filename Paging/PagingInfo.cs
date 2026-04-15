@@ -10,11 +10,6 @@ namespace Paging
     [JsonConverter(typeof(PagingInfoJsonConverter))]
     public class PagingInfo : IEquatable<PagingInfo?>
     {
-        /// <summary>
-        /// The library default first page index used when no explicit request value is provided.
-        /// </summary>
-        public const int DefaultFirstPageIndex = 1;
-
         private int firstPageIndex;
         private int currentPage;
         private int? itemsPerPage;
@@ -25,20 +20,6 @@ namespace Paging
         /// </summary>
         public static PagingInfo Default => new DefaultPagingInfo();
 
-        /// <summary>
-        /// Gets or sets the global default page size for new <see cref="PagingInfo"/> instances.
-        /// <c>null</c> disables paging, <c>0</c> returns totals only, and values greater than <c>0</c> enable paging.
-        /// </summary>
-        public static int? DefaultItemsPerPage
-        {
-            get;
-            set
-            {
-                ValidateItemsPerPage(value, nameof(value));
-                field = value;
-            }
-        }
-
         public PagingInfo()
         {
             this.firstPageIndex = DefaultFirstPageIndex;
@@ -48,8 +29,24 @@ namespace Paging
         }
 
         /// <summary>
+        /// Gets or sets the library default first page index used when no explicit request value is provided.
+        /// Allowed values are <c>0</c> and <c>1</c> (default).
+        /// </summary>
+        public static int DefaultFirstPageIndex
+        {
+            get;
+            set
+            {
+                ValidateFirstPageIndex(value, nameof(value));
+                field = value;
+            }
+        } = 1;
+
+        /// <summary>
         /// Gets or sets the first valid page index for this request.
-        /// Allowed values are <c>0</c> and <c>1</c>.
+        /// Allowed values are <c>0</c> and <c>1</c> (default).
+        /// If the current request points to the first page, changing this value keeps <see cref="CurrentPage"/>
+        /// aligned with the new first page index.
         /// </summary>
         [JsonPropertyName("firstPageIndex")]
         [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
@@ -60,6 +57,8 @@ namespace Paging
             {
                 ValidateFirstPageIndex(value, nameof(value));
 
+                // Keep requests that currently point to the first page aligned with the new first page index,
+                // and clamp any now-invalid CurrentPage value to the new minimum.
                 var wasAtPreviousFirstPage = this.currentPage == this.firstPageIndex;
                 this.firstPageIndex = value;
 
@@ -94,10 +93,43 @@ namespace Paging
         }
 
         /// <summary>
+        /// Gets or sets the global default page size for new <see cref="PagingInfo"/> instances.
+        /// The default value is <c>null</c>.
+        /// <list type="bullet">
+        /// <item>
+        /// <description><c>null</c> disables paging and returns all matching items.</description>
+        /// </item>
+        /// <item>
+        /// <description><c>0</c> returns totals only.</description>
+        /// </item>
+        /// <item>
+        /// <description>Values greater than <c>0</c> enable regular paging.</description>
+        /// </item>
+        /// </list>
+        /// </summary>
+        public static int? DefaultItemsPerPage
+        {
+            get;
+            set
+            {
+                ValidateItemsPerPage(value, nameof(value));
+                field = value;
+            }
+        }
+
+        /// <summary>
         /// Number of items returned per page.
-        /// A value greater than 0 enables regular paging.
-        /// A value of 0 returns totals only and no items.
-        /// A value of null disables paging and returns all matching items.
+        /// <list type="bullet">
+        /// <item>
+        /// <description><c>null</c> disables paging and returns all matching items (default).</description>
+        /// </item>
+        /// <item>
+        /// <description><c>0</c> returns totals only and no items.</description>
+        /// </item>
+        /// <item>
+        /// <description>Values greater than <c>0</c> enable regular paging.</description>
+        /// </item>
+        /// </list>
         /// </summary>
         [JsonPropertyName("itemsPerPage")]
         [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
