@@ -84,7 +84,7 @@ namespace Paging
         public virtual bool Reverse { get; set; }
 
         /// <summary>
-        /// Free-text which is used to search trough the target collection of items.
+        /// Free-text which is used to search through the target collection of items.
         /// Search text is only used if a search predicated is specified.
         /// </summary>
         public virtual string? Search { get; set; }

@@ -32,7 +32,7 @@ namespace Paging
                 .Select(s =>
                 {
                     var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    string key = null;
+                    string? key = null;
                     if (sortSplit.Length >= 1)
                     {
                         key = sortSplit[0];
@@ -51,7 +51,7 @@ namespace Paging
             return sorting;
         }
 
-        public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder> sorting)
+        public static string? ToSortByString(this IReadOnlyDictionary<string, SortOrder>? sorting)
         {
             string? sortBy;
 
@@ -71,7 +71,7 @@ namespace Paging
             return sortBy;
         }
 
-        internal static string ToQueryString(this PagingInfo pagingInfo)
+        public static IReadOnlyDictionary<string, string> ToQueryParameters(this PagingInfo pagingInfo)
         {
             // Get all properties on the object
             var properties = new Dictionary<string, string>
@@ -95,8 +95,13 @@ namespace Paging
                 properties.Add(nameof(PagingInfo.Search), pagingInfo.Search!);
             }
 
+            return new ReadOnlyDictionary<string, string>(properties);
+        }
+
+        public static string ToQueryString(this PagingInfo pagingInfo)
+        {
             // Concat all key/value pairs into a string separated by ampersand
-            return string.Join("&", properties.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+            return string.Join("&", pagingInfo.ToQueryParameters().Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
         }
     }
 }

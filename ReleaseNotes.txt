@@ -1,3 +1,6 @@
+3.2
+- Update target framework to net9.0 and net10.0.
+
 3.1
 - Add support for nullable reference types.
 

@@ -1,7 +1,5 @@
 using System.Diagnostics;
-
 using System.Linq.Expressions;
-using System.Linq.Dynamic.Core;
 
 namespace Paging.Queryable
 {
@@ -31,7 +29,7 @@ namespace Paging.Queryable
                 }
 
                 // Property-based filter
-                if (pagingInfo.Filter != null)
+                if (pagingInfo.Filter.Any())
                 {
                     queryable = queryable.ApplyFilter(pagingInfo.Filter);
                 }

@@ -158,6 +158,33 @@ namespace Paging.Tests
             stringValue.Should().Be(expectedStringValue);
         }
 
+        [Fact]
+        public void ShouldConvertToQueryParameters()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo
+            {
+                CurrentPage = 2,
+                ItemsPerPage = 30,
+                SortBy = "Venue.Name Asc",
+                Reverse = true,
+                Search = "Test value"
+            };
+
+            // Act
+            var parameters = pagingInfo.ToQueryParameters();
+
+            // Assert
+            parameters.Should().Equal(new Dictionary<string, string>
+            {
+                { "CurrentPage", "2" },
+                { "ItemsPerPage", "30" },
+                { "SortBy", "Venue.Name Asc" },
+                { "Reverse", "True" },
+                { "Search", "Test value" }
+            });
+        }
+
         public class ToStringTestData : TheoryData<PagingInfo, string>
         {
             public ToStringTestData()
