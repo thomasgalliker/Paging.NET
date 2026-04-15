@@ -20,11 +20,13 @@ namespace MauiPagingSample.Services
             this.logger.LogDebug($"GetCarsAsync: CurrentPage={pageInfo.CurrentPage}, ItemsPerPage={pageInfo.ItemsPerPage}");
             await Task.Delay(1000);
 
-            var from = (pageInfo.CurrentPage - 1) * pageInfo.ItemsPerPage + 1;
-            var remainingItems = this.itemsCount - (pageInfo.CurrentPage - 1) * pageInfo.ItemsPerPage;
-            var count = remainingItems < pageInfo.ItemsPerPage
+            var itemsPerPage = pageInfo.ItemsPerPage ?? this.itemsCount;
+            var pageOffset = pageInfo.CurrentPage - pageInfo.FirstPageIndex;
+            var from = pageOffset * itemsPerPage + 1;
+            var remainingItems = this.itemsCount - pageOffset * itemsPerPage;
+            var count = remainingItems < itemsPerPage
                 ? remainingItems
-                : pageInfo.ItemsPerPage;
+                : itemsPerPage;
 
             var items = GenerateCarsList(from, count).ToArray();
             var pagingSet = new PaginationSet<Car>(pageInfo, items, this.itemsCount, this.itemsCount);

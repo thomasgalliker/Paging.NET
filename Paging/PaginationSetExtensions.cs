@@ -23,8 +23,13 @@
                 throw new ArgumentNullException(nameof(pagingInfo));
             }
 
-            var stopScroll = pagingInfo.ItemsPerPage * pagingInfo.CurrentPage >= paginationSet.TotalCount;
-            return stopScroll;
+            if (pagingInfo.ItemsPerPage is null or 0)
+            {
+                return true;
+            }
+
+            var pagesLoaded = pagingInfo.CurrentPage - pagingInfo.FirstPageIndex + 1;
+            return pagesLoaded * pagingInfo.ItemsPerPage.Value >= paginationSet.TotalCount;
         }
     }
 }

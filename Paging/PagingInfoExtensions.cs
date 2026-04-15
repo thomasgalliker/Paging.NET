@@ -91,9 +91,18 @@ namespace Paging
             // Get all properties on the object
             var properties = new Dictionary<string, string>
             {
-                { nameof(PagingInfo.CurrentPage), $"{pagingInfo.CurrentPage}" },
-                { nameof(PagingInfo.ItemsPerPage), $"{pagingInfo.ItemsPerPage}" }
+                { nameof(PagingInfo.CurrentPage), $"{pagingInfo.CurrentPage}" }
             };
+
+            if (pagingInfo.FirstPageIndex != PagingInfo.DefaultFirstPageIndex)
+            {
+                properties.Add(nameof(PagingInfo.FirstPageIndex), $"{pagingInfo.FirstPageIndex}");
+            }
+
+            if (pagingInfo.ItemsPerPage is int itemsPerPage)
+            {
+                properties.Add(nameof(PagingInfo.ItemsPerPage), $"{itemsPerPage}");
+            }
 
             if (!string.IsNullOrEmpty(pagingInfo.SortBy))
             {

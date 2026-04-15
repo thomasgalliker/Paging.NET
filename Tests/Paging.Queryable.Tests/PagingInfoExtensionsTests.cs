@@ -8,13 +8,19 @@ using Xunit.Abstractions;
 
 namespace Paging.Queryable.Tests
 {
-    public class PagingInfoExtensionsTests
+    public class PagingInfoExtensionsTests : IDisposable
     {
         private readonly ILogger logger;
 
         public PagingInfoExtensionsTests(ITestOutputHelper testOutputHelper)
         {
+            ResetDefaults();
             this.logger = new TestOutputHelperLogger<PagingInfo>(testOutputHelper);
+        }
+
+        public void Dispose()
+        {
+            ResetDefaults();
         }
 
         [Fact]
@@ -37,7 +43,7 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
-        public void ShouldCreatePaginationSet_ItemsPerPageZeroReturnsSinglePage()
+        public void ShouldCreatePaginationSet_ItemsPerPagePositiveReturnsPagedItems()
         {
             // Arrange
             var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
@@ -51,6 +57,25 @@ namespace Paging.Queryable.Tests
             paginationSet.Items.Should().HaveCount(4);
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(3);
+            paginationSet.TotalCount.Should().Be(10);
+            paginationSet.TotalCountUnfiltered.Should().Be(10);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_ItemsPerPageNullReturnsAllItems()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
+            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = null };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(10);
+            paginationSet.CurrentPage.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(10);
             paginationSet.TotalCountUnfiltered.Should().Be(10);
         }
@@ -110,11 +135,31 @@ namespace Paging.Queryable.Tests
 
             // Assert
             paginationSet.Should().NotBeNull();
-            paginationSet.Items.Should().HaveCount(11);
+            paginationSet.Items.Should().BeEmpty();
             paginationSet.CurrentPage.Should().Be(1);
-            paginationSet.TotalPages.Should().Be(1);
+            paginationSet.TotalPages.Should().Be(0);
             paginationSet.TotalCount.Should().Be(11);
             paginationSet.TotalCountUnfiltered.Should().Be(20);
+        }
+
+        [Fact]
+        public void ShouldCreatePaginationSet_WithZeroBasedPaging()
+        {
+            // Arrange
+            var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
+            var pagingInfo = new PagingInfo { FirstPageIndex = 0, CurrentPage = 0, ItemsPerPage = 3 };
+
+            // Act
+            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().HaveCount(3);
+            paginationSet.Items.First().ToString().Should().Be("Car Model 0, Year 2019");
+            paginationSet.FirstPageIndex.Should().Be(0);
+            paginationSet.CurrentPage.Should().Be(0);
+            paginationSet.TotalPages.Should().Be(4);
+            paginationSet.HasMorePages().Should().BeTrue();
         }
 
         [Fact]
@@ -773,6 +818,11 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalPages.Should().Be(paginationSetMapped.TotalPages);
             paginationSet.TotalCount.Should().Be(paginationSetMapped.TotalCount);
             paginationSet.TotalCountUnfiltered.Should().Be(paginationSetMapped.TotalCountUnfiltered);
+        }
+
+        private static void ResetDefaults()
+        {
+            PagingInfo.DefaultItemsPerPage = null;
         }
     }
 }
