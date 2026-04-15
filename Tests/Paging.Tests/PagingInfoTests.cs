@@ -1,11 +1,16 @@
 using FluentAssertions;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace Paging.Tests
 {
     public class PagingInfoTests
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         [Fact]
         public void PagingInfoDefault_ShouldNotBeEditable()
         {
@@ -222,15 +227,17 @@ namespace Paging.Tests
             {
                 CurrentPage = 2,
                 ItemsPerPage = 30,
-                //SortBy = "Venue.Name asc, Name desc"
                 Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Desc } }
             };
 
             // Act
-            var serializeObject = JsonConvert.SerializeObject(pagingInfo);
-            var pagingInfoResult = JsonConvert.DeserializeObject<PagingInfo>(serializeObject);
+            var serializeObject = JsonSerializer.Serialize(pagingInfo, SerializerOptions);
+            var pagingInfoResult = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions);
 
             // Assert
+            serializeObject.Should()
+                .Be(
+                    "{\"currentPage\":2,\"itemsPerPage\":30,\"sortBy\":\"Venue.Name Asc, Name Desc\",\"sorting\":{\"Venue.Name\":0,\"Name\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
             pagingInfoResult.Should().BeEquivalentTo(pagingInfo);
         }
 
@@ -242,17 +249,16 @@ namespace Paging.Tests
                 "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sorting\": {\r\n    \"valueDate\": \"desc\"\r\n  },\r\n  \"filter\": {}\r\n}";
 
             // Act
-            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject)!;
+            var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
 
             // Assert
             pagingInfo.Should().NotBeNull();
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
-            // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
-            var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
+            var serializeObject2 = JsonSerializer.Serialize(pagingInfo, SerializerOptions);
             serializeObject2.Should().Be(
-                "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
         }
 
         [Fact]
@@ -263,17 +269,16 @@ namespace Paging.Tests
                 "{\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": {}\r\n}";
 
             // Act
-            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject)!;
+            var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
-            // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
-            var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
+            var serializeObject2 = JsonSerializer.Serialize(pagingInfo, SerializerOptions);
             serializeObject2.Should()
                 .Be(
-                    "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+                    "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
         }
 
         [Fact]
@@ -285,17 +290,15 @@ namespace Paging.Tests
                 "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":{}}";
 
             // Act
-            var pagingInfo = JsonConvert.DeserializeObject<PagingInfo>(serializeObject)!;
+            var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
 
             // Assert
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
 
-            // Bug: Serialization of PagingInfo generates SortBy and Sorting properties to JSON, this is not ideal:
-            var serializeObject2 = JsonConvert.SerializeObject(pagingInfo);
-            serializeObject2.Should()
-                .Be(
-                    "{\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":1},\"Reverse\":false,\"Search\":null,\"Filter\":{}}");
+            var serializeObject2 = JsonSerializer.Serialize(pagingInfo, SerializerOptions);
+            serializeObject2.Should().Be(
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
         }
     }
 }
