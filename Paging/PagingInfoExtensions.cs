@@ -38,11 +38,7 @@ namespace Paging
                 .Select(s =>
                 {
                     var sortSplit = s.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    string? key = null;
-                    if (sortSplit.Length >= 1)
-                    {
-                        key = sortSplit[0];
-                    }
+                    var key = sortSplit.Length >= 1 ? sortSplit[0] : string.Empty;
 
                     var value = SortOrder.Asc;
                     if (sortSplit.Length == 2)
