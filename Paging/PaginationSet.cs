@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Paging
 {
     public class PaginationSet<T>
@@ -46,12 +48,14 @@ namespace Paging
         /// The page index of the currently filtered set.
         /// CurrentPage is 1-indexed, means the first page is CurrentPage = 1 (not CurrentPage = 0).
         /// </summary>
+        [JsonPropertyName("currentPage")]
         public int CurrentPage { get; set; }
 
         /// <summary>
         /// The total number of pages that match the filter/search criteria.
         /// TotalPages = TotalCount / ItemsPerPage.
         /// </summary>
+        [JsonPropertyName("totalPages")]
         public int TotalPages { get; set; }
 
         /// <summary>
@@ -59,17 +63,20 @@ namespace Paging
         /// If ItemsPerPage is set to 0, Items.Count equals to TotalCount.
         /// This means, a single page is returned containing all available items which match the filter/search criteria.
         /// </summary>
+        [JsonPropertyName("totalCount")]
         public int TotalCount { get; set; }
 
         /// <summary>
         /// The total number of items if no filter/search is applied.
         /// </summary>
+        [JsonPropertyName("totalCountUnfiltered")]
         public int TotalCountUnfiltered { get; set; }
 
         /// <summary>
         /// The paged collection of items which match the filter/search criteria.
         /// If ItemsPerPage is set >0, ItemsPerPage equals to Items.Count.
         /// </summary>
+        [JsonPropertyName("items")]
         public IEnumerable<T> Items { get; set; }
 
         /// <summary>

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Paging.Internals;
 
 namespace Paging
@@ -6,6 +7,7 @@ namespace Paging
     /// PagingInfo is the paging specification used to instruct the data source
     /// on sorting, filtering and paging.
     /// </summary>
+    [JsonConverter(typeof(PagingInfoJsonConverter))]
     public class PagingInfo : IEquatable<PagingInfo?>
     {
         public static readonly PagingInfo Default = new DefaultPagingInfo();
@@ -25,6 +27,8 @@ namespace Paging
         /// The currently selected page.
         /// Default CurrentPage = 1.
         /// </summary>
+        [JsonPropertyName("currentPage")]
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
         public virtual int CurrentPage
         {
             get => this.currentPage;
@@ -36,6 +40,8 @@ namespace Paging
         /// Default ItemsPerPage = 0, which means, if ItemsPerPage is not specified,
         /// the request returns one page with all items.
         /// </summary>
+        [JsonPropertyName("itemsPerPage")]
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
         public virtual int ItemsPerPage
         {
             get => this.itemsPerPage;
@@ -55,6 +61,7 @@ namespace Paging
         /// Sorting a multiple properties with mixed ordering:
         /// SortBy = "property1 descending, property2 ascending"
         /// </example>
+        [JsonPropertyName("sortBy")]
         public virtual string? SortBy { get; set; }
 
         /// <summary>
@@ -71,6 +78,7 @@ namespace Paging
         ///     {"property2", SortOrder.Asc}
         /// }
         /// </example>
+        [JsonPropertyName("sorting")]
         public virtual IReadOnlyDictionary<string, SortOrder> Sorting
         {
             //TODO: Check if Sorting as wrapper for SortBy is practical (serialization/deserialization issues)
@@ -81,12 +89,14 @@ namespace Paging
         /// <summary>
         /// The whole result list is reversed.
         /// </summary>
+        [JsonPropertyName("reverse")]
         public virtual bool Reverse { get; set; }
 
         /// <summary>
         /// Free-text which is used to search through the target collection of items.
         /// Search text is only used if a search predicated is specified.
         /// </summary>
+        [JsonPropertyName("search")]
         public virtual string? Search { get; set; }
 
         /// <summary>
@@ -95,6 +105,7 @@ namespace Paging
         /// - Key is of type string and contains the property name of the property to be filtered.
         /// - Value is an arbitrary filter value (currently supported: string, decimal, DateTime).
         /// </summary>
+        [JsonPropertyName("filter")]
         public virtual IDictionary<string, object?> Filter
         {
             get => this.filter;
