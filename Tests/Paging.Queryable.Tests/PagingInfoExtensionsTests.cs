@@ -1,11 +1,3 @@
-using System.Linq.Expressions;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Paging.Queryable.Tests.Logging;
-using Paging.Queryable.Tests.Testdata;
-using Xunit;
-using Xunit.Abstractions;
-
 namespace Paging.Queryable.Tests
 {
     public class PagingInfoExtensionsTests : IDisposable

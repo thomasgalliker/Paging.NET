@@ -2,5 +2,6 @@
 
 global using System.Diagnostics;
 global using System.Text.Json;
-global using FluentAssertions;
+global using AwesomeAssertions;
+global using Paging.Tests.TestData;
 global using Xunit;

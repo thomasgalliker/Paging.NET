@@ -1,8 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-using Xunit.Abstractions;
-
-namespace Paging.Queryable.Tests.Logging
+﻿namespace Paging.Queryable.Tests.Logging
 {
     public class TestOutputHelperLogger<T> : TestOutputHelperLogger, ILogger<T>
     {

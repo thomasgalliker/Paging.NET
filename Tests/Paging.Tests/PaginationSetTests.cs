@@ -1,5 +1,3 @@
-using Paging.Tests.TestData;
-
 namespace Paging.Tests
 {
     public class PaginationSetTests : IDisposable

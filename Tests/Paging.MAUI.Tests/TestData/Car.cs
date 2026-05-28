@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Paging.MAUI.Tests.TestData
+﻿namespace Paging.MAUI.Tests.TestData
 {
     [DebuggerDisplay("Car: {this.Id}")]
     public class Car
