@@ -1,7 +1,7 @@
 ####################################################################
 # Azure DevOps Build Configuration
 #
-# (c)2025 superdev GmbH
+# (c)2026 superdev GmbH
 ####################################################################
 
 name: $[format('{0}', variables['buildName'])]
@@ -24,8 +24,8 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  majorVersion: 3
-  minorVersion: 1
+  majorVersion: 4
+  minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     # Versioning: 1.0.0
@@ -67,9 +67,9 @@ steps:
     DisableTelemetry: true
     
 - task: UseDotNet@2
-  displayName: 'Use .NET 9.0.x'
+  displayName: 'Use .NET 10.0.x'
   inputs:
-    version: 9.0.x
+    version: 10.0.x
     
 - task: Bash@3
   displayName: Install .NET MAUI
@@ -81,7 +81,7 @@ steps:
 - task: JavaToolInstaller@0
   displayName: "Install Java"
   inputs:
-    versionSpec: '17'
+    versionSpec: '21'
     jdkArchitectureOption: 'x64'
     jdkSourceOption: 'PreInstalled'
 

@@ -6,6 +6,15 @@ namespace Paging
 {
     public static class QueryExtensions
     {
+        /// <summary>
+        /// Applies paging to a queryable source and returns the total number of items before paging.
+        /// </summary>
+        /// <typeparam name="T">The entity type returned by the query.</typeparam>
+        /// <param name="source">The source query.</param>
+        /// <param name="page">The one-based page number to load.</param>
+        /// <param name="row">The number of items per page.</param>
+        /// <param name="total">Receives the total number of items before paging is applied.</param>
+        /// <returns>The paged query.</returns>
         public static IQueryable<T> Paging<T>(this IQueryable<T> source, int page, int row, ref int total)
         {
             total = source.Count();
@@ -66,6 +75,14 @@ namespace Paging
         //    return source;
         //}
 
+        /// <summary>
+        /// Sorts a queryable source by the specified property using the provided LINQ method name.
+        /// </summary>
+        /// <typeparam name="T">The entity type returned by the query.</typeparam>
+        /// <param name="source">The source query.</param>
+        /// <param name="propertyName">The property name to sort by.</param>
+        /// <param name="methodName">The LINQ sort method name, for example <c>OrderBy</c> or <c>OrderByDescending</c>.</param>
+        /// <returns>The sorted query.</returns>
         public static IQueryable<T> SortBy<T>(this IQueryable<T> source, string propertyName, string methodName)
         {
             var parameter = Expression.Parameter(source.ElementType, string.Empty);
@@ -77,6 +94,14 @@ namespace Paging
             return source.Provider.CreateQuery<T>(methodCallExpression);
         }
 
+        /// <summary>
+        /// Filters a queryable source by checking whether the specified property matches the provided keyword.
+        /// </summary>
+        /// <typeparam name="T">The entity type returned by the query.</typeparam>
+        /// <param name="source">The source query.</param>
+        /// <param name="propertyName">The property to search in.</param>
+        /// <param name="keyword">The search keyword.</param>
+        /// <returns>The filtered query.</returns>
         public static IQueryable<T> HasOne<T>(this IQueryable<T> source, string propertyName, string keyword)
         {
             if (source == null || string.IsNullOrEmpty(propertyName) || string.IsNullOrEmpty(keyword))
@@ -147,6 +172,15 @@ namespace Paging
             return source;
         }
 
+        /// <summary>
+        /// Applies a comparison or string search operation to the specified property.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
+        /// <param name="source">The source query.</param>
+        /// <param name="searchProperty">The property to filter on.</param>
+        /// <param name="searchOper">The search operator, for example <c>eq</c>, <c>gt</c>, or <c>cn</c>.</param>
+        /// <param name="searchString">The value used by the search operator.</param>
+        /// <returns>The filtered query.</returns>
         public static IQueryable<TEntity> Where<TEntity>(this IQueryable<TEntity> source, string searchProperty, string searchOper, string searchString) //where TEntity : class
         {
             var type = typeof(TEntity);

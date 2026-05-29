@@ -1,8 +1,4 @@
-﻿using FluentAssertions;
-using Paging.MAUI.Tests.TestData;
-using Xunit;
-
-namespace Paging.MAUI.Tests
+﻿namespace Paging.MAUI.Tests
 {
     public class InfiniteScrollBehaviorTests
     {

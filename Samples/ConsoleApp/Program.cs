@@ -23,11 +23,13 @@ namespace ConsoleApp
 
             do
             {
-                var from = (pageInfo.CurrentPage - 1) * pageInfo.ItemsPerPage + 1;
-                var remainingItems = itemsCount - (pageInfo.CurrentPage - 1) * pageInfo.ItemsPerPage;
-                var count = remainingItems < pageInfo.ItemsPerPage
+                var itemsPerPage = pageInfo.ItemsPerPage ?? itemsCount;
+                var pageOffset = pageInfo.CurrentPage - pageInfo.FirstPageIndex;
+                var from = pageOffset * itemsPerPage + 1;
+                var remainingItems = itemsCount - pageOffset * itemsPerPage;
+                var count = remainingItems < itemsPerPage
                     ? remainingItems
-                    : pageInfo.ItemsPerPage;
+                    : itemsPerPage;
 
                 var items = Enumerable.Range(from, count).ToList();
                 pagingSet = new PaginationSet<int>(pageInfo, items, itemsCount, itemsCount);
@@ -36,7 +38,7 @@ namespace ConsoleApp
                     Console.WriteLine("Item: {0}", item);
                 }
 
-                if (pagingSet.TotalPages > pagingSet.CurrentPage)
+                if (pagingSet.HasMorePages())
                 {
                     pageInfo.CurrentPage++;
 

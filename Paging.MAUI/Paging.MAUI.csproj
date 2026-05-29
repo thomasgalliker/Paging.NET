@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net8.0-android;net8.0-ios18.0;net9.0;net9.0-android;net9.0-ios18.0</TargetFrameworks>
+    <TargetFrameworks>net9.0;net9.0-android35.0;net9.0-ios18.0;net10.0;net10.0-android36.0;net10.0-ios26.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <UseMaui>true</UseMaui>
-    <MauiVersion Condition="$(TargetFramework.Contains('net8.0'))">8.0.3</MauiVersion>
     <MauiVersion Condition="$(TargetFramework.Contains('net9.0'))">9.0.0</MauiVersion>
+    <MauiVersion Condition="$(TargetFramework.Contains('net10.0'))">10.0.0</MauiVersion>
     <SingleProject>true</SingleProject>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,8 +13,7 @@
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net8.0'))">12.0</SupportedOSPlatformVersion>
-    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios' and $(TargetFramework.Contains('net9.0'))">12.2</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">12.2</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
 
     <AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
@@ -33,27 +32,15 @@
     <PackageId>Paging.MAUI</PackageId>
     <PackageTags>infinite;scrolling;scroll;paging;pagination;paged;server-side;filtering;filter;sorting;sort</PackageTags>
     <PackageIcon>logo.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/thomasgalliker/Paging.NET</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/thomasgalliker/Paging.NET</RepositoryUrl>
     <Company>superdev GmbH</Company>
-    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageReleaseNotes>3.0
-- Drop support for Xamarin and .NET Framework
-- Add support for .NET MAUI
-
-2.2
-- Maintenance updates
-
-2.0
-- Add support for .NET standard
-
-1.0
-- Initial release
-    </PackageReleaseNotes>
+    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../ReleaseNotes.txt"))</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedAllSources>true</EmbedAllSources>
@@ -61,10 +48,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\Images\logo.png" Pack="True" PackagePath="\" />
+    <None Include="..\logo.png" Pack="True" PackagePath="\" />
     <None Include="..\README.md" Pack="True" PackagePath="\" />
     <None Include="..\LICENSE" Pack="True" PackagePath="\" />
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
 
   <!-- Android build properties -->
   <PropertyGroup Condition="$(TargetFramework.Contains('-android'))">

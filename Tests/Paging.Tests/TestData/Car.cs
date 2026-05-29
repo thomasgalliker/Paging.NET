@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Paging.Tests.TestData
+﻿namespace Paging.Tests.TestData
 {
     [DebuggerDisplay("Car: {this.Id}")]
     public class Car
