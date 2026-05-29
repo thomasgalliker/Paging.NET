@@ -31,16 +31,18 @@ In Paging.NET, the client sends a paging request as a `PagingInfo`, and the serv
 
 ### How to Use Paging.NET
 
-The core library defines the two main types:
+#### Core Types
+
+`Paging.NET` is built around two core models:
 
 - **`PagingInfo`** is the paging request model. It specifies which page should be loaded, how many items should be
-  returned,
-  and which sorting, search, or filtering options should be applied.
+  returned, and which sorting, search, or filtering options should be applied.
 
 | Property       | Description                                                                                                                     |
 |----------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `CurrentPage`  | The currently selected page.<br/> The default value is `1`.                                                                     |
-| `ItemsPerPage` | Number of items returned per page. <br/>The default value is `0`, which means all matching items are returned in a single page. |
+| `FirstPageIndex` | The first valid page index for the request. Allowed values are `0` and `1`. |
+| `CurrentPage`  | The currently selected page.<br/> The default value is `PagingInfo.DefaultFirstPageIndex`, which means it initially matches `FirstPageIndex`. |
+| `ItemsPerPage` | Number of items returned per page. <br/>`null` disables paging and returns all items, `0` returns totals only, and positive values enable normal paging. The static `PagingInfo.DefaultItemsPerPage` defaults to `null`. |
 | `SortBy`       | Comma-separated sort expression such as `"Name Asc"` or `"Year Desc, Name Asc"`.                                                |
 | `Sorting`      | Dictionary-based sort definition as an alternative to `SortBy` string.                                                          |
 | `Reverse`      | Reverses the final sort order.                                                                                                  |
@@ -50,25 +52,74 @@ The core library defines the two main types:
 - **`PaginationSet<T>`** is the paged response model. It contains the items of the current page together with metadata
   describing the complete result set.
 
-| Property               | Description                                                                   |
-|------------------------|-------------------------------------------------------------------------------|
-| `CurrentPage`          | The current page number of the returned result. This value is also `1`-based. |
-| `TotalPages`           | Total number of pages available for the current filter and search criteria.   |
-| `TotalCount`           | Total number of items matching the current filter and search criteria.        |
-| `TotalCountUnfiltered` | Total number of items before filter or search is applied.                     |
-| `Items`                | The items contained in the current page.                                      |
+| Property               | Description                                                                                 |
+|------------------------|---------------------------------------------------------------------------------------------|
+| `FirstPageIndex`       | The first page index used for the request and response.                                     |
+| `CurrentPage`          | The current page number of the returned result. This value is relative to `FirstPageIndex`. |
+| `TotalPages`           | Total number of pages available for the current filter and search criteria.                 |
+| `TotalCount`           | Total number of items matching the current filter and search criteria.                      |
+| `TotalCountUnfiltered` | Total number of items before filter or search is applied.                                   |
+| `Items`                | The items contained in the current page.                                                    |
+
+#### Basic Example
 
 The following example shows a simple request using the core models:
 
 ```csharp
 var pagingInfo = new PagingInfo
 {
+    FirstPageIndex = PagingInfo.DefaultFirstPageIndex,
     CurrentPage = 1,
     ItemsPerPage = 10,
     SortBy = "Name Asc",
     Search = "Model Desc"
 };
 ```
+
+#### Paging Defaults and Modes
+
+You can configure the global default page size once for your process:
+
+##### Disable Paging By Default
+
+```csharp
+PagingInfo.DefaultItemsPerPage = null; // null means return all items - no paging is used
+```
+
+##### Choose the First Page Index (0- or 1-based)
+
+`PagingInfo.DefaultFirstPageIndex` is a global library default. Allowed values are `0` and `1`.
+If you want zero-based paging by default, set `PagingInfo.DefaultFirstPageIndex = 0`. You can still override
+`FirstPageIndex` per request.
+
+```csharp
+PagingInfo.DefaultFirstPageIndex = 0;
+```
+
+Or set it directly on a request:
+
+```csharp
+var pagingInfo = new PagingInfo
+{
+    FirstPageIndex = 0,
+    CurrentPage = 0,
+    ItemsPerPage = 10
+};
+```
+
+`FirstPageIndex` is part of the `PagingInfo` contract and is serialized automatically when it differs from
+`PagingInfo.DefaultFirstPageIndex`.
+
+`ItemsPerPage` has three explicit modes:
+
+- `null`: disable paging and return all matching items
+- `0`: return totals only and zero items
+- `> 0`: return the requested page with the requested number of items
+
+`CurrentPage` is interpreted relative to `FirstPageIndex`, which may be `0` or `1`. `FirstPageIndex` is part of the
+request and response contract and is serialized over JSON and query strings when it differs from `PagingInfo.DefaultFirstPageIndex`.
+
+#### Service Example
 
 A service can then use this request to return a page of `Car` items. The following example is intentionally kept as
 pseudo code to illustrate the general flow:
@@ -122,6 +173,8 @@ In this example:
 - `Filter` applies additional property-based constraints.
 - `SortBy` defines the ordering before paging is applied.
 - The result is returned as a `PaginationSet<Car>`.
+- `ItemsPerPage = 0` returns counts without materializing page items.
+- `ItemsPerPage = null` skips `Skip(...).Take(...)` and returns all matching items.
 
 #### Mapping Entities to DTOs
 
@@ -225,6 +278,9 @@ public async Task InitializeAsync(ICarService carService)
     await this.Cars.LoadMoreAsync();
 }
 ```
+
+This pattern assumes normal paging with `ItemsPerPage > 0`. For totals-only or unpaged requests, `StopScroll(...)`
+returns `true` immediately.
 
 In XAML, `InfiniteScrollBehavior` can be attached to a `ListView`:
 

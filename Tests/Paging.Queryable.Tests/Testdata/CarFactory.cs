@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Paging.Queryable.Tests.Testdata
 {
     internal static class CarFactory

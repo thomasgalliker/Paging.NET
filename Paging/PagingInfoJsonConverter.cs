@@ -42,11 +42,14 @@ namespace Paging
 
                 switch (propertyName?.ToLowerInvariant())
                 {
+                    case "firstpageindex":
+                        pagingInfo.FirstPageIndex = ReadInt32(ref reader);
+                        break;
                     case "currentpage":
                         pagingInfo.CurrentPage = ReadInt32(ref reader);
                         break;
                     case "itemsperpage":
-                        pagingInfo.ItemsPerPage = ReadInt32(ref reader);
+                        pagingInfo.ItemsPerPage = ReadNullableInt32(ref reader);
                         break;
                     case "sortby":
                         sortBy = reader.TokenType == JsonTokenType.Null ? null : reader.GetString();
@@ -78,8 +81,19 @@ namespace Paging
         public override void Write(Utf8JsonWriter writer, PagingInfo value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
+            if (value.FirstPageIndex != PagingInfo.DefaultFirstPageIndex)
+            {
+                writer.WriteNumber("firstPageIndex", value.FirstPageIndex);
+            }
             writer.WriteNumber("currentPage", value.CurrentPage);
-            writer.WriteNumber("itemsPerPage", value.ItemsPerPage);
+            if (value.ItemsPerPage.HasValue)
+            {
+                writer.WriteNumber("itemsPerPage", value.ItemsPerPage.Value);
+            }
+            else
+            {
+                writer.WriteNull("itemsPerPage");
+            }
 
             if (value.SortBy is null)
             {
@@ -122,6 +136,16 @@ namespace Paging
             }
 
             throw new JsonException("Unable to convert JSON value to Int32.");
+        }
+
+        private static int? ReadNullableInt32(ref Utf8JsonReader reader)
+        {
+            if (reader.TokenType == JsonTokenType.Null)
+            {
+                return null;
+            }
+
+            return ReadInt32(ref reader);
         }
     }
 }

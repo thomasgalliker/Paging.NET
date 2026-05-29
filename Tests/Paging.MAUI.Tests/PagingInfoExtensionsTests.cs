@@ -1,20 +1,18 @@
-﻿using Xunit;
-
-namespace Paging.MAUI.Tests
+﻿namespace Paging.MAUI.Tests
 {
     public class PagingInfoExtensionsTests
     {
         [Fact]
         public void Test()
         {
-            ////// Arrange
+            // Arrange
             ////var queryable = CarFactory.GenerateCarsList(10).AsQueryable();
             ////var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 4 };
 
-            ////// Act
+            // Act
             ////var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
 
-            ////// Assert
+            // Assert
             ////paginationSet.Should().NotBeNull();
             ////paginationSet.Items.Should().HaveCount(4);
             ////paginationSet.CurrentPage.Should().Be(1);

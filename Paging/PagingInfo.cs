@@ -10,42 +10,137 @@ namespace Paging
     [JsonConverter(typeof(PagingInfoJsonConverter))]
     public class PagingInfo : IEquatable<PagingInfo?>
     {
-        public static readonly PagingInfo Default = new DefaultPagingInfo();
-
+        private int firstPageIndex;
         private int currentPage;
-        private int itemsPerPage;
+        private int? itemsPerPage;
         private IDictionary<string, object?> filter;
+
+        /// <summary>
+        /// Gets a read-only snapshot of the current library defaults.
+        /// </summary>
+        public static PagingInfo Default => new DefaultPagingInfo();
 
         public PagingInfo()
         {
-            this.currentPage = 1;
-            this.itemsPerPage = 0;
+            this.firstPageIndex = DefaultFirstPageIndex;
+            this.currentPage = this.firstPageIndex;
+            this.itemsPerPage = DefaultItemsPerPage;
             this.filter = new Dictionary<string, object?>();
         }
 
         /// <summary>
-        /// The currently selected page.
-        /// Default CurrentPage = 1.
+        /// Gets or sets the library default first page index used when no explicit request value is provided.
+        /// Allowed values are <c>0</c> and <c>1</c> (default).
         /// </summary>
+        public static int DefaultFirstPageIndex
+        {
+            get;
+            set
+            {
+                ValidateFirstPageIndex(value, nameof(value));
+                field = value;
+            }
+        } = 1;
+
+        /// <summary>
+        /// Gets or sets the first valid page index for this request.
+        /// Allowed values are <c>0</c> and <c>1</c> (default).
+        /// If the current request points to the first page, changing this value keeps <see cref="CurrentPage"/>
+        /// aligned with the new first page index.
+        /// </summary>
+        [JsonPropertyName("firstPageIndex")]
+        [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
+        public virtual int FirstPageIndex
+        {
+            get => this.firstPageIndex;
+            set
+            {
+                ValidateFirstPageIndex(value, nameof(value));
+
+                // Keep requests that currently point to the first page aligned with the new first page index,
+                // and clamp any now-invalid CurrentPage value to the new minimum.
+                var wasAtPreviousFirstPage = this.currentPage == this.firstPageIndex;
+                this.firstPageIndex = value;
+
+                if (wasAtPreviousFirstPage || this.currentPage < this.firstPageIndex)
+                {
+                    this.currentPage = this.firstPageIndex;
+                }
+            }
+        }
+
+        /// <summary>
+        /// The currently selected page.
+        /// Defaults to <see cref="FirstPageIndex"/>.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Thrown when the value is smaller than <see cref="FirstPageIndex"/>.
+        /// </exception>
         [JsonPropertyName("currentPage")]
         [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
         public virtual int CurrentPage
         {
             get => this.currentPage;
-            set => this.currentPage = value;
+            set
+            {
+                if (value < this.FirstPageIndex)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value), $"CurrentPage must be greater than or equal to {this.FirstPageIndex}.");
+                }
+
+                this.currentPage = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the global default page size for new <see cref="PagingInfo"/> instances.
+        /// The default value is <c>null</c>.
+        /// <list type="bullet">
+        /// <item>
+        /// <description><c>null</c> disables paging and returns all matching items.</description>
+        /// </item>
+        /// <item>
+        /// <description><c>0</c> returns totals only.</description>
+        /// </item>
+        /// <item>
+        /// <description>Values greater than <c>0</c> enable regular paging.</description>
+        /// </item>
+        /// </list>
+        /// </summary>
+        public static int? DefaultItemsPerPage
+        {
+            get;
+            set
+            {
+                ValidateItemsPerPage(value, nameof(value));
+                field = value;
+            }
         }
 
         /// <summary>
         /// Number of items returned per page.
-        /// Default ItemsPerPage = 0, which means, if ItemsPerPage is not specified,
-        /// the request returns one page with all items.
+        /// <list type="bullet">
+        /// <item>
+        /// <description><c>null</c> disables paging and returns all matching items (default).</description>
+        /// </item>
+        /// <item>
+        /// <description><c>0</c> returns totals only and no items.</description>
+        /// </item>
+        /// <item>
+        /// <description>Values greater than <c>0</c> enable regular paging.</description>
+        /// </item>
+        /// </list>
         /// </summary>
         [JsonPropertyName("itemsPerPage")]
         [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
-        public virtual int ItemsPerPage
+        public virtual int? ItemsPerPage
         {
             get => this.itemsPerPage;
-            set => this.itemsPerPage = value;
+            set
+            {
+                ValidateItemsPerPage(value, nameof(value));
+                this.itemsPerPage = value;
+            }
         }
 
         /// <summary>
@@ -57,7 +152,7 @@ namespace Paging
         /// Sorting a single property in ascending order:
         /// SortBy = "property1"
         /// SortBy = "property1 ascending"
-        /// 
+        ///
         /// Sorting a multiple properties with mixed ordering:
         /// SortBy = "property1 descending, property2 ascending"
         /// </example>
@@ -140,6 +235,7 @@ namespace Paging
             }
 
             return
+                this.FirstPageIndex == other.FirstPageIndex &&
                 this.CurrentPage == other.CurrentPage &&
                 this.ItemsPerPage == other.ItemsPerPage &&
                 string.Equals(this.SortBy, other.SortBy) &&
@@ -188,8 +284,9 @@ namespace Paging
         {
             unchecked
             {
-                var hashCode = this.CurrentPage;
-                hashCode = (hashCode * 397) ^ this.ItemsPerPage;
+                var hashCode = this.FirstPageIndex;
+                hashCode = (hashCode * 397) ^ this.CurrentPage;
+                hashCode = (hashCode * 397) ^ this.ItemsPerPage.GetHashCode();
                 hashCode = (hashCode * 397) ^ (this.SortBy != null ? this.SortBy.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ this.Reverse.GetHashCode();
                 hashCode = (hashCode * 397) ^ (this.Search != null ? this.Search.GetHashCode() : 0);
@@ -203,6 +300,22 @@ namespace Paging
                 }
 
                 return hashCode;
+            }
+        }
+
+        private static void ValidateItemsPerPage(int? value, string paramName)
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(paramName, "ItemsPerPage must be null, 0, or a positive number.");
+            }
+        }
+
+        private static void ValidateFirstPageIndex(int value, string paramName)
+        {
+            if (value is not 0 and not 1)
+            {
+                throw new ArgumentOutOfRangeException(paramName, "FirstPageIndex must be either 0 or 1.");
             }
         }
     }

@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace Paging.Queryable.Tests.Testdata
 {
     [DebuggerDisplay("Car: {this.Id} {this.Name} {this.Model} {this.Year}")]

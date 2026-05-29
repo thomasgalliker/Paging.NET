@@ -26,9 +26,11 @@ namespace WpfPagingSample.Services
             // 
             // --> Use Paging.Queryable NuGet package for any .NET / EntityFramework-based backends
 
-            var skip = (pagingInfo.CurrentPage - 1) * pagingInfo.ItemsPerPage;
-            var take = pagingInfo.ItemsPerPage;
-            var queryable = this.employees.Skip(skip).Take(take);
+            var itemsPerPage = pagingInfo.ItemsPerPage ?? this.employees.Count;
+            var pageOffset = pagingInfo.CurrentPage - pagingInfo.FirstPageIndex;
+            var queryable = pagingInfo.ItemsPerPage == 0
+                ? Enumerable.Empty<Employee>()
+                : this.employees.Skip(pageOffset * itemsPerPage).Take(itemsPerPage);
 
             var pagingSet = new PaginationSet<Employee>(pagingInfo, queryable, this.employees.Count, this.employees.Count);
             return Task.FromResult(pagingSet);

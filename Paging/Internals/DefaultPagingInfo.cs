@@ -5,13 +5,19 @@ namespace Paging.Internals
     [DebuggerDisplay("PagingInfo.Default", Type = "DefaultPagingInfo")]
     internal class DefaultPagingInfo : PagingInfo
     {
+        public override int FirstPageIndex
+        {
+            get => base.FirstPageIndex;
+            set => ThrowReadOnly();
+        }
+
         public override int CurrentPage
         {
             get => base.CurrentPage;
             set => ThrowReadOnly();
         }
 
-        public override int ItemsPerPage
+        public override int? ItemsPerPage
         {
             get => base.ItemsPerPage;
             set => ThrowReadOnly();

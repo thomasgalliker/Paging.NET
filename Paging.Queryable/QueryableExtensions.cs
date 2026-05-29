@@ -8,6 +8,13 @@ namespace Paging.Queryable
 {
     public static class QueryableExtensions
     {
+        /// <summary>
+        /// Applies the provided filter dictionary to the queryable source.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
+        /// <param name="queryable">The source query.</param>
+        /// <param name="filters">A dictionary of property names and filter values.</param>
+        /// <returns>The filtered query.</returns>
         public static IQueryable<TEntity> ApplyFilter<TEntity>(this IQueryable<TEntity> queryable, IDictionary<string, object?> filters)
         {
             foreach (var filter in filters)
@@ -151,6 +158,14 @@ namespace Paging.Queryable
             return source;
         }
 
+        /// <summary>
+        /// Applies the provided sort order to the queryable source.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
+        /// <param name="queryable">The source query.</param>
+        /// <param name="sorting">The sort order keyed by property name.</param>
+        /// <param name="reverse">When set to <see langword="true"/>, each sort direction is inverted.</param>
+        /// <returns>The sorted query.</returns>
         public static IQueryable<TEntity> OrderBy<TEntity>(this IQueryable<TEntity> queryable, IReadOnlyDictionary<string, SortOrder> sorting, bool reverse)
         {
             if(sorting.Count == 0)
@@ -197,6 +212,12 @@ namespace Paging.Queryable
         public static string OrderByDefaultProperty = "0";
 
         // Need to OrderBy before Skip/Take.
+        /// <summary>
+        /// Applies the default sort order used when paging requires a stable ordering and no explicit sorting is provided.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type returned by the query.</typeparam>
+        /// <param name="queryable">The source query.</param>
+        /// <returns>The sorted query, or the original query when the default sort cannot be applied.</returns>
         public static IQueryable<TEntity> OrderByDefault<TEntity>(this IQueryable<TEntity> queryable)
         {
             try

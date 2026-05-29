@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Paging
 {
+    [JsonConverter(typeof(PaginationSetJsonConverterFactory))]
     public class PaginationSet<T>
     {
         public PaginationSet()
@@ -29,11 +30,16 @@ namespace Paging
         public PaginationSet(PagingInfo? pagingInfo, IEnumerable<T> items, int totalCount, int totalCountUnfiltered)
         {
             pagingInfo ??= new PagingInfo();
+            this.FirstPageIndex = pagingInfo.FirstPageIndex;
             this.CurrentPage = pagingInfo.CurrentPage;
             this.Items = items ?? Enumerable.Empty<T>();
             if (pagingInfo.ItemsPerPage > 0)
             {
-                this.TotalPages = (int)Math.Ceiling((double)totalCount / pagingInfo.ItemsPerPage);
+                this.TotalPages = (int)Math.Ceiling((double)totalCount / pagingInfo.ItemsPerPage.Value);
+            }
+            else if (pagingInfo.ItemsPerPage == 0)
+            {
+                this.TotalPages = 0;
             }
             else
             {
@@ -45,8 +51,14 @@ namespace Paging
         }
 
         /// <summary>
+        /// The first valid page index for this result set.
+        /// </summary>
+        [JsonPropertyName("firstPageIndex")]
+        public int FirstPageIndex { get; set; }
+
+        /// <summary>
         /// The page index of the currently filtered set.
-        /// CurrentPage is 1-indexed, means the first page is CurrentPage = 1 (not CurrentPage = 0).
+        /// CurrentPage is relative to the request's PagingInfo.FirstPageIndex.
         /// </summary>
         [JsonPropertyName("currentPage")]
         public int CurrentPage { get; set; }
@@ -60,8 +72,8 @@ namespace Paging
 
         /// <summary>
         /// The total number of items which match the filter/search criteria.
-        /// If ItemsPerPage is set to 0, Items.Count equals to TotalCount.
-        /// This means, a single page is returned containing all available items which match the filter/search criteria.
+        /// If ItemsPerPage is set to 0, the request only returns totals and Items is empty.
+        /// If ItemsPerPage is null, all matching items are returned in a single unpaged result.
         /// </summary>
         [JsonPropertyName("totalCount")]
         public int TotalCount { get; set; }
@@ -74,7 +86,7 @@ namespace Paging
 
         /// <summary>
         /// The paged collection of items which match the filter/search criteria.
-        /// If ItemsPerPage is set >0, ItemsPerPage equals to Items.Count.
+        /// If ItemsPerPage is set >0, Items.Count contains the requested page items.
         /// </summary>
         [JsonPropertyName("items")]
         public IEnumerable<T> Items { get; set; }
@@ -85,7 +97,12 @@ namespace Paging
         /// <returns><c>true</c> if TotalPages > CurrentPage, otherwise <c>false</c>.</returns>
         public bool HasMorePages()
         {
-            return this.TotalPages > this.CurrentPage;
+            if (this.TotalPages <= 0)
+            {
+                return false;
+            }
+
+            return this.CurrentPage < this.FirstPageIndex + this.TotalPages - 1;
         }
     }
 }
