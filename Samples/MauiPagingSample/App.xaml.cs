@@ -4,12 +4,18 @@ namespace MauiPagingSample
 {
     public partial class App : Application
     {
+        private readonly IServiceProvider serviceProvider;
+
         public App(IServiceProvider serviceProvider)
         {
+            this.serviceProvider = serviceProvider;
             this.InitializeComponent();
+        }
 
-            var mainPage = serviceProvider.GetRequiredService<MainPage>();
-            this.MainPage = mainPage;
+        protected override Window CreateWindow(IActivationState? activationState)
+        {
+            var mainPage = this.serviceProvider.GetRequiredService<MainPage>();
+            return new Window(new NavigationPage(mainPage));
         }
     }
 }
