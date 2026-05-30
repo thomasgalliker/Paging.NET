@@ -1,3 +1,6 @@
+4.1
+- Maintenance updates.
+
 4.0
 - Redesign paging semantics with explicit `ItemsPerPage` modes.
 - Add `DefaultFirstPageIndex` to define 0-based or 1-based paging.
