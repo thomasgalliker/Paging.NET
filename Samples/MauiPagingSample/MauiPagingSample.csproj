@@ -11,7 +11,7 @@
     <Nullable>enable</Nullable>
 
     <!-- Display name -->
-    <ApplicationTitle>MauiPagingSample</ApplicationTitle>
+    <ApplicationTitle>Paging.NET</ApplicationTitle>
 
     <!-- App Identifier -->
     <ApplicationId>com.companyname.mauipagingsample</ApplicationId>
@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+    <MauiIcon Include="Resources\AppIcon\appicon.png" />
 
     <!-- Splash Screen -->
     <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
