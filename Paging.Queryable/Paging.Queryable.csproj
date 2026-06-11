@@ -3,13 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <OutputType>Library</OutputType>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
     <IsPackable>true</IsPackable>
-    <GenerateDocumentationFile>True</GenerateDocumentationFile>
-    <Configurations>Debug;Release</Configurations>
-    <Platforms>AnyCPU</Platforms>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <!--NuGet package-->
