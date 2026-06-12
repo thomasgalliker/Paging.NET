@@ -1,14 +1,14 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:android="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;assembly=Microsoft.Maui.Controls"
     xmlns:itemTemplates="clr-namespace:MauiPagingSample.Views.ItemTemplates"
-    xmlns:p="clr-namespace:Paging.MAUI;assembly=Paging.MAUI"
+    xmlns:compat="clr-namespace:Paging.MAUI.Compat;assembly=Paging.MAUI"
     xmlns:viewModels="clr-namespace:MauiPagingSample.ViewModels"
-    x:Class="MauiPagingSample.Views.MainPage"
-    Title="Paging.MAUI Demo"
+    x:Class="MauiPagingSample.Views.MainPage_WithListView"
+    Title="Paging.MAUI Demo (ListView)"
     x:DataType="viewModels:MainViewModel">
 
     <ContentPage.Resources>
@@ -58,7 +58,7 @@
             ItemsSource="{Binding Cars, Mode=OneWay}"
             SeparatorColor="{StaticResource Gray500}">
             <ListView.Behaviors>
-                <p:InfiniteScrollBehavior
+                <compat:InfiniteScrollBehavior
                     IsLoadingMore="{Binding IsLoadingMore}"
                     ItemsSource="{Binding Cars, Mode=OneWay}" />
             </ListView.Behaviors>
