@@ -10,6 +10,10 @@
 - Breaking change: The implicit OrderBy("0") default sort is removed;
   configure PagingOptions.DefaultSort for deterministic paging.
 - Removed dependency on System.Linq.Dynamic.Core.
+- Paging.MAUI: New CollectionView-based InfiniteScrollBehavior using the native
+  RemainingItemsThresholdReached mechanism, with bindable RemainingItemsThreshold property.
+- Breaking change: The ListView-based InfiniteScrollBehavior moved to namespace Paging.MAUI.Compat
+  and will be removed in a future release.
 
 4.1
 - Maintenance updates.

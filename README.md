@@ -354,20 +354,54 @@ public async Task InitializeAsync(ICarService carService)
 This pattern assumes normal paging with `ItemsPerPage > 0`. For totals-only or unpaged requests, `StopScroll(...)`
 returns `true` immediately.
 
-In XAML, `InfiniteScrollBehavior` can be attached to a `ListView`:
+In XAML, `InfiniteScrollBehavior` can be attached to a `CollectionView`
+(xmlns `paging` referring to `clr-namespace:Paging.MAUI;assembly=Paging.MAUI`):
 
 ```xml
 
-<ListView ItemsSource="{Binding Cars}">
-    <ListView.Behaviors>
+<CollectionView ItemsSource="{Binding Cars}">
+    <CollectionView.Behaviors>
         <paging:InfiniteScrollBehavior
                 ItemsSource="{Binding Cars}"
-                IsLoadingMore="{Binding IsLoadingMore}"/>
-    </ListView.Behaviors>
-</ListView>
+                IsLoadingMore="{Binding IsLoadingMore}"
+                RemainingItemsThreshold="5"/>
+    </CollectionView.Behaviors>
+</CollectionView>
 ```
 
-When the user scrolls to the last item, the next page is loaded automatically as long as `OnCanLoadMore` returns `true`.
+The behavior uses CollectionView's native `RemainingItemsThresholdReached` mechanism:
+when the user scrolls close to the end of the list (`RemainingItemsThreshold` items remaining,
+default 5), the next page is loaded automatically as long as `OnCanLoadMore` returns `true`.
+The threshold set on the behavior overwrites any `RemainingItemsThreshold` set directly
+on the CollectionView.
+
+If you prefer commands over the behavior, CollectionView's built-in incremental loading
+can be used directly with `InfiniteScrollCollection` — at the cost of guard logic in every
+view model (`RemainingItemsThresholdReached` fires repeatedly while scrolling):
+
+```csharp
+public IAsyncRelayCommand LoadMoreCommand => this.loadMoreCommand ??= new AsyncRelayCommand(async () =>
+{
+    if (this.Cars.IsLoadingMore || !this.Cars.CanLoadMore)
+    {
+        return;
+    }
+
+    await this.Cars.LoadMoreAsync();
+});
+```
+
+```xml
+<CollectionView ItemsSource="{Binding Cars}"
+                RemainingItemsThreshold="5"
+                RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"/>
+```
+
+#### Legacy ListView support
+
+The former ListView-based `InfiniteScrollBehavior` is still available in the namespace
+`Paging.MAUI.Compat` (xmlns `clr-namespace:Paging.MAUI.Compat;assembly=Paging.MAUI`).
+ListView is deprecated in .NET MAUI; this behavior will be removed in a future release.
 
 ## Contribution
 
