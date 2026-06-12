@@ -65,5 +65,46 @@
             // Assert
             infiniteScrollCollection.Should().HaveCount(initialCount + loadMoreCount);
         }
+
+        [Fact]
+        public async Task ShouldRecover_WhenLoadMoreThrows()
+        {
+            // Arrange
+            var infiniteScrollBehavior = new InfiniteScrollBehavior();
+            var listView = new ListView
+            {
+                BindingContext = new object()
+            };
+
+            const int initialCount = 10;
+            var initialItems = Cars.CreateCars(initialCount).ToList();
+            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(initialItems);
+
+            var throwOnLoadMore = true;
+            infiniteScrollCollection.OnCanLoadMore = () => true;
+            infiniteScrollCollection.OnLoadMore = () =>
+            {
+                if (throwOnLoadMore)
+                {
+                    throw new InvalidOperationException("Load operation failed");
+                }
+
+                return Task.FromResult(Cars.CreateCars(5));
+            };
+
+            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            listView.Behaviors.Add(infiniteScrollBehavior);
+
+            // Act
+            var exception = await Record.ExceptionAsync(() => infiniteScrollBehavior.OnListViewItemAppearingAsync(initialItems.Last()));
+
+            throwOnLoadMore = false;
+            await infiniteScrollBehavior.OnListViewItemAppearingAsync(initialItems.Last());
+
+            // Assert
+            exception.Should().BeOfType<InvalidOperationException>();
+            infiniteScrollBehavior.IsLoadingMore.Should().BeFalse();
+            infiniteScrollCollection.Should().HaveCount(initialCount + 5);
+        }
     }
 }

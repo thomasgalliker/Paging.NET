@@ -98,8 +98,14 @@ namespace Paging.MAUI
                 if (loader.CanLoadMore)
                 {
                     this.UpdateIsLoadingMore(true, null);
-                    await loader.LoadMoreAsync();
-                    this.UpdateIsLoadingMore(false, null);
+                    try
+                    {
+                        await loader.LoadMoreAsync();
+                    }
+                    finally
+                    {
+                        this.UpdateIsLoadingMore(false, null);
+                    }
                 }
             }
         }
