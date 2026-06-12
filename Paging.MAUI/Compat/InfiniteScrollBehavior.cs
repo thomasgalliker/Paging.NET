@@ -8,6 +8,7 @@ namespace Paging.MAUI.Compat
     /// ListView is deprecated in .NET MAUI; prefer <see cref="Paging.MAUI.InfiniteScrollBehavior"/>
     /// attached to a CollectionView for new code.
     /// </summary>
+    [Obsolete("InfiniteScrollBehavior for ListView is deprecated. Please use InfiniteScrollBehavior for CollectionView instead.")]
     public class InfiniteScrollBehavior : BehaviorBase<ListView>
     {
         private bool isLoadingMoreFromScroll;
