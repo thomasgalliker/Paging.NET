@@ -1,4 +1,4 @@
-namespace Paging.Queryable.Tests.Testdata
+namespace Paging.Queryable.Tests.TestData
 {
     internal static class CarFactory
     {
@@ -37,10 +37,10 @@ namespace Paging.Queryable.Tests.Testdata
 
         internal static IEnumerable<Car> Union(this IEnumerable<Car> first, IEnumerable<Car> second)
         {
-            return Enumerable.Concat(first, second).WithUnitqueIds();
+            return first.Concat(second).WithUniqueIds();
         }
 
-        internal static IEnumerable<Car> WithUnitqueIds(this IEnumerable<Car> cars)
+        internal static IEnumerable<Car> WithUniqueIds(this IEnumerable<Car> cars)
         {
             var carsArray = cars.ToArray();
             for (var i = 0; i < carsArray.Length; i++)

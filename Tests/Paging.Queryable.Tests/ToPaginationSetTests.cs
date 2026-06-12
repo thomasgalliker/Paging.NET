@@ -1,10 +1,12 @@
+using Paging.Queryable.Tests.TestData;
+
 namespace Paging.Queryable.Tests
 {
-    public class PagingInfoExtensionsTests : IDisposable
+    public class ToPaginationSetTests : IDisposable
     {
         private readonly ILogger logger;
 
-        public PagingInfoExtensionsTests(ITestOutputHelper testOutputHelper)
+        public ToPaginationSetTests(ITestOutputHelper testOutputHelper)
         {
             ResetDefaults();
             this.logger = new TestOutputHelperLogger<PagingInfo>(testOutputHelper);
@@ -23,7 +25,7 @@ namespace Paging.Queryable.Tests
             PagingInfo? pagingInfo = null;
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet(queryable);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo);
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -42,7 +44,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 4 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions(c => true));
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -61,7 +63,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = null };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions(c => true));
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -80,7 +82,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { ItemsPerPage = 1 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, c => true);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions(c => true));
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -101,7 +103,7 @@ namespace Paging.Queryable.Tests
             Expression<Func<Car, bool>> searchPredicate = c => c.Model.Contains(pagingInfo.Search);
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions(searchPredicate));
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -122,8 +124,7 @@ namespace Paging.Queryable.Tests
             Expression<Func<Car, bool>> searchPredicate = c => c.Model.Contains(pagingInfo.Search);
 
             // Act
-            var paginationSet =
-                pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos, searchPredicate);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions(searchPredicate));
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -142,7 +143,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { FirstPageIndex = 0, CurrentPage = 0, ItemsPerPage = 3 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -175,7 +176,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -205,7 +206,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -224,7 +225,7 @@ namespace Paging.Queryable.Tests
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 5000m, 2005, null, false, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 10000m, 2010, null, true, 3))
                 .Union(CarFactory.GenerateCarsList("BMW", "X", 15000m, 2015, null, false, 3))
-                .WithUnitqueIds()
+                .WithUniqueIds()
                 .AsQueryable();
 
             var pagingInfo = new PagingInfo
@@ -240,7 +241,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -268,7 +269,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -298,7 +299,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -338,7 +339,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -374,7 +375,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -414,7 +415,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -452,7 +453,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -495,7 +496,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -534,7 +535,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -570,7 +571,7 @@ namespace Paging.Queryable.Tests
             };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet.Should().NotBeNull();
@@ -595,8 +596,8 @@ namespace Paging.Queryable.Tests
             var pagingInfo2 = new PagingInfo { CurrentPage = 2, ItemsPerPage = 5, SortBy = sortBy, Reverse = reverse };
 
             // Act
-            var paginationSet1 = pagingInfo1.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
-            var paginationSet2 = pagingInfo2.CreatePaginationSet<Car, CarDto>(queryable, CarFactory.MapCarsToCarDtos);
+            var paginationSet1 = queryable.ToPaginationSet(pagingInfo1, CreateCarDtoPagingOptions());
+            var paginationSet2 = queryable.ToPaginationSet(pagingInfo2, CreateCarDtoPagingOptions());
 
             // Assert
             paginationSet1.Should().NotBeNull();
@@ -798,7 +799,7 @@ namespace Paging.Queryable.Tests
             var pagingInfo = new PagingInfo { ItemsPerPage = 1 };
 
             // Act
-            var paginationSet = pagingInfo.CreatePaginationSet<Car>(queryable, c => true);
+            var paginationSet = queryable.ToPaginationSet(pagingInfo);
             var paginationSetMapped = pagingInfo.Map<Car, CarDto>(paginationSet, CarFactory.MapCarsToCarDtos);
 
             // Assert
@@ -810,6 +811,26 @@ namespace Paging.Queryable.Tests
             paginationSet.TotalPages.Should().Be(paginationSetMapped.TotalPages);
             paginationSet.TotalCount.Should().Be(paginationSetMapped.TotalCount);
             paginationSet.TotalCountUnfiltered.Should().Be(paginationSetMapped.TotalCountUnfiltered);
+        }
+
+        /// <summary>
+        /// Creates paging options which behave like the permissive no-options default
+        /// but additionally map the queried cars to <see cref="CarDto"/>
+        /// and optionally apply a search predicate.
+        /// </summary>
+        private static PagingOptions<Car, CarDto> CreateCarDtoPagingOptions(Expression<Func<Car, bool>>? searchPredicate = null)
+        {
+            return new PagingOptions<Car, CarDto>(o =>
+            {
+                o.UnknownProperties(UnknownPropertyHandling.Allow);
+
+                if (searchPredicate != null)
+                {
+                    o.Search(_ => searchPredicate);
+                }
+
+                o.Map(CarFactory.MapCarsToCarDtos);
+            });
         }
 
         private static void ResetDefaults()

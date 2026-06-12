@@ -137,17 +137,15 @@ public PaginationSet<Car> GetCars(PagingInfo pagingInfo)
 ```
 
 If you are working with an `IQueryable<T>`, the section below shows how `Paging.Queryable.NET` can perform all necessary steps
-to create a `PaginationSet<T>` through `CreatePaginationSet<TEntity>(..)` extension method.
+to create a `PaginationSet<T>` through the `ToPaginationSet(...)` extension method.
 
 ### How to Use Paging.Queryable.NET
 
 `Paging.Queryable.NET` provides extensions for applying paging directly to an `IQueryable<T>`.
 This is useful for backend code working with Entity Framework or any other LINQ provider.
 
-The main entry point is `CreatePaginationSet<TEntity>(...)`. It applies the `PagingInfo` request to an 
-`IQueryable<TEntity>` and returns a `PaginationSet<TEntity>`.
-
-The following example shows how a `PaginationSet<Car>` can be created directly from an `IQueryable<Car>`:
+The main entry point is `ToPaginationSet(...)`. It applies the `PagingInfo` request to an
+`IQueryable<TEntity>` and returns a `PaginationSet<TEntity>`:
 
 ```csharp
 IQueryable<Car> queryable = dbContext.Cars;
@@ -157,48 +155,67 @@ var pagingInfo = new PagingInfo
     CurrentPage = 1,
     ItemsPerPage = 10,
     SortBy = "Year Desc, Name Asc",
-    Search = "Model Desc",
     Filter =
     {
         { "Year", 2024 }
     }
 };
 
-var paginationSet = pagingInfo.CreatePaginationSet<Car>(queryable);
+var paginationSet = queryable.ToPaginationSet(pagingInfo);
 ```
 
 In this example:
 
-- `Search` is applied using the provided search predicate.
-- `Filter` applies additional property-based constraints.
+- `Filter` applies property-based constraints before counting and paging.
 - `SortBy` defines the ordering before paging is applied.
 - The result is returned as a `PaginationSet<Car>`.
 - `ItemsPerPage = 0` returns counts without materializing page items.
 - `ItemsPerPage = null` skips `Skip(...).Take(...)` and returns all matching items.
 
-#### Mapping Entities to DTOs
+Without further configuration, `ToPaginationSet(pagingInfo)` behaves permissively:
 
-If entities should be mapped to DTOs, `CreatePaginationSet<TEntity, TDto>(...)` can be used to apply paging and map the
-resulting page in one step:
+- Every entity property is sortable and filterable by its (dotted) property path, e.g. `"Name"` or `"Owner.Name"`.
+  Property names are matched case-insensitively.
+- Sort or filter names which cannot be resolved are silently skipped.
+- `PagingInfo.Search` is ignored (a search predicate must be configured via `PagingOptions`).
+- No default sort order is applied. **Configure `PagingOptions.DefaultSort` for deterministic paging** —
+  without a stable sort order, the database may return rows in arbitrary order between page requests.
+
+#### Configuring Sorting, Filtering and Mapping with PagingOptions
+
+`PagingOptions<TEntity>` controls which properties are exposed for sorting and filtering, how external
+(client-facing) names map to entity properties, computed sort expressions, custom filter predicates,
+free-text search and the default sort order. `PagingOptions<TEntity, TDto>` additionally maps the queried
+entities to DTOs.
 
 ```csharp
-IQueryable<Car> queryable = dbContext.Cars;
-
-var pagingInfo = new PagingInfo
+var pagingOptions = new PagingOptions<Car, CarDto>(o =>
 {
-    CurrentPage = 1,
-    ItemsPerPage = 10,
-    SortBy = "Year Desc, Name Asc",
-    Search = "Model Desc",
-    Filter =
-    {
-        { "Year", 2024 }
-    }
-};
+    // Each property declares its capabilities explicitly;
+    // the external name defaults to the property path
+    o.Property(c => c.Name).Sortable().Filterable();
 
-var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(
-    queryable,
-    cars => cars.Select(car => new CarDto
+    // Map an external name to an entity property (nested paths supported)
+    o.Property(c => c.Model).HasName("Brand").Sortable().Filterable();
+    o.Property(c => c.Owner.Name).HasName("Owner").Sortable();   // sort-only
+
+    // Computed sort key: the client sorts by "Age", which has no database column
+    o.Property("Age").Sortable(c => DateTime.UtcNow.Year - c.Year);
+
+    // Custom filter predicate for arbitrary filter values
+    o.Property("Electric").Filterable(value => value is bool isElectric
+        ? (Expression<Func<Car, bool>>)(c => c.IsElectric == isElectric)
+        : null);
+
+    // Stable default sort: primary order when no sorting is requested
+    // AND tie-breaker appended after any requested sort order
+    o.DefaultSort(c => c.Id, SortOrder.Desc);
+
+    // Free-text search predicate; receives PagingInfo.Search
+    o.Search(s => c => c.Name.ToLower().Contains(s.ToLower()));
+
+    // Map entities to DTOs (mandatory on PagingOptions<TEntity, TDto>)
+    o.Map(cars => cars.Select(car => new CarDto
     {
         Id = car.Id,
         Name = car.Name,
@@ -206,36 +223,91 @@ var paginationSet = pagingInfo.CreatePaginationSet<Car, CarDto>(
         Price = car.Price,
         Year = car.Year
     }));
+});
+
+var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
 ```
 
-This overload returns a `PaginationSet<CarDto>` instead of `PaginationSet<Car>`, while preserving the paging metadata.
-If preferred, sorting can also be defined with the `Sorting` property instead of `SortBy`:
+`PagingOptions` is frozen on first use and can safely be cached and reused across queries and threads.
+
+#### Class-Based PagingOptions with Dependency Injection
+
+Instead of configuring inline, `PagingOptions` can be subclassed and registered in dependency injection.
+Constructor injection is the recommended way to feed runtime values (such as the current date/time)
+into computed sort expressions. Use the factory overload of `Sortable` to evaluate the expression
+freshly on every query:
 
 ```csharp
-var pagingInfo = new PagingInfo
+public class CarPagingOptions : PagingOptions<Car, CarDto>
 {
-    CurrentPage = 1,
-    ItemsPerPage = 10,
-    Sorting = new Dictionary<string, SortOrder>
+    public CarPagingOptions(IDateTime dateTime, ICarMapper mapper)
     {
-        { "Name", SortOrder.Asc },
-        { "Year", SortOrder.Desc }
+        this.Property(c => c.Name).Sortable().Filterable();
+        this.Property(c => c.Model).HasName("Brand").Sortable().Filterable();
+
+        this.Property("Age").Sortable(() =>
+        {
+            var now = dateTime.UtcNow;
+            return (Expression<Func<Car, int>>)(c => now.Year - c.Year);
+        });
+
+        this.DefaultSort(c => c.Id, SortOrder.Desc);
+        this.Map(mapper.MapCarsToCarDtos);
     }
-};
+}
+
+// Startup:
+services.AddScoped<CarPagingOptions>();
+
+// Controller:
+var paginationSet = dbContext.Cars.ToPaginationSet(pagingInfo, this.carPagingOptions);
 ```
 
-The `Filter` dictionary supports simple property-based filtering. For example:
+All sort and filter expressions remain LINQ expression trees, so Entity Framework translates them
+to SQL — including computed sort keys (e.g. `CASE` expressions) and captured runtime values
+(which become SQL parameters).
+
+#### Handling of Unknown Property Names
+
+When `PagingOptions` are used, unknown sort/filter property names **throw a `PagingException`** by default.
+Web APIs typically translate this exception into an HTTP 400 (Bad Request) response.
+The behavior is configurable, globally or separately for sorting and filtering:
 
 ```csharp
-var pagingInfo = new PagingInfo
-{
-    Filter = new Dictionary<string, object?>
-    {
-        { "Name", "Tesla" },
-        { "Year", 2024 }
-    }
-};
+o.UnknownProperties(UnknownPropertyHandling.Ignore);      // sets both
+o.UnknownSortProperties(UnknownPropertyHandling.Throw);
+o.UnknownFilterProperties(UnknownPropertyHandling.Allow);
 ```
+
+| Handling | Behavior                                                                                       |
+|----------|------------------------------------------------------------------------------------------------|
+| `Throw`  | Throws `PagingException` (with `PropertyName`) for unknown property names. **Default.**         |
+| `Ignore` | Silently skips unknown property names.                                                          |
+| `Allow`  | Resolves unknown names as (dotted) entity property paths; unresolvable names are skipped.       |
+
+#### Filter Value Semantics
+
+The `Filter` dictionary of `PagingInfo` supports the following value types:
+
+| Filter value                                | Behavior                                                              |
+|---------------------------------------------|------------------------------------------------------------------------|
+| `{ "Name", "Tesla" }`                       | Case-insensitive contains search.                                      |
+| `{ "Price", ">=5000" }`                     | Comparison using a leading operator (`>`, `>=`, `<`, `<=`, `=`, `==`). |
+| `{ "Year", 2024 }`                          | Equality for numeric, `bool` and `DateTime` values.                    |
+| `{ "Date", new Dictionary<string, object> { { ">", "2024-01-01" } } }` | Range comparisons with operator/value pairs.    |
+| `{ "Id", new[] { 1, 2, 3 } }`               | IN-filter; matches any of the provided values.                         |
+
+Invalid filter values (e.g. a non-numeric string compared to a numeric property) are leniently skipped.
+
+#### Migration from 4.x to 5.0
+
+| 4.x                                                         | 5.0                                                                            |
+|-------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `pagingInfo.CreatePaginationSet(queryable)`                 | `queryable.ToPaginationSet(pagingInfo)`                                           |
+| `pagingInfo.CreatePaginationSet(queryable, map, predicate)` | `queryable.ToPaginationSet(pagingInfo, pagingOptions)` with `Map(...)`/`Search(...)` configured in `PagingOptions<TEntity, TDto>` |
+| `queryable.ApplyFilter(filter)` / `queryable.OrderBy(sorting, reverse)` | Removed; handled internally by `ToPaginationSet`.                     |
+| `queryable.OrderByDefault()` (implicit `OrderBy("0")`)      | Removed; configure `PagingOptions.DefaultSort` for deterministic paging.          |
+| Dependency on `System.Linq.Dynamic.Core`                    | Removed; `Paging.Queryable.NET` is dependency-free.                               |
 
 ### How to Use Paging.MAUI
 
