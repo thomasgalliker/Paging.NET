@@ -1,8 +1,13 @@
 ﻿using System.Collections;
 using Paging.MAUI.Internals;
 
-namespace Paging.MAUI
+namespace Paging.MAUI.Compat
 {
+    /// <summary>
+    /// Legacy infinite-scroll behavior for <see cref="ListView"/>.
+    /// ListView is deprecated in .NET MAUI; prefer <see cref="Paging.MAUI.InfiniteScrollBehavior"/>
+    /// attached to a CollectionView for new code.
+    /// </summary>
     public class InfiniteScrollBehavior : BehaviorBase<ListView>
     {
         private bool isLoadingMoreFromScroll;

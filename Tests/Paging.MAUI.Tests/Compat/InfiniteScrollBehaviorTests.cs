@@ -1,5 +1,7 @@
-﻿namespace Paging.MAUI.Tests
+﻿namespace Paging.MAUI.Tests.Compat
 {
+    using InfiniteScrollBehavior = Paging.MAUI.Compat.InfiniteScrollBehavior;
+
     public class InfiniteScrollBehaviorTests
     {
         public InfiniteScrollBehaviorTests()
