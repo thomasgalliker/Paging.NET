@@ -21,12 +21,24 @@ namespace Paging.MAUI
                 false,
                 BindingMode.OneWayToSource);
 
+        public bool IsLoadingMore
+        {
+            get => (bool)this.GetValue(IsLoadingMoreProperty);
+            private set => this.SetValue(IsLoadingMoreProperty, value);
+        }
+
         public static readonly BindableProperty ItemsSourceProperty =
             BindableProperty.Create(
                 nameof(ItemsSource),
                 typeof(IEnumerable),
                 typeof(InfiniteScrollBehavior),
                 propertyChanged: OnItemsSourceChanged);
+
+        public IEnumerable ItemsSource
+        {
+            get => (IEnumerable)this.GetValue(ItemsSourceProperty);
+            set => this.SetValue(ItemsSourceProperty, value);
+        }
 
         public static readonly BindableProperty RemainingItemsThresholdProperty =
             BindableProperty.Create(
@@ -35,18 +47,6 @@ namespace Paging.MAUI
                 typeof(InfiniteScrollBehavior),
                 5,
                 propertyChanged: OnRemainingItemsThresholdChanged);
-
-        public bool IsLoadingMore
-        {
-            get => (bool)this.GetValue(IsLoadingMoreProperty);
-            private set => this.SetValue(IsLoadingMoreProperty, value);
-        }
-
-        public IEnumerable ItemsSource
-        {
-            get => (IEnumerable)this.GetValue(ItemsSourceProperty);
-            set => this.SetValue(ItemsSourceProperty, value);
-        }
 
         /// <summary>
         /// Number of items not yet scrolled to at which loading of the next page is triggered.
