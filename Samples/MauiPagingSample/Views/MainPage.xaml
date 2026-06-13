@@ -12,7 +12,7 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <DataTemplate x:Key="CarItemTemplate">
+            <DataTemplate x:Key="CarItemView">
                 <itemTemplates:CarItemView />
             </DataTemplate>
         </ResourceDictionary>
@@ -50,7 +50,7 @@
 
         <CollectionView
             Grid.Row="1"
-            ItemTemplate="{StaticResource CarItemTemplate}"
+            ItemTemplate="{StaticResource CarItemView}"
             ItemsSource="{Binding Cars, Mode=OneWay}">
             <CollectionView.Behaviors>
                 <p:InfiniteScrollBehavior
@@ -59,13 +59,26 @@
                     RemainingItemsThreshold="5" />
             </CollectionView.Behaviors>
 
-            <CollectionView.Footer>
-                <Grid
-                    Padding="16"
-                    IsVisible="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}, x:DataType=p:InfiniteScrollBehavior}">
-                    <ActivityIndicator IsRunning="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}, x:DataType=p:InfiniteScrollBehavior}" />
-                </Grid>
-            </CollectionView.Footer>
+            <CollectionView.Triggers>
+                <DataTrigger
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
+                    TargetType="CollectionView"
+                    Value="False">
+                    <Setter Property="Footer" Value="" />
+                </DataTrigger>
+                <DataTrigger
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
+                    TargetType="CollectionView"
+                    Value="True">
+                    <Setter Property="Footer">
+                        <Grid
+                            Padding="16"
+                            BackgroundColor="{StaticResource Secondary}">
+                            <ActivityIndicator IsRunning="True" />
+                        </Grid>
+                    </Setter>
+                </DataTrigger>
+            </CollectionView.Triggers>
         </CollectionView>
     </Grid>
 

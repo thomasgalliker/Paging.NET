@@ -4,8 +4,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:android="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;assembly=Microsoft.Maui.Controls"
-    xmlns:itemTemplates="clr-namespace:MauiPagingSample.Views.ItemTemplates"
     xmlns:compat="clr-namespace:Paging.MAUI.Compat;assembly=Paging.MAUI"
+    xmlns:itemTemplates="clr-namespace:MauiPagingSample.Views.ItemTemplates"
     xmlns:viewModels="clr-namespace:MauiPagingSample.ViewModels"
     x:Class="MauiPagingSample.Views.MainPage_WithListView"
     Title="Paging.MAUI Demo (ListView)"
@@ -59,26 +59,24 @@
             SeparatorColor="{StaticResource Gray500}">
             <ListView.Behaviors>
                 <compat:InfiniteScrollBehavior
-                    IsLoadingMore="{Binding IsLoadingMore}"
+                    x:Name="InfiniteScrollBehavior"
                     ItemsSource="{Binding Cars, Mode=OneWay}" />
             </ListView.Behaviors>
 
             <ListView.Triggers>
                 <DataTrigger
-                    Binding="{Binding IsLoadingMore}"
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
                     TargetType="ListView"
                     Value="False">
                     <Setter Property="Footer" Value="" />
                 </DataTrigger>
                 <DataTrigger
-                    Binding="{Binding IsLoadingMore}"
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
                     TargetType="ListView"
                     Value="True">
                     <Setter Property="Footer">
                         <Grid Padding="16">
-                            <ActivityIndicator
-                                IsRunning="True"
-                                IsVisible="{Binding IsLoadingMore, Mode=OneWay}" />
+                            <ActivityIndicator IsRunning="True" />
                         </Grid>
                     </Setter>
                 </DataTrigger>

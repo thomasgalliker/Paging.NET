@@ -15,7 +15,6 @@ namespace MauiPagingSample.ViewModels
         private readonly ILauncher launcher;
         private readonly PagingInfo pagingInfo;
 
-        private bool isLoadingMore;
         private PaginationSet<Car>? lastPaginationSet;
         private IAsyncRelayCommand<string>? openUrlCommand;
 
@@ -41,12 +40,6 @@ namespace MauiPagingSample.ViewModels
 
         public InfiniteScrollCollection<CarItemViewModel> Cars { get; }
 
-        public bool IsLoadingMore
-        {
-            get => this.isLoadingMore;
-            set => this.SetProperty(ref this.isLoadingMore, value);
-        }
-
         private async Task LoadData()
         {
             try
@@ -61,6 +54,9 @@ namespace MauiPagingSample.ViewModels
 
                     this.logger.LogDebug(
                         $"OnLoadMore: Page {paginationSet.CurrentPage} of {paginationSet.TotalPages}, Items={paginationSet.Items.Count()}");
+
+                    // Simulate loading delay...
+                    await Task.Delay(2000);
 
                     this.pagingInfo.CurrentPage++;
 
