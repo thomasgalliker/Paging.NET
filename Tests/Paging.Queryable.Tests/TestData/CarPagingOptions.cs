@@ -23,7 +23,9 @@ namespace Paging.Queryable.Tests.TestData
 
             this.Search(s => c => c.Name != null && c.Name.ToLower().Contains(s.ToLower()));
 
-            this.Map(CarFactory.MapCarsToCarDtos);
+            this.IncludeUnfilteredCount();
+
+            this.Map(CarFactory.MapCarToCarDto);
         }
     }
 }

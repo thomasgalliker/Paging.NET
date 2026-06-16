@@ -17,12 +17,5 @@ namespace Paging.Queryable
         /// Silently skips unknown property names.
         /// </summary>
         Ignore,
-
-        /// <summary>
-        /// Attempts to resolve unknown property names as (dotted) property paths
-        /// on the entity type, e.g. <c>"Name"</c> or <c>"Owner.Name"</c>.
-        /// Names which cannot be resolved are silently skipped.
-        /// </summary>
-        Allow,
     }
 }

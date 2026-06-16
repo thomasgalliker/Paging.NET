@@ -22,7 +22,7 @@ namespace Paging.Queryable.Internals
         private Func<LambdaExpression>? sortKeySelectorFactory;
 
         private Capability filterCapability;
-        private Func<object?, Expression<Func<TEntity, bool>>?>? filterPredicateFactory;
+        private Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?>? filterPredicateFactory;
 
         internal PropertyDefinition(string externalName, string propertyPath, LambdaExpression? propertyPathLambda = null)
         {
@@ -39,9 +39,12 @@ namespace Paging.Queryable.Internals
 
         internal bool IsFilterable => this.filterCapability != Capability.None;
 
-        internal bool FiltersByPropertyPath => this.filterCapability == Capability.PropertyPath;
+        internal bool HasCustomFilter => this.filterCapability == Capability.Custom;
 
-        internal Func<object?, Expression<Func<TEntity, bool>>?>? FilterPredicateFactory => this.filterPredicateFactory;
+        internal Expression<Func<TEntity, bool>>? BuildCustomPredicate(FilterOperator filterOperator, object? value)
+        {
+            return this.filterPredicateFactory!(filterOperator, value);
+        }
 
         internal void DeclareSortable()
         {
@@ -70,6 +73,11 @@ namespace Paging.Queryable.Internals
         }
 
         internal void DeclareFilterable(Func<object?, Expression<Func<TEntity, bool>>?> predicateFactory)
+        {
+            this.DeclareFilterable((_, value) => predicateFactory(value));
+        }
+
+        internal void DeclareFilterable(Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?> predicateFactory)
         {
             this.EnsureNotYetFilterable();
             this.filterCapability = Capability.Custom;

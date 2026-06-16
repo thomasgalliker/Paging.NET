@@ -13,7 +13,6 @@ namespace Paging
         private int firstPageIndex;
         private int currentPage;
         private int? itemsPerPage;
-        private IDictionary<string, object?> filter;
 
         /// <summary>
         /// Gets a read-only snapshot of the current library defaults.
@@ -25,7 +24,6 @@ namespace Paging
             this.firstPageIndex = DefaultFirstPageIndex;
             this.currentPage = this.firstPageIndex;
             this.itemsPerPage = DefaultItemsPerPage;
-            this.filter = new Dictionary<string, object?>();
         }
 
         /// <summary>
@@ -195,17 +193,15 @@ namespace Paging
         public virtual string? Search { get; set; }
 
         /// <summary>
-        /// Property-based filtering. All specified {Key, Value} pairs are used to OR-filter
-        /// the underlying collection.
-        /// - Key is of type string and contains the property name of the property to be filtered.
-        /// - Value is an arbitrary filter value (currently supported: string, decimal, DateTime).
+        /// Property-based filtering expressed as a tree of <see cref="FilterNode"/>s.
+        /// The root is either a single <see cref="FilterCondition"/> or a <see cref="FilterGroup"/>
+        /// combining child nodes with <see cref="FilterLogic.And"/> or <see cref="FilterLogic.Or"/>.
+        /// Each condition references a property name declared by the backend; only the property name,
+        /// operator and value travel over the wire, never an expression tree.
+        /// <c>null</c> means no filtering is applied.
         /// </summary>
         [JsonPropertyName("filter")]
-        public virtual IDictionary<string, object?> Filter
-        {
-            get => this.filter;
-            set => this.filter = value ?? new Dictionary<string, object?>();
-        }
+        public virtual FilterNode? Filter { get; set; }
 
         public static bool operator ==(PagingInfo? left, PagingInfo? right)
         {
@@ -241,23 +237,7 @@ namespace Paging
                 string.Equals(this.SortBy, other.SortBy) &&
                 this.Reverse == other.Reverse &&
                 string.Equals(this.Search, other.Search) &&
-                FilterEquals(this.Filter, other.Filter);
-        }
-
-        private static bool FilterEquals(IDictionary<string, object?> filter, IDictionary<string, object?> other)
-        {
-            if (filter is null || other is null)
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(filter, other))
-            {
-                return true;
-            }
-
-            var sequenceEqual = filter.SequenceEqual(other);
-            return sequenceEqual;
+                Equals(this.Filter, other.Filter);
         }
 
         public override bool Equals(object? obj)
@@ -290,15 +270,7 @@ namespace Paging
                 hashCode = (hashCode * 397) ^ (this.SortBy != null ? this.SortBy.GetHashCode() : 0);
                 hashCode = (hashCode * 397) ^ this.Reverse.GetHashCode();
                 hashCode = (hashCode * 397) ^ (this.Search != null ? this.Search.GetHashCode() : 0);
-
-                if (this.Filter != null)
-                {
-                    foreach (var filter in this.Filter)
-                    {
-                        hashCode = (hashCode * 397) ^ filter.GetHashCode();
-                    }
-                }
-
+                hashCode = (hashCode * 397) ^ (this.Filter != null ? this.Filter.GetHashCode() : 0);
                 return hashCode;
             }
         }

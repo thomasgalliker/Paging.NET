@@ -1,20 +1,20 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
-using Paging.Queryable.EF.Tests.TestData;
+using Paging.EF.Tests.TestData;
 
-namespace Paging.Queryable.EF.Tests
+namespace Paging.EF.Tests
 {
     /// <summary>
     /// Proves that the sort and filter expressions composed by Paging.Queryable
     /// are translated to SQL by EF Core. Unlike LINQ-to-Objects, the SQLite provider
     /// throws on untranslatable (client-evaluated) expressions.
     /// </summary>
-    public class ToPaginationSetTests : IDisposable
+    public class PaginationQueryableExtensionsTests : IDisposable
     {
         private readonly SqliteConnection connection;
         private readonly LicenseContext context;
 
-        public ToPaginationSetTests()
+        public PaginationQueryableExtensionsTests()
         {
             this.connection = new SqliteConnection("DataSource=:memory:");
             this.connection.Open();
@@ -76,6 +76,8 @@ namespace Paging.Queryable.EF.Tests
 
                 o.Search(s => l => l.Name.ToLower().Contains(s.ToLower()) ||
                                    l.Holder.Name.ToLower().Contains(s.ToLower()));
+
+                o.IncludeUnfilteredCount();
             });
         }
 
@@ -138,10 +140,7 @@ namespace Paging.Queryable.EF.Tests
             // Arrange
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "name", "fishing" }
-                }
+                Filter = new FilterCondition("name", FilterOperator.Contains, "fishing"),
             };
             var pagingOptions = CreateLicensePagingOptions(Now);
 
@@ -162,16 +161,9 @@ namespace Paging.Queryable.EF.Tests
             // Arrange
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    {
-                        "ValidFrom", new Dictionary<string, object>
-                        {
-                            { ">=", "2026-01-01T00:00:00" },
-                            { "<", new DateTime(2027, 1, 1) },
-                        }
-                    }
-                }
+                Filter = FilterGroup.And(
+                    new FilterCondition("ValidFrom", FilterOperator.GreaterThanOrEqual, "2026-01-01T00:00:00"),
+                    new FilterCondition("ValidFrom", FilterOperator.LessThan, new DateTime(2027, 1, 1))),
             };
             var pagingOptions = CreateLicensePagingOptions(Now);
 
@@ -190,10 +182,7 @@ namespace Paging.Queryable.EF.Tests
             // Arrange
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "valid", true }
-                }
+                Filter = new FilterCondition("valid", FilterOperator.Equal, true),
             };
             var pagingOptions = CreateLicensePagingOptions(Now);
 
@@ -256,10 +245,7 @@ namespace Paging.Queryable.EF.Tests
             });
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Id", new object[] { 2, 3 } }
-                }
+                Filter = new FilterCondition("Id", FilterOperator.In, new object[] { 2, 3 }),
             };
 
             var queryable = this.context.Licenses.AsQueryable();
@@ -269,6 +255,65 @@ namespace Paging.Queryable.EF.Tests
 
             // Assert
             paginationSet.Items.Select(l => l.Id).Should().Equal(2, 3);
+        }
+
+        [Fact]
+        public async Task ShouldPageAsync_WithStableDefaultSort()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo { CurrentPage = 1, ItemsPerPage = 2 };
+            var pagingOptions = CreateLicensePagingOptions(Now);
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = await queryable.ToPaginationSetAsync(pagingInfo, pagingOptions);
+
+            // Assert: Id desc default sort
+            paginationSet.Items.Select(l => l.Id).Should().Equal(4, 3);
+            paginationSet.TotalCount.Should().Be(4);
+            paginationSet.TotalPages.Should().Be(2);
+        }
+
+        [Fact]
+        public async Task ShouldFilterAsync_TranslatedToSql()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("name", FilterOperator.Contains, "fishing"),
+            };
+            var pagingOptions = CreateLicensePagingOptions(Now);
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = await queryable.ToPaginationSetAsync(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(l => l.Id).Should().Equal(2, 1);
+            paginationSet.TotalCount.Should().Be(2);
+            paginationSet.TotalCountUnfiltered.Should().Be(4);
+        }
+
+        [Fact]
+        public async Task ShouldComposeApplyPagingProjectAndPageAsync()
+        {
+            // Arrange: ApplyPaging -> Select (SQL projection) -> async terminal
+            var pagingInfo = new PagingInfo { SortBy = "holder" };
+            var pagingOptions = CreateLicensePagingOptions(Now);
+
+            var queryable = this.context.Licenses.Include(l => l.Holder);
+
+            // Act
+            var paginationSet = await queryable
+                .ApplyPaging(pagingInfo, pagingOptions)
+                .Select(l => l.Id)
+                .ToPaginationSetAsync(pagingInfo);
+
+            // Assert: Anna's licenses first (3, 1 due to Id desc tie-breaker), then Bob's (4, 2)
+            paginationSet.Items.Should().Equal(3, 1, 4, 2);
+            paginationSet.TotalCount.Should().Be(4);
         }
     }
 }

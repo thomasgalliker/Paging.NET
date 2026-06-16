@@ -86,21 +86,6 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
-        public void ShouldAllowUnknownSortProperty_ResolvedAsPropertyPath()
-        {
-            // Arrange
-            var carsQueryable = CreateCarsQueryable();
-            var pagingOptions = new PagingOptions<Car>(o => o.UnknownSortProperties(UnknownPropertyHandling.Allow));
-            var pagingInfo = new PagingInfo { SortBy = "price desc, nonexistent" };
-
-            // Act
-            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
-
-            // Assert
-            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
-        }
-
-        [Fact]
         public void ShouldSortByComputedExpression()
         {
             // Arrange
@@ -219,13 +204,14 @@ namespace Paging.Queryable.Tests
         {
             // Arrange
             var carsQueryable = CreateCarsQueryable();
-            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Model).HasName("Brand").Filterable());
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Model).HasName("Brand").Filterable();
+                o.IncludeUnfilteredCount();
+            });
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "brand", "model" }
-                }
+                Filter = new FilterCondition("brand", FilterOperator.Contains, "model"),
             };
 
             // Act
@@ -245,10 +231,7 @@ namespace Paging.Queryable.Tests
             var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Sortable());
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Price", 30000m }
-                }
+                Filter = new FilterCondition("Price", FilterOperator.Equal, 30000m),
             };
 
             // Act
@@ -267,10 +250,7 @@ namespace Paging.Queryable.Tests
             var pagingOptions = new PagingOptions<Car>(o => o.UnknownFilterProperties(UnknownPropertyHandling.Ignore));
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Price", 30000m }
-                }
+                Filter = new FilterCondition("Price", FilterOperator.Equal, 30000m),
             };
 
             // Act
@@ -287,16 +267,15 @@ namespace Paging.Queryable.Tests
             var carsQueryable = CreateCarsQueryable();
             var pagingOptions = new PagingOptions<Car>(o =>
             {
+                o.Property(c => c.Price).Filterable();
                 o.UnknownSortProperties(UnknownPropertyHandling.Ignore);
-                o.UnknownFilterProperties(UnknownPropertyHandling.Allow);
+                o.UnknownFilterProperties(UnknownPropertyHandling.Throw);
             });
             var pagingInfo = new PagingInfo
             {
-                SortBy = "Price",
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Price", ">=40000" }
-                }
+                // Unknown sort property is ignored, while the registered filter property is applied
+                SortBy = "Unknown",
+                Filter = new FilterCondition("Price", FilterOperator.GreaterThanOrEqual, 40000m),
             };
 
             // Act
@@ -319,10 +298,7 @@ namespace Paging.Queryable.Tests
             });
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Electric", true }
-                }
+                Filter = new FilterCondition("Electric", FilterOperator.Equal, true),
             };
 
             // Act
@@ -345,10 +321,7 @@ namespace Paging.Queryable.Tests
             });
             var pagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "electric", "not-a-bool" }
-                }
+                Filter = new FilterCondition("electric", FilterOperator.Equal, "not-a-bool"),
             };
 
             // Act
@@ -370,10 +343,7 @@ namespace Paging.Queryable.Tests
             var sortPagingInfo = new PagingInfo { SortBy = "Year desc" };
             var filterPagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Year", 2010 }
-                }
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
             };
 
             // Act
@@ -398,10 +368,7 @@ namespace Paging.Queryable.Tests
             var sortPagingInfo = new PagingInfo { SortBy = "Year" };
             var filterPagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Year", 2010 }
-                }
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
             };
 
             // Act
@@ -427,10 +394,7 @@ namespace Paging.Queryable.Tests
             var sortPagingInfo = new PagingInfo { SortBy = "Year" };
             var filterPagingInfo = new PagingInfo
             {
-                Filter = new Dictionary<string, object?>
-                {
-                    { "Year", 2010 }
-                }
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
             };
 
             // Act
@@ -525,6 +489,7 @@ namespace Paging.Queryable.Tests
                     searchInvoked = true;
                     return c => c.Name != null && c.Name.ToLower().Contains(s.ToLower());
                 });
+                o.IncludeUnfilteredCount();
             });
 
             // Act

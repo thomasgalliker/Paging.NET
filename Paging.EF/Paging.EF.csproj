@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <IsPackable>true</IsPackable>
+    <AssemblyName>Paging.EF</AssemblyName>
+    <RootNamespace>Paging.EF</RootNamespace>
+  </PropertyGroup>
+
+  <!--NuGet package-->
+  <PropertyGroup>
+    <Product>Paging.EF</Product>
+    <Description>Paging.EF adds asynchronous Entity Framework Core support (CountAsync/ToListAsync) for Paging.Queryable.NET.</Description>
+    <Version>1.0.0</Version>
+    <Authors>Thomas Galliker</Authors>
+    <PackageId>Paging.EF</PackageId>
+    <PackageTags>infinite;scrolling;scroll;paging;pagination;paged;server-side;filtering;filter;sorting;sort;entityframework;efcore;async</PackageTags>
+    <PackageIcon>logo.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/thomasgalliker/Paging.NET</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/thomasgalliker/Paging.NET</RepositoryUrl>
+    <Company>superdev GmbH</Company>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Copyright>Copyright $([System.DateTime]::Now.ToString(`yyyy`)) © Thomas Galliker</Copyright>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/../ReleaseNotes.txt"))</PackageReleaseNotes>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EmbedAllSources>true</EmbedAllSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="True" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="True" PackagePath="\" />
+    <None Include="..\logo.png" Pack="True" PackagePath="\" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Paging.Queryable\Paging.Queryable.csproj" />
+  </ItemGroup>
+
+</Project>

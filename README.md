@@ -8,6 +8,7 @@ library set consists of the following NuGet packages:
 
 - **`Paging.NET`**: Core library containing the main paging models such as `PagingInfo` and `PaginationSet`.
 - **`Paging.Queryable.NET`**: Extension library providing `IQueryable` support for paging, sorting, and filtering.
+- **`Paging.EF`**: Add-on providing asynchronous Entity Framework Core terminals (`ToPaginationSetAsync`).
 - **`Paging.MAUI`**: Add-on for .NET MAUI moble apps for implementing incremental loading and infinite scrolling
   scenarios.
 
@@ -15,11 +16,12 @@ library set consists of the following NuGet packages:
 
 This library is available on nuget.org:
 
-| Package                                                                     | Version                                                                                                                    | Downlods                                                                                                                      |
-|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [Paging.NET](https://www.nuget.org/packages/Paging.NET)                     | [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     | [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     |
-| [Paging.Queryable.NET](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) |
-| [Paging.MAUI](https://www.nuget.org/packages/Paging.MAUI)                   | [![Version](https://img.shields.io/nuget/v/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | [![Downloads](https://img.shields.io/nuget/dt/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   |
+| Package                                                                       | Version                                                                                                                    | Downlods                                                                                                                      |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| [Paging.NET](https://www.nuget.org/packages/Paging.NET)                       | [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     | [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     |
+| [Paging.Queryable.NET](https://www.nuget.org/packages/Paging.Queryable.NET)   | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) |
+| [Paging.EF](https://www.nuget.org/packages/Paging.EF)                         | [![Version](https://img.shields.io/nuget/v/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       | [![Downloads](https://img.shields.io/nuget/dt/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       |
+| [Paging.MAUI](https://www.nuget.org/packages/Paging.MAUI)                     | [![Version](https://img.shields.io/nuget/v/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | [![Downloads](https://img.shields.io/nuget/dt/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   |
 
 ## Getting Started
 
@@ -38,16 +40,16 @@ In Paging.NET, the client sends a paging request as a `PagingInfo`, and the serv
 - **`PagingInfo`** is the paging request model. It specifies which page should be loaded, how many items should be
   returned, and which sorting, search, or filtering options should be applied.
 
-| Property       | Description                                                                                                                     |
-|----------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `FirstPageIndex` | The first valid page index for the request. Allowed values are `0` and `1`. |
-| `CurrentPage`  | The currently selected page.<br/> The default value is `PagingInfo.DefaultFirstPageIndex`, which means it initially matches `FirstPageIndex`. |
-| `ItemsPerPage` | Number of items returned per page. <br/>`null` disables paging and returns all items, `0` returns totals only, and positive values enable normal paging. The static `PagingInfo.DefaultItemsPerPage` defaults to `null`. |
-| `SortBy`       | Comma-separated sort expression such as `"Name Asc"` or `"Year Desc, Name Asc"`.                                                |
-| `Sorting`      | Dictionary-based sort definition as an alternative to `SortBy` string.                                                          |
-| `Reverse`      | Reverses the final sort order.                                                                                                  |
-| `Search`       | Free-text search value that can be applied by the target data source.                                                           |
-| `Filter`       | Property-based filter values that can be applied by the target data source.                                                     |
+| Property         | Description                                                                                                                                                                                                              |
+|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `FirstPageIndex` | The first valid page index for the request. Allowed values are `0` and `1`.                                                                                                                                              |
+| `CurrentPage`    | The currently selected page.<br/> The default value is `PagingInfo.DefaultFirstPageIndex`, which means it initially matches `FirstPageIndex`.                                                                            |
+| `ItemsPerPage`   | Number of items returned per page. <br/>`null` disables paging and returns all items, `0` returns totals only, and positive values enable normal paging. The static `PagingInfo.DefaultItemsPerPage` defaults to `null`. |
+| `SortBy`         | Comma-separated sort expression such as `"Name Asc"` or `"Year Desc, Name Asc"`.                                                                                                                                         |
+| `Sorting`        | Dictionary-based sort definition as an alternative to `SortBy` string.                                                                                                                                                   |
+| `Reverse`        | Reverses the final sort order.                                                                                                                                                                                           |
+| `Search`         | Free-text search value that can be applied by the target data source.                                                                                                                                                    |
+| `Filter`         | A `FilterNode` (single `FilterCondition` or nested `FilterGroup`) that serializes as a compact filter expression string, e.g. `Year >= 2020 && Name contains "bmw"`. `null` means no filtering.                          |
 
 - **`PaginationSet<T>`** is the paged response model. It contains the items of the current page together with metadata
   describing the complete result set.
@@ -117,7 +119,8 @@ var pagingInfo = new PagingInfo
 - `> 0`: return the requested page with the requested number of items
 
 `CurrentPage` is interpreted relative to `FirstPageIndex`, which may be `0` or `1`. `FirstPageIndex` is part of the
-request and response contract and is serialized over JSON and query strings when it differs from `PagingInfo.DefaultFirstPageIndex`.
+request and response contract and is serialized over JSON and query strings when it differs from
+`PagingInfo.DefaultFirstPageIndex`.
 
 #### Service Example
 
@@ -136,7 +139,8 @@ public PaginationSet<Car> GetCars(PagingInfo pagingInfo)
 }
 ```
 
-If you are working with an `IQueryable<T>`, the section below shows how `Paging.Queryable.NET` can perform all necessary steps
+If you are working with an `IQueryable<T>`, the section below shows how `Paging.Queryable.NET` can perform all necessary
+steps
 to create a `PaginationSet<T>` through the `ToPaginationSet(...)` extension method.
 
 ### How to Use Paging.Queryable.NET
@@ -155,13 +159,10 @@ var pagingInfo = new PagingInfo
     CurrentPage = 1,
     ItemsPerPage = 10,
     SortBy = "Year Desc, Name Asc",
-    Filter =
-    {
-        { "Year", 2024 }
-    }
+    Filter = FilterNode.Parse("Year == 2024")
 };
 
-var paginationSet = queryable.ToPaginationSet(pagingInfo);
+var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
 ```
 
 In this example:
@@ -172,14 +173,15 @@ In this example:
 - `ItemsPerPage = 0` returns counts without materializing page items.
 - `ItemsPerPage = null` skips `Skip(...).Take(...)` and returns all matching items.
 
-Without further configuration, `ToPaginationSet(pagingInfo)` behaves permissively:
+Sorting and filtering are **allow-list only**: a property can only be sorted or filtered if it is declared in
+`PagingOptions` (see below). This keeps the backend in full control — the request carries only property names,
+operators and values, never an expression tree. Unknown names throw a `PagingException` by default (configurable
+to `Ignore`). **Configure `PagingOptions.DefaultSort` for deterministic paging** — without a stable sort order,
+the database may return rows in arbitrary order between page requests.
 
-- Every entity property is sortable and filterable by its (dotted) property path, e.g. `"Name"` or `"Owner.Name"`.
-  Property names are matched case-insensitively.
-- Sort or filter names which cannot be resolved are silently skipped.
-- `PagingInfo.Search` is ignored (a search predicate must be configured via `PagingOptions`).
-- No default sort order is applied. **Configure `PagingOptions.DefaultSort` for deterministic paging** —
-  without a stable sort order, the database may return rows in arbitrary order between page requests.
+The no-options `queryable.ToPaginationSet(pagingInfo)` overload performs **paging only** (count + `Skip`/`Take`) on
+an already-shaped query; it does not filter or sort. Use it together with the `ApplyPaging(...)` composition seam
+(see [Composing and projecting](#composing-projecting-and-async)).
 
 #### Configuring Sorting, Filtering and Mapping with PagingOptions
 
@@ -214,15 +216,17 @@ var pagingOptions = new PagingOptions<Car, CarDto>(o =>
     // Free-text search predicate; receives PagingInfo.Search
     o.Search(s => c => c.Name.ToLower().Contains(s.ToLower()));
 
-    // Map entities to DTOs (mandatory on PagingOptions<TEntity, TDto>)
-    o.Map(cars => cars.Select(car => new CarDto
+    // Project entities to DTOs (mandatory on PagingOptions<TEntity, TDto>).
+    // The expression is applied via Select(...) and translated to SQL,
+    // so only the projected columns are fetched.
+    o.Map(car => new CarDto
     {
         Id = car.Id,
         Name = car.Name,
         Model = car.Model,
         Price = car.Price,
         Year = car.Year
-    }));
+    });
 });
 
 var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
@@ -252,7 +256,7 @@ public class CarPagingOptions : PagingOptions<Car, CarDto>
         });
 
         this.DefaultSort(c => c.Id, SortOrder.Desc);
-        this.Map(mapper.MapCarsToCarDtos);
+        this.Map(car => mapper.MapCarToCarDto(car));
     }
 }
 
@@ -269,45 +273,116 @@ to SQL — including computed sort keys (e.g. `CASE` expressions) and captured r
 
 #### Handling of Unknown Property Names
 
-When `PagingOptions` are used, unknown sort/filter property names **throw a `PagingException`** by default.
+Unknown sort/filter property names (names not declared in `PagingOptions`) **throw a `PagingException`** by default.
 Web APIs typically translate this exception into an HTTP 400 (Bad Request) response.
 The behavior is configurable, globally or separately for sorting and filtering:
 
 ```csharp
 o.UnknownProperties(UnknownPropertyHandling.Ignore);      // sets both
 o.UnknownSortProperties(UnknownPropertyHandling.Throw);
-o.UnknownFilterProperties(UnknownPropertyHandling.Allow);
+o.UnknownFilterProperties(UnknownPropertyHandling.Ignore);
 ```
 
-| Handling | Behavior                                                                                       |
-|----------|------------------------------------------------------------------------------------------------|
-| `Throw`  | Throws `PagingException` (with `PropertyName`) for unknown property names. **Default.**         |
-| `Ignore` | Silently skips unknown property names.                                                          |
-| `Allow`  | Resolves unknown names as (dotted) entity property paths; unresolvable names are skipped.       |
+| Handling | Behavior                                                                                |
+|----------|-----------------------------------------------------------------------------------------|
+| `Throw`  | Throws `PagingException` (with `PropertyName`) for unknown property names. **Default.** |
+| `Ignore` | Silently skips unknown property names.                                                  |
 
-#### Filter Value Semantics
+There is intentionally no mode that resolves arbitrary client-supplied property paths against the entity. The backend
+always declares — via `PagingOptions` — exactly which properties are sortable/filterable and what each maps to.
 
-The `Filter` dictionary of `PagingInfo` supports the following value types:
+#### Filter Expressions
 
-| Filter value                                | Behavior                                                              |
-|---------------------------------------------|------------------------------------------------------------------------|
-| `{ "Name", "Tesla" }`                       | Case-insensitive contains search.                                      |
-| `{ "Price", ">=5000" }`                     | Comparison using a leading operator (`>`, `>=`, `<`, `<=`, `=`, `==`). |
-| `{ "Year", 2024 }`                          | Equality for numeric, `bool` and `DateTime` values.                    |
-| `{ "Date", new Dictionary<string, object> { { ">", "2024-01-01" } } }` | Range comparisons with operator/value pairs.    |
-| `{ "Id", new[] { 1, 2, 3 } }`               | IN-filter; matches any of the provided values.                         |
+`PagingInfo.Filter` is a `FilterNode` that **serializes as a compact filter expression string** —
+URL- and JSON-friendly, so an Angular or MAUI client can send it as a query parameter or in a request body.
+The string supports comparisons, string operators, `in`, and `&&` / `||` with parentheses
+(`&&` binds tighter than `||`):
 
-Invalid filter values (e.g. a non-numeric string compared to a numeric property) are leniently skipped.
+```
+Brand contains "bmw" && Year >= 2020 || IsElectric == true
+```
 
-#### Migration from 4.x to 5.0
+You build it in three interchangeable ways — the wire form is always the string:
 
-| 4.x                                                         | 5.0                                                                            |
-|-------------------------------------------------------------|----------------------------------------------------------------------------------|
-| `pagingInfo.CreatePaginationSet(queryable)`                 | `queryable.ToPaginationSet(pagingInfo)`                                           |
-| `pagingInfo.CreatePaginationSet(queryable, map, predicate)` | `queryable.ToPaginationSet(pagingInfo, pagingOptions)` with `Map(...)`/`Search(...)` configured in `PagingOptions<TEntity, TDto>` |
-| `queryable.ApplyFilter(filter)` / `queryable.OrderBy(sorting, reverse)` | Removed; handled internally by `ToPaginationSet`.                     |
-| `queryable.OrderByDefault()` (implicit `OrderBy("0")`)      | Removed; configure `PagingOptions.DefaultSort` for deterministic paging.          |
-| Dependency on `System.Linq.Dynamic.Core`                    | Removed; `Paging.Queryable.NET` is dependency-free.                               |
+```csharp
+// 1. Assign a string directly (implicitly parsed), or call FilterNode.Parse(...) explicitly
+pagingInfo.Filter = "Brand contains \"bmw\" && Year >= 2020";
+pagingInfo.Filter = FilterNode.Parse("Brand contains \"bmw\" && Year >= 2020");
+
+// 2. Build the typed tree (type-safe in .NET / MAUI); it serializes to the same string
+pagingInfo.Filter = FilterGroup.And(
+    new FilterCondition("Brand", FilterOperator.Contains, "bmw"),
+    new FilterCondition("Year", FilterOperator.GreaterThanOrEqual, 2020));
+
+// 3. Send it as JSON — the value is the expression string
+//    { "filter": "Brand contains \"bmw\" && Year >= 2020" }
+```
+
+Operators and their string tokens:
+
+| Operator             | Token        | Behavior                                                                 |
+|----------------------|--------------|--------------------------------------------------------------------------|
+| `Equal`              | `==`         | Property equals the value.                                               |
+| `NotEqual`           | `!=`         | Property does not equal the value.                                       |
+| `GreaterThan`        | `>`          | Property is greater than the value.                                      |
+| `GreaterThanOrEqual` | `>=`         | Property is greater than or equal to the value.                          |
+| `LessThan`           | `<`          | Property is less than the value.                                         |
+| `LessThanOrEqual`    | `<=`         | Property is less than or equal to the value.                             |
+| `Contains`           | `contains`   | Case-insensitive substring match (non-string properties use `ToString`). |
+| `StartsWith`         | `startswith` | Case-insensitive prefix match.                                           |
+| `EndsWith`           | `endswith`   | Case-insensitive suffix match.                                           |
+| `In`                 | `in`         | Property matches any value of a `[…]` list, e.g. `Id in [1, 2, 3]`.       |
+
+Value literals: quoted strings (`"text"`, `\"` escapes a quote), numbers (`42`, `4.5`), `true`, `false`,
+`null`, and bracketed lists for `in`. Dates are passed as quoted ISO 8601 strings.
+
+Each property name must be declared `Filterable()` in `PagingOptions` (or have a custom `Filterable(...)`
+predicate) — the parser only produces names; the backend decides what each maps to. Syntactically invalid
+expressions throw a `FormatException` (surfaced as an HTTP 400 during model binding); values that cannot be
+converted to the target property type are leniently skipped.
+
+#### Composing, Projecting and Async
+
+`ApplyPaging(...)` is the composition seam: it applies search, filter and sort and returns the shaped
+`IQueryable<TEntity>` **without** `Skip`/`Take`. Compose further — for example project to a DTO so the
+projection is translated to SQL — and then call the terminal `ToPaginationSet(...)` (or the async
+`ToPaginationSetAsync(...)` from `Paging.EF`) to count and page:
+
+```csharp
+using Paging.EF; // ToPaginationSetAsync
+
+var paginationSet = await dbContext.Cars
+    .ApplyPaging(pagingInfo, pagingOptions)   // filter + sort, in SQL
+    .Select(c => new CarDto { Id = c.Id, Name = c.Name })  // projection pushed to SQL
+    .ToPaginationSetAsync(pagingInfo, cancellationToken);
+```
+
+The convenience overloads do the same in one call:
+
+```csharp
+// Synchronous
+var set = dbContext.Cars.ToPaginationSet(pagingInfo, pagingOptions);
+
+// Asynchronous (Paging.EF) — uses EF Core CountAsync/ToListAsync
+var setAsync = await dbContext.Cars.ToPaginationSetAsync(pagingInfo, pagingOptions, cancellationToken);
+```
+
+By default `PaginationSet.TotalCountUnfiltered` equals `TotalCount` (no extra count query is issued).
+Call `o.IncludeUnfilteredCount()` in `PagingOptions` to compute the unfiltered total with a separate count.
+
+#### Migration
+
+| Before                                                                  | Now                                                                                                                               |
+|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `pagingInfo.CreatePaginationSet(queryable)`                             | `queryable.ToPaginationSet(pagingInfo, pagingOptions)`                                                                            |
+| `pagingInfo.CreatePaginationSet(queryable, map, predicate)`             | `queryable.ToPaginationSet(pagingInfo, pagingOptions)` with `Map(...)`/`Search(...)` configured in `PagingOptions<TEntity, TDto>` |
+| `queryable.ApplyFilter(filter)` / `queryable.OrderBy(sorting, reverse)` | Removed; use `ApplyPaging(...)` or `ToPaginationSet(...)`.                                                                        |
+| `queryable.OrderByDefault()` (implicit `OrderBy("0")`)                  | Removed; configure `PagingOptions.DefaultSort` for deterministic paging.                                                          |
+| `Filter` dictionary (`{ "Year", 2024 }`, `">=5000"`, range dicts)       | A filter expression string (`Year == 2024 && Price >= 5000`), parsed into a `FilterNode` tree.                                    |
+| `o.Map(cars => cars.Select(...))` (in-memory)                           | `o.Map(car => new Dto { ... })` — an `Expression`, translated to SQL.                                                             |
+| `UnknownPropertyHandling.Allow`                                         | Removed; declare each sortable/filterable property in `PagingOptions`.                                                            |
+| Synchronous only                                                        | `Paging.EF` adds `ToPaginationSetAsync(...)`.                                                                                     |
+| Dependency on `System.Linq.Dynamic.Core`                                | Removed; `Paging.Queryable.NET` is dependency-free.                                                                               |
 
 ### How to Use Paging.MAUI
 
@@ -392,6 +467,7 @@ public IAsyncRelayCommand LoadMoreCommand => this.loadMoreCommand ??= new AsyncR
 ```
 
 ```xml
+
 <CollectionView ItemsSource="{Binding Cars}"
                 RemainingItemsThreshold="5"
                 RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}"/>

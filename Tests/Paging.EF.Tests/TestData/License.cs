@@ -1,4 +1,4 @@
-namespace Paging.Queryable.EF.Tests.TestData
+namespace Paging.EF.Tests.TestData
 {
     public class License
     {

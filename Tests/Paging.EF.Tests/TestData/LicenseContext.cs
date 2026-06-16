@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Paging.Queryable.EF.Tests.TestData
+namespace Paging.EF.Tests.TestData
 {
     public class LicenseContext : DbContext
     {

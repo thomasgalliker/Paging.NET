@@ -89,10 +89,28 @@ namespace Paging.Queryable
 
         /// <summary>
         /// Declares the property as filterable using a custom filter predicate factory.
-        /// The factory receives the raw filter value from <see cref="PagingInfo.Filter"/>
+        /// The factory receives the filter value from a <see cref="FilterCondition"/>
         /// and returns a predicate expression, or <c>null</c> to skip the filter.
         /// </summary>
         public PropertyOptions<TEntity> Filterable(Func<object?, Expression<Func<TEntity, bool>>?> predicateFactory)
+        {
+            this.owner.ThrowIfFrozen();
+
+            if (predicateFactory == null)
+            {
+                throw new ArgumentNullException(nameof(predicateFactory));
+            }
+
+            this.propertyDefinition.DeclareFilterable(predicateFactory);
+            return this;
+        }
+
+        /// <summary>
+        /// Declares the property as filterable using a custom filter predicate factory
+        /// that also receives the requested <see cref="FilterOperator"/>.
+        /// The factory returns a predicate expression, or <c>null</c> to skip the filter.
+        /// </summary>
+        public PropertyOptions<TEntity> Filterable(Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?> predicateFactory)
         {
             this.owner.ThrowIfFrozen();
 

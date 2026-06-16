@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using Paging.Queryable.Internals;
 
@@ -27,6 +28,7 @@ namespace Paging.Queryable
         private Func<string, Expression<Func<TEntity, bool>>>? searchPredicateFactory;
         private UnknownPropertyHandling unknownSortPropertyHandling = UnknownPropertyHandling.Throw;
         private UnknownPropertyHandling unknownFilterPropertyHandling = UnknownPropertyHandling.Throw;
+        private bool unfilteredCountIncluded;
 
         private volatile bool isFrozen;
         private Dictionary<string, PropertyDefinition<TEntity>>? sortLookup;
@@ -168,6 +170,20 @@ namespace Paging.Queryable
             this.nameComparer = comparer ?? throw new ArgumentNullException(nameof(comparer));
         }
 
+        /// <summary>
+        /// Configures whether <see cref="PaginationSet{T}.TotalCountUnfiltered"/> is computed
+        /// with a separate (unfiltered) count query. Disabled by default to avoid the extra
+        /// round-trip; when disabled, <c>TotalCountUnfiltered</c> equals <c>TotalCount</c>.
+        /// Only honored by the convenience overloads that own the unfiltered source query.
+        /// </summary>
+        public void IncludeUnfilteredCount(bool include = true)
+        {
+            this.ThrowIfFrozen();
+            this.unfilteredCountIncluded = include;
+        }
+
+        internal bool UnfilteredCountIncluded => this.unfilteredCountIncluded;
+
         internal UnknownPropertyHandling UnknownSortPropertyHandling => this.unknownSortPropertyHandling;
 
         internal UnknownPropertyHandling UnknownFilterPropertyHandling => this.unknownFilterPropertyHandling;
@@ -176,14 +192,14 @@ namespace Paging.Queryable
 
         internal IReadOnlyList<DefaultSortDefinition> DefaultSortDefinitions => this.defaultSortDefinitions;
 
-        internal bool TryGetSortDefinition(string externalName, out PropertyDefinition<TEntity> propertyDefinition)
+        internal bool TryGetSortDefinition(string externalName, [MaybeNullWhen(false)] out PropertyDefinition<TEntity> propertyDefinition)
         {
-            return this.sortLookup!.TryGetValue(externalName, out propertyDefinition!);
+            return this.sortLookup!.TryGetValue(externalName, out propertyDefinition);
         }
 
-        internal bool TryGetFilterDefinition(string externalName, out PropertyDefinition<TEntity> propertyDefinition)
+        internal bool TryGetFilterDefinition(string externalName, [MaybeNullWhen(false)] out PropertyDefinition<TEntity> propertyDefinition)
         {
-            return this.filterLookup!.TryGetValue(externalName, out propertyDefinition!);
+            return this.filterLookup!.TryGetValue(externalName, out propertyDefinition);
         }
 
         /// <summary>

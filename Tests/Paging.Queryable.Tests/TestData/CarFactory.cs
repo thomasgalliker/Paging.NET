@@ -51,20 +51,22 @@ namespace Paging.Queryable.Tests.TestData
             return carsArray;
         }
 
+        // Projection expression translated to SQL by the query provider.
+        internal static readonly Expression<Func<Car, CarDto>> MapCarToCarDto = car => new CarDto
+        {
+            Id = car.Id,
+            Name = car.Name,
+            Model = car.Model,
+            Price = car.Price,
+            Year = car.Year,
+            LastService = car.LastService,
+            LastOilChange = car.LastOilChange,
+            IsElectric = car.IsElectric
+        };
+
         internal static IEnumerable<CarDto> MapCarsToCarDtos(IEnumerable<Car> cars)
         {
-            // Use some more sophisticated mapping logic here (e.g. AutoMapper)
-            return cars.Select(car => new CarDto
-            {
-                Id = car.Id,
-                Name = car.Name,
-                Model = car.Model,
-                Price = car.Price,
-                Year = car.Year,
-                LastService = car.LastService,
-                LastOilChange = car.LastOilChange,
-                IsElectric = car.IsElectric
-            });
+            return cars.AsQueryable().Select(MapCarToCarDto);
         }
     }
 }
