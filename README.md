@@ -370,19 +370,25 @@ var setAsync = await dbContext.Cars.ToPaginationSetAsync(pagingInfo, pagingOptio
 By default `PaginationSet.TotalCountUnfiltered` equals `TotalCount` (no extra count query is issued).
 Call `o.IncludeUnfilteredCount()` in `PagingOptions` to compute the unfiltered total with a separate count.
 
-#### Migration
+#### Mapping the Result In-Memory
 
-| Before                                                                  | Now                                                                                                                               |
-|-------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `pagingInfo.CreatePaginationSet(queryable)`                             | `queryable.ToPaginationSet(pagingInfo, pagingOptions)`                                                                            |
-| `pagingInfo.CreatePaginationSet(queryable, map, predicate)`             | `queryable.ToPaginationSet(pagingInfo, pagingOptions)` with `Map(...)`/`Search(...)` configured in `PagingOptions<TEntity, TDto>` |
-| `queryable.ApplyFilter(filter)` / `queryable.OrderBy(sorting, reverse)` | Removed; use `ApplyPaging(...)` or `ToPaginationSet(...)`.                                                                        |
-| `queryable.OrderByDefault()` (implicit `OrderBy("0")`)                  | Removed; configure `PagingOptions.DefaultSort` for deterministic paging.                                                          |
-| `Filter` dictionary (`{ "Year", 2024 }`, `">=5000"`, range dicts)       | A filter expression string (`Year == 2024 && Price >= 5000`), parsed into a `FilterNode` tree.                                    |
-| `o.Map(cars => cars.Select(...))` (in-memory)                           | `o.Map(car => new Dto { ... })` — an `Expression`, translated to SQL.                                                             |
-| `UnknownPropertyHandling.Allow`                                         | Removed; declare each sortable/filterable property in `PagingOptions`.                                                            |
-| Synchronous only                                                        | `Paging.EF` adds `ToPaginationSetAsync(...)`.                                                                                     |
-| Dependency on `System.Linq.Dynamic.Core`                                | Removed; `Paging.Queryable.NET` is dependency-free.                                                                               |
+Both projection styles seen so far run **in the database**: the inline `.Select(...)` above, and the
+configured `PagingOptions<TEntity, TDto>.Map(...)` (which the typed `ToPaginationSet(...)` overload applies
+as that same `.Select(...)`). Either way the projection is translated to SQL, so it only supports what EF Core
+can translate. When you instead need to map the page with a runtime mapper that cannot be translated — for
+example NMapper, AutoMapper, TinyMapper, Mapperly, or a mapper that handles object graphs / recursion — page
+the entities first and then map the materialized `PaginationSet<TSource>` to a `PaginationSet<TTarget>` with
+`Map(...)`:
+
+```csharp
+var paginationSet = (await dbContext.Cars.ToPaginationSetAsync(pagingInfo, pagingOptions, cancellationToken))
+    .Map(cars => this.mapper.Map<CarDto[]>(cars));
+```
+
+`Map` applies the mapping function to `Items` and carries all paging metadata
+(`FirstPageIndex`, `CurrentPage`, `TotalPages`, `TotalCount`, `TotalCountUnfiltered`) over unchanged, so the
+counts stay correct. Prefer the SQL projection when the mapping is translatable (it pages and projects in a
+single query); reach for in-memory `Map` only when it is not.
 
 ### How to Use Paging.MAUI
 
@@ -401,7 +407,7 @@ private readonly PagingInfo pagingInfo = new PagingInfo
 
 private PaginationSet<Car>? lastPaginationSet;
 
-public InfiniteScrollCollection<CarDto> Cars { get; } = new InfiniteScrollCollection<CarDto>();
+public InfiniteScrollCollection<CarItemViewModel> Cars { get; } = new InfiniteScrollCollection<CarItemViewModel>();
 
 public async Task InitializeAsync(ICarService carService)
 {
@@ -412,14 +418,9 @@ public async Task InitializeAsync(ICarService carService)
         this.lastPaginationSet = paginationSet;
         this.pagingInfo.CurrentPage++;
 
-        return paginationSet.Items.Select(car => new CarDto
-        {
-            Id = car.Id,
-            Name = car.Name,
-            Model = car.Model,
-            Price = car.Price,
-            Year = car.Year
-        });
+        return paginationSet.Items
+            .Select(car => new CarItemViewModel(car))
+            .ToArray();
     };
 
     await this.Cars.LoadMoreAsync();

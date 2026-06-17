@@ -75,7 +75,6 @@ namespace MauiPagingSample.ViewModels
             }
         }
 
-
         public IAsyncRelayCommand<string> OpenUrlCommand
         {
             get => this.openUrlCommand ??= new AsyncRelayCommand<string>(this.OpenUrlAsync!);
