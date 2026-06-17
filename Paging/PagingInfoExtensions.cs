@@ -5,24 +5,6 @@ namespace Paging
     public static class PagingInfoExtensions
     {
         /// <summary>
-        /// Maps Items of <paramref name="paginationSet"/> into a new <see cref="PaginationSet{TTarget}"/>
-        /// using the mapping logic in parameter <paramref name="mapSourceToTarget"/>.
-        /// </summary>
-        /// <typeparam name="TSource">Source type (e.g. entity type).</typeparam>
-        /// <typeparam name="TTarget">Target type (e.g. DTO, ViewModel type).</typeparam>
-        /// <param name="pagingInfo">The source paginationInfo.</param>
-        /// <param name="paginationSet">The source paginationSet.</param>
-        /// <param name="mapSourceToTarget">The mapping logic which maps <see cref="IEnumerable{TSource}"/> to <see cref="IEnumerable{TTarget}"/>.</param>
-        /// <returns>A new <see cref="PaginationSet{TTarget}"/> containing the mapped items.</returns>
-        public static PaginationSet<TTarget> Map<TSource, TTarget>(this PagingInfo pagingInfo, PaginationSet<TSource> paginationSet, Func<IEnumerable<TSource>, IEnumerable<TTarget>> mapSourceToTarget)
-        {
-            var sourceItems = paginationSet.Items;
-            var targetItems = mapSourceToTarget(sourceItems);
-            var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
-            return paginationSetTarget;
-        }
-
-        /// <summary>
         /// Converts a <c>SortBy</c> string into a sorting dictionary keyed by property name.
         /// </summary>
         /// <param name="sortBy">The sort expression, for example <c>Name Asc, Created Desc</c>.</param>

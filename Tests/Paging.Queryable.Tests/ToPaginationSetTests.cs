@@ -672,7 +672,7 @@ namespace Paging.Queryable.Tests
 
             // Act
             var paginationSet = queryable.ToPaginationSet(pagingInfo);
-            var paginationSetMapped = pagingInfo.Map<Car, CarDto>(paginationSet, CarFactory.MapCarsToCarDtos);
+            var paginationSetMapped = paginationSet.Map(CarFactory.MapCarsToCarDtos);
 
             // Assert
             paginationSet.Should().NotBeNull();
