@@ -16,12 +16,12 @@ library set consists of the following NuGet packages:
 
 This library is available on nuget.org:
 
-| Package                                                                       | Version                                                                                                                    | Downlods                                                                                                                      |
-|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
-| [Paging.NET](https://www.nuget.org/packages/Paging.NET)                       | [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     | [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     |
-| [Paging.Queryable.NET](https://www.nuget.org/packages/Paging.Queryable.NET)   | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) |
-| [Paging.EF](https://www.nuget.org/packages/Paging.EF)                         | [![Version](https://img.shields.io/nuget/v/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       | [![Downloads](https://img.shields.io/nuget/dt/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       |
-| [Paging.MAUI](https://www.nuget.org/packages/Paging.MAUI)                     | [![Version](https://img.shields.io/nuget/v/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | [![Downloads](https://img.shields.io/nuget/dt/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   |
+| Package                                                                     | Version                                                                                                                    | Downlods                                                                                                                      |
+|-----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| [Paging.NET](https://www.nuget.org/packages/Paging.NET)                     | [![Version](https://img.shields.io/nuget/v/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     | [![Downloads](https://img.shields.io/nuget/dt/Paging.NET.svg)](https://www.nuget.org/packages/Paging.NET)                     |
+| [Paging.Queryable.NET](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Version](https://img.shields.io/nuget/v/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) | [![Downloads](https://img.shields.io/nuget/dt/Paging.Queryable.NET.svg)](https://www.nuget.org/packages/Paging.Queryable.NET) |
+| [Paging.EF](https://www.nuget.org/packages/Paging.EF)                       | [![Version](https://img.shields.io/nuget/v/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       | [![Downloads](https://img.shields.io/nuget/dt/Paging.EF.svg)](https://www.nuget.org/packages/Paging.EF)                       |
+| [Paging.MAUI](https://www.nuget.org/packages/Paging.MAUI)                   | [![Version](https://img.shields.io/nuget/v/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   | [![Downloads](https://img.shields.io/nuget/dt/Paging.MAUI.svg)](https://www.nuget.org/packages/Paging.MAUI)                   |
 
 ## Getting Started
 
@@ -140,8 +140,7 @@ public PaginationSet<Car> GetCars(PagingInfo pagingInfo)
 ```
 
 If you are working with an `IQueryable<T>`, the section below shows how `Paging.Queryable.NET` can perform all necessary
-steps
-to create a `PaginationSet<T>` through the `ToPaginationSet(...)` extension method.
+steps to create a `PaginationSet<T>` through the `ToPaginationSet(...)` extension method.
 
 ### How to Use Paging.Queryable.NET
 
@@ -149,7 +148,7 @@ to create a `PaginationSet<T>` through the `ToPaginationSet(...)` extension meth
 This is useful for backend code working with Entity Framework or any other LINQ provider.
 
 The main entry point is `ToPaginationSet(...)`. It applies the `PagingInfo` request to an
-`IQueryable<TEntity>` and returns a `PaginationSet<TEntity>`:
+`IQueryable<TEntity>` and returns a `PaginationSet<TEntity>`.
 
 ```csharp
 IQueryable<Car> queryable = dbContext.Cars;
@@ -162,7 +161,7 @@ var pagingInfo = new PagingInfo
     Filter = FilterNode.Parse("Year == 2024")
 };
 
-var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+var paginationSet = queryable.ToPaginationSet(pagingInfo);
 ```
 
 In this example:
@@ -298,9 +297,7 @@ URL- and JSON-friendly, so an Angular or MAUI client can send it as a query para
 The string supports comparisons, string operators, `in`, and `&&` / `||` with parentheses
 (`&&` binds tighter than `||`):
 
-```
-Brand contains "bmw" && Year >= 2020 || IsElectric == true
-```
+`Brand contains "bmw" && Year >= 2020 || IsElectric == true`
 
 You build it in three interchangeable ways — the wire form is always the string:
 
@@ -331,7 +328,7 @@ Operators and their string tokens:
 | `Contains`           | `contains`   | Case-insensitive substring match (non-string properties use `ToString`). |
 | `StartsWith`         | `startswith` | Case-insensitive prefix match.                                           |
 | `EndsWith`           | `endswith`   | Case-insensitive suffix match.                                           |
-| `In`                 | `in`         | Property matches any value of a `[…]` list, e.g. `Id in [1, 2, 3]`.       |
+| `In`                 | `in`         | Property matches any value of a `[…]` list, e.g. `Id in [1, 2, 3]`.      |
 
 Value literals: quoted strings (`"text"`, `\"` escapes a quote), numbers (`42`, `4.5`), `true`, `false`,
 `null`, and bracketed lists for `in`. Dates are passed as quoted ISO 8601 strings.
