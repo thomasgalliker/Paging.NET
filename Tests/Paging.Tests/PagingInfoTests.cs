@@ -288,12 +288,12 @@ namespace Paging.Tests
             // Assert
             parameters.Should().Equal(new Dictionary<string, string>
             {
-                { "CurrentPage", "2" },
-                { "FirstPageIndex", "0" },
-                { "ItemsPerPage", "30" },
-                { "SortBy", "Venue.Name Asc" },
-                { "Reverse", "True" },
-                { "Search", "Test value" }
+                { "currentPage", "2" },
+                { "firstPageIndex", "0" },
+                { "itemsPerPage", "30" },
+                { "sortBy", "Venue.Name Asc" },
+                { "reverse", "True" },
+                { "search", "Test value" }
             });
         }
 
@@ -301,10 +301,10 @@ namespace Paging.Tests
         {
             public ToStringTestData()
             {
-                this.Add(new PagingInfo(), "CurrentPage=1");
-                this.Add(new PagingInfo { FirstPageIndex = 0, CurrentPage = 0 }, "CurrentPage=0&FirstPageIndex=0");
+                this.Add(new PagingInfo(), "currentPage=1");
+                this.Add(new PagingInfo { FirstPageIndex = 0, CurrentPage = 0 }, "currentPage=0&firstPageIndex=0");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name", Reverse = true },
-                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name&Reverse=True");
+                    "currentPage=2&itemsPerPage=30&sortBy=Venue.Name&reverse=True");
                 this.Add(
                     new PagingInfo
                     {
@@ -312,19 +312,19 @@ namespace Paging.Tests
                         ItemsPerPage = 30,
                         Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc } },
                         Reverse = true
-                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc&Reverse=True");
+                    }, "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20Asc&reverse=True");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name asc, Name asc" },
-                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20asc%2C%20Name%20asc");
+                    "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20asc%2C%20Name%20asc");
                 this.Add(
                     new PagingInfo
                     {
                         CurrentPage = 2,
                         ItemsPerPage = 30,
                         Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Asc } }
-                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc%2C%20Name%20Asc");
+                    }, "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20Asc%2C%20Name%20Asc");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" },
-                    "CurrentPage=2&ItemsPerPage=30&Search=Test%20value");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 0 }, "CurrentPage=2&ItemsPerPage=0");
+                    "currentPage=2&itemsPerPage=30&search=Test%20value");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 0 }, "currentPage=2&itemsPerPage=0");
             }
         }
 

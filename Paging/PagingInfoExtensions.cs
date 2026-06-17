@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace Paging
 {
@@ -73,35 +75,49 @@ namespace Paging
             // Get all properties on the object
             var properties = new Dictionary<string, string>
             {
-                { nameof(PagingInfo.CurrentPage), $"{pagingInfo.CurrentPage}" }
+                { ToJsonName(nameof(PagingInfo.CurrentPage)), $"{pagingInfo.CurrentPage}" }
             };
 
             if (pagingInfo.FirstPageIndex != PagingInfo.DefaultFirstPageIndex)
             {
-                properties.Add(nameof(PagingInfo.FirstPageIndex), $"{pagingInfo.FirstPageIndex}");
+                properties.Add(ToJsonName(nameof(PagingInfo.FirstPageIndex)), $"{pagingInfo.FirstPageIndex}");
             }
 
             if (pagingInfo.ItemsPerPage is int itemsPerPage)
             {
-                properties.Add(nameof(PagingInfo.ItemsPerPage), $"{itemsPerPage}");
+                properties.Add(ToJsonName(nameof(PagingInfo.ItemsPerPage)), $"{itemsPerPage}");
             }
 
             if (!string.IsNullOrEmpty(pagingInfo.SortBy))
             {
-                properties.Add(nameof(PagingInfo.SortBy), pagingInfo.SortBy!);
+                properties.Add(ToJsonName(nameof(PagingInfo.SortBy)), pagingInfo.SortBy!);
             }
 
             if (pagingInfo.Reverse)
             {
-                properties.Add(nameof(PagingInfo.Reverse), $"{pagingInfo.Reverse}");
+                properties.Add(ToJsonName(nameof(PagingInfo.Reverse)), $"{pagingInfo.Reverse}");
             }
 
             if (!string.IsNullOrEmpty(pagingInfo.Search))
             {
-                properties.Add(nameof(PagingInfo.Search), pagingInfo.Search!);
+                properties.Add(ToJsonName(nameof(PagingInfo.Search)), pagingInfo.Search!);
             }
 
             return new ReadOnlyDictionary<string, string>(properties);
+        }
+
+        // Maps PagingInfo CLR property names to their JSON property names so the query string
+        // shares the same camelCase contract as JSON serialization. The [JsonPropertyName]
+        // attributes on PagingInfo remain the single source of truth for the wire format.
+        private static readonly IReadOnlyDictionary<string, string> JsonPropertyNames = typeof(PagingInfo)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(p => new { p.Name, JsonName = p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name })
+            .Where(p => p.JsonName != null)
+            .ToDictionary(p => p.Name, p => p.JsonName!);
+
+        private static string ToJsonName(string propertyName)
+        {
+            return JsonPropertyNames.TryGetValue(propertyName, out var value) ? value : throw new InvalidOperationException($"Property {propertyName} does not have a JsonPropertyNameAttribute");
         }
 
         /// <summary>
