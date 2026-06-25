@@ -93,11 +93,11 @@ namespace Paging.Tests
             // Assert
             paginationSet.TotalPages.Should().Be(0);
             paginationSet.HasMorePages().Should().BeFalse();
-            paginationSet.StopScroll(pagingInfo).Should().BeTrue();
+            paginationSet.CanLoadMore(pagingInfo).Should().BeFalse();
         }
 
         [Fact]
-        public void ShouldUseConfiguredPageBaseForHasMorePagesAndStopScroll()
+        public void ShouldUseConfiguredPageBaseForHasMorePagesAndCanLoadMore()
         {
             // Arrange
             var pagingInfo = new PagingInfo { FirstPageIndex = 0, CurrentPage = 0, ItemsPerPage = 3 };
@@ -108,7 +108,7 @@ namespace Paging.Tests
             // Assert
             paginationSet.FirstPageIndex.Should().Be(0);
             paginationSet.HasMorePages().Should().BeTrue();
-            paginationSet.StopScroll(pagingInfo).Should().BeFalse();
+            paginationSet.CanLoadMore(pagingInfo).Should().BeTrue();
         }
 
         public class SelectedPageTestData : TheoryData<IEnumerable<Car>, PagingInfo, int, int, int>

@@ -390,25 +390,67 @@ single query); reach for in-memory `Map` only when it is not.
 ### How to Use Paging.MAUI
 
 `Paging.MAUI` provides helpers for incremental loading and infinite scrolling in .NET MAUI apps.
-The central type is `InfiniteScrollCollection<T>`. It is typically used together with a `PagingInfo` instance that keeps
-track of the next page to load.
+The central type is `InfiniteScrollCollection<T>`.
 
-The following example is based on the MAUI sample app:
+#### Self-contained collection (recommended)
+
+`InfiniteScrollCollection<TSource, TItem>` owns the `PagingInfo`, advances the page after each load, maps every
+loaded item and decides when to stop. The view model only declares how to load a page (`pageLoader`) and how to
+project it (`itemSelector`):
 
 ```csharp
-private readonly PagingInfo pagingInfo = new PagingInfo
-{
-    CurrentPage = 1,
-    ItemsPerPage = 30,
-};
+public InfiniteScrollCollection<Car, CarItemViewModel> Cars { get; }
 
+public MainViewModel(ICarService carService, ILogger<MainViewModel> logger)
+{
+    this.Cars = new InfiniteScrollCollection<Car, CarItemViewModel>(
+        pageLoader: pagingInfo => carService.GetCarsAsync(pagingInfo),
+        itemSelector: car => new CarItemViewModel(car),
+        pagingInfo: new PagingInfo { ItemsPerPage = 30 })
+    {
+        // Set OnError so failures in the fire-and-forget first load (and in scroll-driven
+        // loads, which the behavior runs as async void) are observed instead of lost.
+        OnError = ex => logger.LogError(ex, "Failed to load cars"),
+    };
+
+    _ = this.Cars.InitializeAsync(); // load the first page
+}
+```
+
+Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`, `Filter` or `SortBy` to clear the list and reload
+from the first page. When you bind the loaded type directly (no projection), use the single-generic constructor
+— same shape, minus the `itemSelector`:
+
+```csharp
+public InfiniteScrollCollection<Car> Cars { get; }
+
+public MainViewModel(ICarService carService, ILogger<MainViewModel> logger)
+{
+    this.Cars = new InfiniteScrollCollection<Car>(
+        pageLoader: pagingInfo => carService.GetCarsAsync(pagingInfo),
+        pagingInfo: new PagingInfo { ItemsPerPage = 30 })
+    {
+        OnError = ex => logger.LogError(ex, "Failed to load cars"),
+    };
+
+    _ = this.Cars.InitializeAsync();
+}
+```
+
+#### Manual wiring (escape hatch)
+
+For full control, keep your own `PagingInfo` and set the `OnLoadMore`/`OnCanLoadMore` delegates yourself. Use the
+`CanLoadMore(...)` extension to decide whether another page is available:
+
+```csharp
+private readonly PagingInfo pagingInfo = new PagingInfo { ItemsPerPage = 30 };
 private PaginationSet<Car>? lastPaginationSet;
 
 public InfiniteScrollCollection<CarItemViewModel> Cars { get; } = new InfiniteScrollCollection<CarItemViewModel>();
 
 public async Task InitializeAsync(ICarService carService)
 {
-    this.Cars.OnCanLoadMore = () => !this.lastPaginationSet.StopScroll(this.pagingInfo);
+    this.Cars.OnCanLoadMore = () => this.lastPaginationSet.CanLoadMore(this.pagingInfo);
     this.Cars.OnLoadMore = async () =>
     {
         var paginationSet = await carService.GetCarsAsync(this.pagingInfo);
@@ -424,8 +466,8 @@ public async Task InitializeAsync(ICarService carService)
 }
 ```
 
-This pattern assumes normal paging with `ItemsPerPage > 0`. For totals-only or unpaged requests, `StopScroll(...)`
-returns `true` immediately.
+This pattern assumes normal paging with `ItemsPerPage > 0`. For totals-only or unpaged requests, `CanLoadMore(...)`
+returns `false` immediately.
 
 In XAML, `InfiniteScrollBehavior` can be attached to a `CollectionView`
 (xmlns `paging` referring to `clr-namespace:Paging.MAUI;assembly=Paging.MAUI`):

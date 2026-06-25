@@ -36,19 +36,20 @@
         }
 
         /// <summary>
-        /// Determines whether infinite scrolling should stop because all available items have been loaded.
+        /// Determines whether infinite scrolling can load more items, i.e. whether not all available
+        /// items have been loaded yet.
         /// </summary>
         /// <typeparam name="T">The item type contained in the pagination set.</typeparam>
-        /// <param name="paginationSet">The current pagination set.</param>
+        /// <param name="paginationSet">The most recently loaded pagination set, or <c>null</c> before the first load.</param>
         /// <param name="pagingInfo">The paging configuration used to load items.</param>
         /// <returns>
-        /// <see langword="true"/> when no more items should be loaded; otherwise, <see langword="false"/>.
+        /// <see langword="true"/> when more items can be loaded; otherwise, <see langword="false"/>.
         /// </returns>
-        public static bool StopScroll<T>(this PaginationSet<T>? paginationSet, PagingInfo pagingInfo)
+        public static bool CanLoadMore<T>(this PaginationSet<T>? paginationSet, PagingInfo pagingInfo)
         {
             if (paginationSet == null)
             {
-                return false;
+                return true;
             }
 
             if (pagingInfo == null)
@@ -58,11 +59,11 @@
 
             if (pagingInfo.ItemsPerPage is null or 0)
             {
-                return true;
+                return false;
             }
 
             var pagesLoaded = pagingInfo.CurrentPage - pagingInfo.FirstPageIndex + 1;
-            return pagesLoaded * pagingInfo.ItemsPerPage.Value >= paginationSet.TotalCount;
+            return pagesLoaded * pagingInfo.ItemsPerPage.Value < paginationSet.TotalCount;
         }
     }
 }
