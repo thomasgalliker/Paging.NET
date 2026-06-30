@@ -431,8 +431,11 @@ this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { Item
 
 After a load, `Cars.LastPaginationSet` exposes the latest page's totals (`TotalCount` / `TotalCountUnfiltered`)
 for empty-state and raises `PropertyChanged`. Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`,
-`Filter` or `SortBy` to clear the list and reload from the first page. When you bind the loaded type directly
-(no projection), no mapping is needed — the page loader alone configures the collection:
+`Filter` or `SortBy` to clear the list and reload from the first page. If a load is still in progress (for
+example a scroll-driven page load), the refresh is queued behind it rather than dropped, and concurrent refresh
+requests are coalesced into a single reload; the returned task completes when that reload finishes, so you can
+drive busy state by awaiting it. When you bind the loaded type directly (no projection), no mapping is needed —
+the page loader alone configures the collection:
 
 ```csharp
 public InfiniteScrollCollection<Car> Cars { get; }

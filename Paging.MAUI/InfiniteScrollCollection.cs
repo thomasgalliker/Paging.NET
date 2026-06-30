@@ -21,9 +21,13 @@ namespace Paging.MAUI
         private bool isLoadingMore;
         private PaginationSet<TTarget>? lastPaginationSet;
         private Func<PagingInfo, Task<PaginationSet<TTarget>>>? pageLoader;
+        private bool pendingProjection;
         private Action? onBeforeLoadMore;
         private Action? onAfterLoadMore;
         private Action<Exception>? onError;
+        private bool refreshPending;
+        private bool isDraining;
+        private TaskCompletionSource? drainCompletion;
 
         /// <summary>
         /// Initializes a new instance of the collection.
@@ -92,12 +96,29 @@ namespace Paging.MAUI
         {
             ArgumentNullException.ThrowIfNull(pageLoader);
 
+            if (typeof(TSource) == typeof(TTarget))
+            {
+                // The loaded type already is the bound type, so a mapping is optional even on this generic overload
+                // (only reached when the type argument is given explicitly; otherwise the non-generic overload wins).
+                // Bind directly so the collection is configured without a mapping. The cast is safe: identical type
+                // arguments make the two delegate types the same constructed type at runtime.
+                this.UsePageLoader((Func<PagingInfo, Task<PaginationSet<TTarget>>>)(object)pageLoader);
+            }
+            else
+            {
+                // A projection is required but not configured until a WithMapping overload calls UsePageLoader.
+                // Track that a projecting loader was begun so an unfinalized chain fails loudly on first load
+                // instead of silently doing nothing (see LoadMoreAsync).
+                this.pendingProjection = true;
+            }
+
             return new InfiniteScrollSource<TSource, TTarget>(this, pageLoader);
         }
 
         internal void UsePageLoader(Func<PagingInfo, Task<PaginationSet<TTarget>>> pageLoader)
         {
             this.pageLoader = pageLoader;
+            this.pendingProjection = false;
         }
 
         /// <summary>
@@ -170,10 +191,12 @@ namespace Paging.MAUI
 
         /// <summary>
         /// Gets a value indicating whether more data can be requested. <c>false</c> until a page loader is
-        /// configured via <see cref="WithPageLoader{TSource}"/>; afterwards <c>true</c> until the most recently
-        /// loaded page reports no further pages (<see cref="PaginationSet{T}.HasMorePages"/>).
+        /// configured and the first page has been loaded; afterwards it reflects whether the most recently loaded
+        /// page reports further pages (<see cref="PaginationSet{T}.HasMorePages"/>). It is intentionally
+        /// <c>false</c> before the first load so the scroll behavior does not race ahead of
+        /// <see cref="InitializeAsync"/>, which loads the first page itself and is not gated by this property.
         /// </summary>
-        public virtual bool CanLoadMore => this.pageLoader != null && (this.LastPaginationSet?.HasMorePages() ?? true);
+        public virtual bool CanLoadMore => this.pageLoader != null && (this.LastPaginationSet?.HasMorePages() ?? false);
 
         /// <summary>
         /// Gets a value indicating whether a load operation is currently in progress.
@@ -206,7 +229,25 @@ namespace Paging.MAUI
         {
             if (this.pageLoader is null)
             {
+                if (this.pendingProjection)
+                {
+                    // WithPageLoader<TSource> was called but the chain was never finalized with a WithMapping
+                    // overload, so there is nothing to load.
+                    throw new InvalidOperationException(
+                        $"A page loader was configured via {nameof(WithPageLoader)}<TSource> but the projection " +
+                        $"was never finalized. Chain a WithMapping(...) overload to map the loaded pages to " +
+                        $"'{typeof(TTarget).Name}'.");
+                }
+
                 // No page loader configured (e.g. an empty or seeded collection): nothing to load.
+                return;
+            }
+
+            if (this.IsLoadingMore)
+            {
+                // A load is already in flight. Ignore the overlapping request rather than double-advancing the
+                // page and appending the same page twice. Refreshes that need to run after the in-flight load
+                // use RefreshAsync, which queues and coalesces them.
                 return;
             }
 
@@ -232,7 +273,16 @@ namespace Paging.MAUI
             }
             catch (Exception ex) when (this.onError != null)
             {
-                this.onError.Invoke(ex);
+                try
+                {
+                    this.onError.Invoke(ex);
+                }
+                catch
+                {
+                    // A faulting error handler must not crash the load path, which the scroll behavior runs as
+                    // async void (an unhandled exception there would tear down the app). There is no logger in
+                    // this library, so the handler's own exception is intentionally swallowed.
+                }
             }
             finally
             {
@@ -251,26 +301,114 @@ namespace Paging.MAUI
         }
 
         /// <summary>
-        /// Clears the collection, resets paging to the first page and reloads.
-        /// Use this after changing search, filter or sort on <see cref="PagingInfo"/>.
-        /// Does nothing while a load is already in progress; in that case call <see cref="RefreshAsync"/>
-        /// again once <see cref="IsLoadingMore"/> is <c>false</c> so the new criteria are applied.
+        /// Clears the collection, resets paging to the first page and reloads. Use this after changing search,
+        /// filter or sort on <see cref="PagingInfo"/>.
+        /// <para>
+        /// If a load is already in progress (for example a scroll-driven page load), the refresh is queued and
+        /// runs once that load completes rather than being dropped. Concurrent refresh requests are coalesced into
+        /// a single reload that uses the latest criteria. The returned task completes when the resulting reload has
+        /// finished, so callers can drive busy state by awaiting it.
+        /// </para>
         /// </summary>
-        /// <returns>A task representing the reload operation.</returns>
-        public async Task RefreshAsync()
+        /// <returns>A task that completes when the (possibly queued) reload finishes.</returns>
+        public Task RefreshAsync()
         {
-            // Skip while a load is in flight: clearing here would race the appending load and
-            // interleave pages. The refresh is intentionally dropped, not queued (see remarks).
-            if (this.IsLoadingMore)
+            this.refreshPending = true;
+
+            if (this.isDraining)
             {
-                return;
+                // A drain is already running; it will pick up the pending refresh on its next iteration. All
+                // callers await the same drain so they complete together when its final reload finishes.
+                return this.drainCompletion!.Task;
             }
 
-            this.PagingInfo.CurrentPage = this.PagingInfo.FirstPageIndex;
-            this.LastPaginationSet = null;
-            this.ClearItems();
+            this.isDraining = true;
+            var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            this.drainCompletion = completion;
 
-            await this.LoadMoreAsync();
+            _ = this.DrainRefreshAsync(completion);
+
+            // Return the local reference: the drain may already have completed synchronously and nulled the field.
+            return completion.Task;
+        }
+
+        private async Task DrainRefreshAsync(TaskCompletionSource completion)
+        {
+            try
+            {
+                // Wait out any load currently in flight (e.g. a scroll-driven page load) so the clear below does
+                // not race the appending load and interleave pages.
+                await this.WhenNotLoadingMoreAsync();
+
+                // Coalesce: a refresh requested while the reload below runs collapses into one more iteration
+                // rather than queuing a separate reload per request.
+                while (this.refreshPending)
+                {
+                    this.refreshPending = false;
+
+                    this.PagingInfo.CurrentPage = this.PagingInfo.FirstPageIndex;
+                    this.LastPaginationSet = null;
+                    this.ClearItems();
+
+                    try
+                    {
+                        await this.LoadMoreAsync();
+                    }
+                    catch
+                    {
+                        // The reload faulted and propagated (no onError handler). Re-arm so a refresh that was
+                        // coalesced during this reload — or a later retry — is honored by the next drain instead
+                        // of being silently consumed, then surface the fault to the awaiters.
+                        this.refreshPending = true;
+                        throw;
+                    }
+                }
+
+                completion.TrySetResult();
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+            finally
+            {
+                this.isDraining = false;
+                this.drainCompletion = null;
+            }
+        }
+
+        /// <summary>
+        /// Completes once no load is in progress. Subscribes to <see cref="LoadingMore"/> so a queued refresh can
+        /// wait for an in-flight load to finish without polling.
+        /// </summary>
+        private async Task WhenNotLoadingMoreAsync()
+        {
+            while (this.IsLoadingMore)
+            {
+                var loadingMoreFinished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+                void OnLoadingMore(object? sender, LoadingMoreEventArgs e)
+                {
+                    if (!e.IsLoadingMore)
+                    {
+                        loadingMoreFinished.TrySetResult();
+                    }
+                }
+
+                this.LoadingMore += OnLoadingMore;
+                try
+                {
+                    // Re-check after subscribing so a completion that raced the subscription is not missed.
+                    if (this.IsLoadingMore)
+                    {
+                        await loadingMoreFinished.Task;
+                    }
+                }
+                finally
+                {
+                    this.LoadingMore -= OnLoadingMore;
+                }
+            }
         }
 
         /// <summary>
@@ -288,10 +426,16 @@ namespace Paging.MAUI
             // with a new range of items.
             // https://raw.githubusercontent.com/haefele/MatchMaker/dev/src/frontend/MatchMaker.UI/Helpers/ObservableRangeCollection.cs
 
+            var changedItems = new List<TTarget>(collection);
+            if (changedItems.Count == 0)
+            {
+                // Nothing to add: suppress a spurious Add notification for an empty page (e.g. a zero-result load).
+                return;
+            }
+
             this.CheckReentrancy();
 
             var startIndex = this.Count;
-            var changedItems = new List<TTarget>(collection);
 
             foreach (var i in changedItems)
             {

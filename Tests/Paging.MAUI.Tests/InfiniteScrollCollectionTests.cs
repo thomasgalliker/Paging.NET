@@ -237,10 +237,10 @@ namespace Paging.MAUI.Tests
         }
 
         [Fact]
-        public async Task RefreshAsync_DoesNothing_WhileLoading()
+        public async Task RefreshAsync_QueuesBehindInFlightLoad_ThenReloads()
         {
-            // Arrange
-            const int totalCount = 65;
+            // Arrange: hold the first load open so a refresh issued during it must be queued, not dropped.
+            const int totalCount = 30;
             var gate = new TaskCompletionSource<bool>();
             var loadCount = 0;
             var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
@@ -258,20 +258,166 @@ namespace Paging.MAUI.Tests
                 .WithMapping(MapToViewModel);
 
             var initTask = collection.InitializeAsync();
-
-            // Act
             collection.IsLoadingMore.Should().BeTrue();
-            await collection.RefreshAsync(); // must no-op while the first load is in flight
 
-            // Assert
+            // Act: refresh while the first load is in flight => queued behind it, not dropped
+            var refreshTask = collection.RefreshAsync();
+
+            // Assert: queued, but not run yet (the in-flight load has not completed)
+            refreshTask.IsCompleted.Should().BeFalse();
             loadCount.Should().Be(1);
+
+            // Release the gate; the queued refresh then reloads from the first page
+            gate.SetResult(true);
+            await Task.WhenAll(initTask, refreshTask);
+
+            // Assert: the refresh ran exactly once after the in-flight load completed
+            loadCount.Should().Be(2);
+            collection.Should().HaveCount(30);
+            collection.First().Id.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_CoalescesConcurrentRequests_IntoASingleReload()
+        {
+            // Arrange: hold the first load open and issue several refreshes during it.
+            const int totalCount = 30;
+            var gate = new TaskCompletionSource<bool>();
+            var loadCount = 0;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(async p =>
+                {
+                    loadCount++;
+                    if (loadCount == 1)
+                    {
+                        await gate.Task;
+                    }
+
+                    return new PaginationSet<CarDto>(p, CreatePage(p, totalCount), totalCount, totalCount);
+                })
+                .WithMapping(MapToViewModel);
+
+            var initTask = collection.InitializeAsync();
+
+            // Act: three refreshes while the first load is in flight
+            var refresh1 = collection.RefreshAsync();
+            var refresh2 = collection.RefreshAsync();
+            var refresh3 = collection.RefreshAsync();
+            loadCount.Should().Be(1);
+
+            gate.SetResult(true);
+            await Task.WhenAll(initTask, refresh1, refresh2, refresh3);
+
+            // Assert: the three refreshes collapse into a single reload (1 initial load + 1 reload, not + 3).
+            loadCount.Should().Be(2);
+            collection.Should().HaveCount(30);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_RequestedDuringDrainReload_TriggersAnotherReload()
+        {
+            // Arrange: gate the drain's own reload so a refresh can be issued while that reload is in flight.
+            // This exercises the second-level coalescing of the drain loop (an `if` instead of `while` would miss it).
+            var gate = new TaskCompletionSource<bool>();
+            var loadCount = 0;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(async p =>
+                {
+                    loadCount++;
+                    if (loadCount == 2)
+                    {
+                        await gate.Task; // hold the first refresh's reload open
+                    }
+
+                    return new PaginationSet<CarDto>(p, CreatePage(p, 30), 30, 30);
+                })
+                .WithMapping(MapToViewModel);
+
+            await collection.InitializeAsync(); // load 1
+
+            // Act: start a refresh (drain reload = load 2, gated) and issue a second refresh while it is in flight
+            var refresh1 = collection.RefreshAsync();
+            loadCount.Should().Be(2);
+            collection.IsLoadingMore.Should().BeTrue();
+
+            var refresh2 = collection.RefreshAsync(); // requested during the drain's reload
+            gate.SetResult(true);
+            await Task.WhenAll(refresh1, refresh2);
+
+            // Assert: the second refresh caused one more reload (load 3), proving the drain loops to honor it.
+            loadCount.Should().Be(3);
+            collection.Should().HaveCount(30);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_FaultingReloadWithoutOnError_SurfacesError_AndStaysRecoverable()
+        {
+            // Arrange: NO onError handler, so a faulting reload propagates to the awaiter. Fail the next reload once.
+            var loadCount = 0;
+            var failNextReload = false;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(p =>
+                {
+                    loadCount++;
+                    if (failNextReload)
+                    {
+                        failNextReload = false;
+                        return Task.FromException<PaginationSet<CarDto>>(new InvalidOperationException("reload boom"));
+                    }
+
+                    return Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, 30), 30, 30));
+                })
+                .WithMapping(MapToViewModel);
+
+            await collection.InitializeAsync(); // load 1 ok
+            collection.Should().HaveCount(30);
+
+            // Act: the next refresh's reload faults and (no onError) propagates to the awaiter
+            failNextReload = true;
+            Func<Task> faulting = () => collection.RefreshAsync();
+            await faulting.Should().ThrowAsync<InvalidOperationException>();
+
+            // Assert: the refresh cleared the collection, and the drain is not wedged
             collection.Should().BeEmpty();
 
-            // Release the gate and let the initial load finish
-            gate.SetResult(true);
-            await initTask;
+            // A subsequent refresh reloads cleanly — the pending refresh was not silently consumed by the fault
+            await collection.RefreshAsync();
             collection.Should().HaveCount(30);
-            loadCount.Should().Be(1);
+            loadCount.Should().Be(3);
+        }
+
+        [Fact]
+        public async Task RefreshAsync_IntoEmptyResult_ClearsAndPublishesEmptyMetadata()
+        {
+            // Arrange: first load returns 30 items; after toggling, a refresh returns an empty result
+            // (e.g. a search that matches nothing) while the unfiltered total stays > 0.
+            var empty = false;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(p => empty
+                    ? Task.FromResult(new PaginationSet<CarDto>(p, Array.Empty<CarDto>(), 0, 50))
+                    : Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, 30), 30, 50)))
+                .WithMapping(MapToViewModel);
+
+            await collection.InitializeAsync();
+            collection.Should().HaveCount(30);
+
+            var collectionChanged = new List<NotifyCollectionChangedEventArgs>();
+            collection.CollectionChanged += (_, e) => collectionChanged.Add(e);
+
+            // Act: refresh into an empty result
+            empty = true;
+            await collection.RefreshAsync();
+
+            // Assert: cleared, no spurious empty Add, and empty-state metadata published (filtered 0 of 50).
+            collection.Should().BeEmpty();
+            collectionChanged.Should().NotContain(e => e.Action == NotifyCollectionChangedAction.Add);
+            collection.LastPaginationSet.Should().NotBeNull();
+            collection.LastPaginationSet!.TotalCount.Should().Be(0);
+            collection.LastPaginationSet.TotalCountUnfiltered.Should().Be(50);
         }
 
         [Fact]
@@ -465,6 +611,138 @@ namespace Paging.MAUI.Tests
 
             // Assert
             action.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("onError");
+        }
+
+        [Fact]
+        public async Task LoadMoreAsync_WhenOnErrorHandlerItselfThrows_DoesNotPropagate()
+        {
+            // Arrange: the load fails and the error handler also throws.
+            var collection = new InfiniteScrollCollection<CarViewModel>(new PagingInfo { ItemsPerPage = 30 })
+                .WithPageLoader(p => Task.FromException<PaginationSet<CarDto>>(new InvalidOperationException("load failed")))
+                .WithMapping(MapToViewModel)
+                .OnError(_ => throw new InvalidOperationException("handler failed"));
+
+            // Act
+            Func<Task> act = () => collection.InitializeAsync();
+
+            // Assert: a faulting handler must not escape (it would crash async-void scroll loads); state still resets.
+            await act.Should().NotThrowAsync();
+            collection.IsLoadingMore.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task LoadMoreAsync_DoesNotReenter_WhileLoading()
+        {
+            // Arrange: hold the first load open, then issue a second concurrent LoadMoreAsync.
+            const int totalCount = 65;
+            var gate = new TaskCompletionSource<bool>();
+            var loadCount = 0;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(async p =>
+                {
+                    loadCount++;
+                    if (loadCount == 1)
+                    {
+                        await gate.Task;
+                    }
+
+                    return new PaginationSet<CarDto>(p, CreatePage(p, totalCount), totalCount, totalCount);
+                })
+                .WithMapping(MapToViewModel);
+
+            var first = collection.InitializeAsync();
+            collection.IsLoadingMore.Should().BeTrue();
+
+            // Act: a second load while the first is in flight must be ignored (no double-advance, no duplicate page).
+            await collection.LoadMoreAsync();
+
+            // Assert: the overlapping call was a no-op
+            loadCount.Should().Be(1);
+
+            // Release the first load and verify only the one page was applied
+            gate.SetResult(true);
+            await first;
+            collection.Should().HaveCount(30);
+            pagingInfo.CurrentPage.Should().Be(2);
+        }
+
+        [Fact]
+        public void CanLoadMore_IsFalse_BeforeFirstLoad()
+        {
+            // Arrange: a page loader is configured but the first page has not been loaded yet.
+            var collection = new InfiniteScrollCollection<CarViewModel>(new PagingInfo { ItemsPerPage = 30 })
+                .WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, 65), 65, 65)))
+                .WithMapping(MapToViewModel);
+
+            // Assert: false until the first load completes, so the scroll behavior does not race InitializeAsync.
+            collection.CanLoadMore.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task LoadMoreAsync_EmptyPage_PublishesMetadata_ButRaisesNoCollectionChanged()
+        {
+            // Arrange: a zero-result page.
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>(p, Array.Empty<CarDto>(), 0, 0)))
+                .WithMapping(MapToViewModel);
+
+            var collectionChanged = new List<NotifyCollectionChangedEventArgs>();
+            collection.CollectionChanged += (_, e) => collectionChanged.Add(e);
+
+            // Act
+            await collection.InitializeAsync();
+
+            // Assert: no spurious Add event for the empty page, but the server totals are still published.
+            collectionChanged.Should().BeEmpty();
+            collection.Should().BeEmpty();
+            collection.LastPaginationSet.Should().NotBeNull();
+            collection.LastPaginationSet!.TotalCount.Should().Be(0);
+            collection.CanLoadMore.Should().BeFalse();
+        }
+
+        [Fact]
+        public async Task InitializeAsync_Throws_WhenProjectingLoaderNotFinalizedWithMapping()
+        {
+            // Arrange: WithPageLoader<TSource> was begun but WithMapping was never chained, so nothing is configured.
+            var collection = new InfiniteScrollCollection<CarViewModel>(new PagingInfo());
+            collection.WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>())); // returned source discarded
+
+            // Act
+            Func<Task> act = () => collection.InitializeAsync();
+
+            // Assert
+            await act.Should().ThrowAsync<InvalidOperationException>();
+        }
+
+        [Fact]
+        public async Task WithPageLoader_ExplicitTypeArgument_SameType_BindsDirectlyWithoutMapping()
+        {
+            // Arrange: an explicit type argument forces the generic overload even though TSource == TTarget.
+            // No mapping is chained; the loaded type already is the bound type, so it must bind directly.
+            const int totalCount = 30;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarDto>(pagingInfo);
+            collection.WithPageLoader<CarDto>(p => Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, totalCount), totalCount, totalCount)));
+
+            // Act
+            await collection.InitializeAsync();
+
+            // Assert: loaded directly, no throw, no mapping required
+            collection.Should().HaveCount(30);
+            collection.First().Id.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task InitializeAsync_DoesNothing_OnSeededCollectionWithoutLoader()
+        {
+            // Arrange: a seeded collection has no page loader and no pending projection.
+            var collection = new InfiniteScrollCollection<CarViewModel>(Cars.CreateCarViewModels(3));
+
+            // Act + Assert: loading is a no-op, not an error.
+            await collection.InitializeAsync();
+            collection.Should().HaveCount(3);
         }
 
         private static CarDto[] CreatePage(PagingInfo pagingInfo, int totalCount)
