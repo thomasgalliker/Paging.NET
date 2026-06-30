@@ -394,80 +394,58 @@ The central type is `InfiniteScrollCollection<T>`.
 
 #### Self-contained collection (recommended)
 
-`InfiniteScrollCollection<TSource, TItem>` owns the `PagingInfo`, advances the page after each load, maps every
-loaded item and decides when to stop. The view model only declares how to load a page (`pageLoader`) and how to
-project it (`itemSelector`):
+`InfiniteScrollCollection<TItem>` owns the `PagingInfo`, advances the page after each load, optionally projects
+loaded items and decides when to stop. The view model declares how to load a page with `WithPageLoader`; when the
+loaded type differs from the bound type it also declares how to project it with `WithMapping` — per item, or a
+whole page at once (an async, batched projection that avoids N+1 round trips). The loaded source type is inferred
+from the page loader, so only the bound item type is named:
 
 ```csharp
-public InfiniteScrollCollection<Car, CarItemViewModel> Cars { get; }
+public InfiniteScrollCollection<CarItemViewModel> Cars { get; }
 
 public MainViewModel(ICarService carService, ILogger<MainViewModel> logger)
 {
-    this.Cars = new InfiniteScrollCollection<Car, CarItemViewModel>(
-        pageLoader: pagingInfo => carService.GetCarsAsync(pagingInfo),
-        itemSelector: car => new CarItemViewModel(car),
-        pagingInfo: new PagingInfo { ItemsPerPage = 30 })
-    {
-        // Set OnError so failures in the fire-and-forget first load (and in scroll-driven
+    this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { ItemsPerPage = 30 })
+        .WithPageLoader(carService.GetCarsAsync)            // loads PaginationSet<Car>; TSource = Car is inferred
+        .WithMapping(car => new CarItemViewModel(car))      // projects each Car to a CarItemViewModel
+        // Set an error handler so failures in the fire-and-forget first load (and in scroll-driven
         // loads, which the behavior runs as async void) are observed instead of lost.
-        OnError = ex => logger.LogError(ex, "Failed to load cars"),
-    };
+        .OnError(ex => logger.LogError(ex, "Failed to load cars"));
 
     _ = this.Cars.InitializeAsync(); // load the first page
 }
 ```
 
-Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`, `Filter` or `SortBy` to clear the list and reload
-from the first page. When you bind the loaded type directly (no projection), use the single-generic constructor
-— same shape, minus the `itemSelector`:
+When projecting a page needs a single batched async call (e.g. resolving related data for every item of the page
+at once), pass a page-mapping lambda to `WithMapping` — the overload that takes the whole page:
+
+```csharp
+this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { ItemsPerPage = 30 })
+    .WithPageLoader(carService.GetCarsAsync)
+    .WithMapping(async cars =>
+    {
+        var extras = await carService.GetExtrasAsync(cars.Select(c => c.Id)); // one call for the whole page
+        return cars.Select(c => new CarItemViewModel(c, extras[c.Id])).ToList();
+    });
+```
+
+After a load, `Cars.LastPaginationSet` exposes the latest page's totals (`TotalCount` / `TotalCountUnfiltered`)
+for empty-state and raises `PropertyChanged`. Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`,
+`Filter` or `SortBy` to clear the list and reload from the first page. When you bind the loaded type directly
+(no projection), no mapping is needed — the page loader alone configures the collection:
 
 ```csharp
 public InfiniteScrollCollection<Car> Cars { get; }
 
 public MainViewModel(ICarService carService, ILogger<MainViewModel> logger)
 {
-    this.Cars = new InfiniteScrollCollection<Car>(
-        pageLoader: pagingInfo => carService.GetCarsAsync(pagingInfo),
-        pagingInfo: new PagingInfo { ItemsPerPage = 30 })
-    {
-        OnError = ex => logger.LogError(ex, "Failed to load cars"),
-    };
+    this.Cars = new InfiniteScrollCollection<Car>(new PagingInfo { ItemsPerPage = 30 })
+        .WithPageLoader(carService.GetCarsAsync)            // loads PaginationSet<Car>; bound directly, no mapping
+        .OnError(ex => logger.LogError(ex, "Failed to load cars"));
 
     _ = this.Cars.InitializeAsync();
 }
 ```
-
-#### Manual wiring (escape hatch)
-
-For full control, keep your own `PagingInfo` and set the `OnLoadMore`/`OnCanLoadMore` delegates yourself. Use the
-`CanLoadMore(...)` extension to decide whether another page is available:
-
-```csharp
-private readonly PagingInfo pagingInfo = new PagingInfo { ItemsPerPage = 30 };
-private PaginationSet<Car>? lastPaginationSet;
-
-public InfiniteScrollCollection<CarItemViewModel> Cars { get; } = new InfiniteScrollCollection<CarItemViewModel>();
-
-public async Task InitializeAsync(ICarService carService)
-{
-    this.Cars.OnCanLoadMore = () => this.lastPaginationSet.CanLoadMore(this.pagingInfo);
-    this.Cars.OnLoadMore = async () =>
-    {
-        var paginationSet = await carService.GetCarsAsync(this.pagingInfo);
-        this.lastPaginationSet = paginationSet;
-        this.pagingInfo.CurrentPage++;
-
-        return paginationSet.Items
-            .Select(car => new CarItemViewModel(car))
-            .ToArray();
-    };
-
-    await this.Cars.LoadMoreAsync();
-}
-```
-
-This pattern assumes normal paging with `ItemsPerPage > 0`. For totals-only or unpaged requests, `CanLoadMore(...)`
-returns `false` immediately.
 
 In XAML, `InfiniteScrollBehavior` can be attached to a `CollectionView`
 (xmlns `paging` referring to `clr-namespace:Paging.MAUI;assembly=Paging.MAUI`):
@@ -486,7 +464,7 @@ In XAML, `InfiniteScrollBehavior` can be attached to a `CollectionView`
 
 The behavior uses CollectionView's native `RemainingItemsThresholdReached` mechanism:
 when the user scrolls close to the end of the list (`RemainingItemsThreshold` items remaining,
-default 5), the next page is loaded automatically as long as `OnCanLoadMore` returns `true`.
+default 5), the next page is loaded automatically as long as `CanLoadMore` is `true`.
 The threshold set on the behavior overwrites any `RemainingItemsThreshold` set directly
 on the CollectionView.
 

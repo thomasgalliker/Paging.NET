@@ -28,18 +28,15 @@ namespace MauiPagingSample.ViewModels
             // The collection owns the PagingInfo, advances the page, maps each Car to a
             // CarItemViewModel and decides when to stop - so the view model only needs to say
             // how to load a page and how to project it.
-            this.Cars = new InfiniteScrollCollection<Car, CarItemViewModel>(
-                pageLoader: pagingInfo => this.carService.GetCarsAsync(pagingInfo),
-                itemSelector: car => new CarItemViewModel(car),
-                pagingInfo: new PagingInfo { ItemsPerPage = 30 })
-            {
-                OnError = ex => this.logger.LogError(ex, "Failed to load cars"),
-            };
+            this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { ItemsPerPage = 30 })
+                .WithPageLoader(this.carService.GetCarsAsync)
+                .WithMapping(car => new CarItemViewModel(car))
+                .OnError(ex => this.logger.LogError(ex, "Failed to load cars"));
 
             _ = this.Cars.InitializeAsync();
         }
 
-        public InfiniteScrollCollection<Car, CarItemViewModel> Cars { get; }
+        public InfiniteScrollCollection<CarItemViewModel> Cars { get; }
 
         public IAsyncRelayCommand<string> OpenUrlCommand
         {

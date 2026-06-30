@@ -1,4 +1,4 @@
-﻿namespace Paging.MAUI.Tests.Compat
+namespace Paging.MAUI.Tests.Compat
 {
     using InfiniteScrollBehavior = Paging.MAUI.Compat.InfiniteScrollBehavior;
 
@@ -20,18 +20,18 @@
             };
 
             const int count = 10;
-            var items = Cars.CreateCars(count).ToList();
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(items);
-            infiniteScrollCollection.OnCanLoadMore = () => false;
+            var loader = new FakeInfiniteScrollLoader { CanLoadMoreFunc = () => false };
+            loader.AddRange(Cars.CreateCarViewModels(count));
 
-            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             listView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
-            await infiniteScrollBehavior.OnListViewItemAppearingAsync(items.Last());
+            await infiniteScrollBehavior.OnListViewItemAppearingAsync(loader.Last());
 
             // Assert
             infiniteScrollBehavior.AssociatedObject.Should().Be(listView);
+            loader.Should().HaveCount(count);
         }
 
         [Fact]
@@ -45,25 +45,22 @@
             };
 
             const int initialCount = 10;
-            var initialItems = Cars.CreateCars(initialCount).ToList();
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(initialItems);
-
             const int loadMoreCount = 5;
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                var nextItems = Cars.CreateCars(5);
-                return Task.FromResult(nextItems);
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = () => Task.FromResult<IEnumerable<CarViewModel>>(Cars.CreateCarViewModels(loadMoreCount)),
             };
+            loader.AddRange(Cars.CreateCarViewModels(initialCount));
 
-            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             listView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
-            await infiniteScrollBehavior.OnListViewItemAppearingAsync(initialItems.Last());
+            await infiniteScrollBehavior.OnListViewItemAppearingAsync(loader.Last());
 
             // Assert
-            infiniteScrollCollection.Should().HaveCount(initialCount + loadMoreCount);
+            loader.Should().HaveCount(initialCount + loadMoreCount);
         }
 
         [Fact]
@@ -77,34 +74,36 @@
             };
 
             const int initialCount = 10;
-            var initialItems = Cars.CreateCars(initialCount).ToList();
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(initialItems);
-
             var throwOnLoadMore = true;
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                if (throwOnLoadMore)
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = () =>
                 {
-                    throw new InvalidOperationException("Load operation failed");
-                }
+                    if (throwOnLoadMore)
+                    {
+                        throw new InvalidOperationException("Load operation failed");
+                    }
 
-                return Task.FromResult(Cars.CreateCars(5));
+                    return Task.FromResult<IEnumerable<CarViewModel>>(Cars.CreateCarViewModels(5));
+                },
             };
+            loader.AddRange(Cars.CreateCarViewModels(initialCount));
+            var lastItem = loader.Last();
 
-            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            listView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             listView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
-            var exception = await Record.ExceptionAsync(() => infiniteScrollBehavior.OnListViewItemAppearingAsync(initialItems.Last()));
+            var exception = await Record.ExceptionAsync(() => infiniteScrollBehavior.OnListViewItemAppearingAsync(lastItem));
 
             throwOnLoadMore = false;
-            await infiniteScrollBehavior.OnListViewItemAppearingAsync(initialItems.Last());
+            await infiniteScrollBehavior.OnListViewItemAppearingAsync(lastItem);
 
             // Assert
             exception.Should().BeOfType<InvalidOperationException>();
             infiniteScrollBehavior.IsLoadingMore.Should().BeFalse();
-            infiniteScrollCollection.Should().HaveCount(initialCount + 5);
+            loader.Should().HaveCount(initialCount + 5);
         }
     }
 }

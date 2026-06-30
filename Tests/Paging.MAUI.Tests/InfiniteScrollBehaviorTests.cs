@@ -59,18 +59,17 @@ namespace Paging.MAUI.Tests
             };
 
             const int count = 10;
-            var items = Cars.CreateCars(count).ToList();
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(items);
-            infiniteScrollCollection.OnCanLoadMore = () => false;
+            var loader = new FakeInfiniteScrollLoader { CanLoadMoreFunc = () => false };
+            loader.AddRange(Cars.CreateCarViewModels(count));
 
-            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             collectionView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
             await infiniteScrollBehavior.OnThresholdReachedAsync();
 
             // Assert
-            infiniteScrollCollection.Should().HaveCount(count);
+            loader.Should().HaveCount(count);
         }
 
         [Fact]
@@ -86,16 +85,19 @@ namespace Paging.MAUI.Tests
             var loadMoreCount = 0;
             var loadMoreCompletion = new TaskCompletionSource();
 
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(Cars.CreateCars(10));
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = async () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                loadMoreCount++;
-                await loadMoreCompletion.Task;
-                return Cars.CreateCars(5);
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = async () =>
+                {
+                    loadMoreCount++;
+                    await loadMoreCompletion.Task;
+                    return Cars.CreateCarViewModels(5);
+                },
             };
+            loader.AddRange(Cars.CreateCarViewModels(10));
 
-            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             collectionView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
@@ -110,7 +112,7 @@ namespace Paging.MAUI.Tests
 
             // Assert
             loadMoreCount.Should().Be(1);
-            infiniteScrollCollection.Should().HaveCount(10 + 5);
+            loader.Should().HaveCount(10 + 5);
         }
 
         [Fact]
@@ -124,19 +126,21 @@ namespace Paging.MAUI.Tests
             };
 
             var throwOnLoadMore = true;
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>();
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                if (throwOnLoadMore)
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = () =>
                 {
-                    throw new InvalidOperationException("Load operation failed");
-                }
+                    if (throwOnLoadMore)
+                    {
+                        throw new InvalidOperationException("Load operation failed");
+                    }
 
-                return Task.FromResult(Cars.CreateCars(5));
+                    return Task.FromResult<IEnumerable<CarViewModel>>(Cars.CreateCarViewModels(5));
+                },
             };
 
-            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             collectionView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
@@ -148,7 +152,7 @@ namespace Paging.MAUI.Tests
             // Assert
             exception.Should().BeOfType<InvalidOperationException>();
             infiniteScrollBehavior.IsLoadingMore.Should().BeFalse();
-            infiniteScrollCollection.Should().HaveCount(5);
+            loader.Should().HaveCount(5);
         }
 
         [Fact]
@@ -164,22 +168,24 @@ namespace Paging.MAUI.Tests
             var loadMoreCount = 0;
             var loadMoreCompletion = new TaskCompletionSource();
 
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>();
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = async () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                loadMoreCount++;
-                await loadMoreCompletion.Task;
-                return Cars.CreateCars(5);
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = async () =>
+                {
+                    loadMoreCount++;
+                    await loadMoreCompletion.Task;
+                    return Cars.CreateCarViewModels(5);
+                },
             };
 
-            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             collectionView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
             // Simulate an initial load started by the viewmodel (not by scrolling)
             // while RemainingItemsThresholdReached fires during the load.
-            var initialLoadTask = infiniteScrollCollection.LoadMoreAsync();
+            var initialLoadTask = loader.LoadMoreAsync();
             var thresholdReachedTask = infiniteScrollBehavior.OnThresholdReachedAsync();
 
             loadMoreCompletion.SetResult();
@@ -187,7 +193,7 @@ namespace Paging.MAUI.Tests
 
             // Assert
             loadMoreCount.Should().Be(1);
-            infiniteScrollCollection.Should().HaveCount(5);
+            loader.Should().HaveCount(5);
         }
 
         [Fact]
@@ -201,25 +207,22 @@ namespace Paging.MAUI.Tests
             };
 
             const int initialCount = 10;
-            var initialItems = Cars.CreateCars(initialCount).ToList();
-            var infiniteScrollCollection = new InfiniteScrollCollection<Car>(initialItems);
-
             const int loadMoreCount = 5;
-            infiniteScrollCollection.OnCanLoadMore = () => true;
-            infiniteScrollCollection.OnLoadMore = () =>
+            var loader = new FakeInfiniteScrollLoader
             {
-                var nextItems = Cars.CreateCars(loadMoreCount);
-                return Task.FromResult(nextItems);
+                CanLoadMoreFunc = () => true,
+                OnLoadMore = () => Task.FromResult<IEnumerable<CarViewModel>>(Cars.CreateCarViewModels(loadMoreCount)),
             };
+            loader.AddRange(Cars.CreateCarViewModels(initialCount));
 
-            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = infiniteScrollCollection;
+            collectionView.ItemsSource = infiniteScrollBehavior.ItemsSource = loader;
             collectionView.Behaviors.Add(infiniteScrollBehavior);
 
             // Act
             await infiniteScrollBehavior.OnThresholdReachedAsync();
 
             // Assert
-            infiniteScrollCollection.Should().HaveCount(initialCount + loadMoreCount);
+            loader.Should().HaveCount(initialCount + loadMoreCount);
         }
     }
 }
