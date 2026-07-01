@@ -19,12 +19,13 @@ namespace Paging.MAUI
     public class InfiniteScrollCollection<TTarget> : ObservableCollection<TTarget>, IInfiniteScrollLoader, IInfiniteScrollLoading
     {
         private bool isLoadingMore;
-        private PaginationSet<TTarget>? lastPaginationSet;
+        private PaginationSet<TTarget>? paginationSet;
         private Func<PagingInfo, Task<PaginationSet<TTarget>>>? pageLoader;
         private bool pendingProjection;
         private Action? onBeforeLoadMore;
         private Action? onAfterLoadMore;
         private Action<Exception>? onError;
+        private Action? onPaginationSetChanged;
         private bool refreshPending;
         private bool isDraining;
         private TaskCompletionSource? drainCompletion;
@@ -130,20 +131,21 @@ namespace Paging.MAUI
         public PagingInfo PagingInfo { get; private set; } = new PagingInfo();
 
         /// <summary>
-        /// Gets the most recently loaded page's <see cref="PaginationSet{T}"/>, or <c>null</c> before the first
-        /// load and after <see cref="RefreshAsync"/> resets the collection. Carries the server-side totals
-        /// (<see cref="PaginationSet{T}.TotalCount"/> / <see cref="PaginationSet{T}.TotalCountUnfiltered"/>) so
-        /// callers can derive empty-state without tracking the loaded pages themselves. Note this is distinct from
+        /// Gets the last loaded page's <see cref="PaginationSet{T}"/>. It is <c>null</c> if no loading has taken
+        /// place, i.e. before the first load and after <see cref="RefreshAsync"/> resets the collection. Carries the
+        /// server-side totals (<see cref="PaginationSet{T}.TotalCount"/> / <see cref="PaginationSet{T}.TotalCountUnfiltered"/>)
+        /// so callers can derive empty-state without tracking the loaded pages themselves. Note this is distinct from
         /// <see cref="Collection{T}.Count"/>, which is the number of items loaded so far. Populated only by the
         /// self-contained page-loader path; <c>null</c> for delegate-driven collections.
         /// </summary>
-        public PaginationSet<TTarget>? LastPaginationSet
+        public PaginationSet<TTarget>? PaginationSet
         {
-            get => this.lastPaginationSet;
+            get => this.paginationSet;
             private set
             {
-                this.lastPaginationSet = value;
-                this.OnPropertyChanged(new PropertyChangedEventArgs(nameof(this.LastPaginationSet)));
+                this.paginationSet = value;
+                this.OnPropertyChanged(new PropertyChangedEventArgs(nameof(this.PaginationSet)));
+                this.onPaginationSetChanged?.Invoke();
             }
         }
 
@@ -190,13 +192,31 @@ namespace Paging.MAUI
         }
 
         /// <summary>
+        /// Sets the handler invoked whenever <see cref="PaginationSet"/> changes — including when
+        /// <see cref="RefreshAsync"/> resets it to <c>null</c> — and returns this collection for fluent chaining.
+        /// Equivalent to subscribing to <see cref="INotifyPropertyChanged.PropertyChanged"/> and filtering for
+        /// <see cref="PaginationSet"/>, without the cast to <see cref="INotifyPropertyChanged"/> or the
+        /// property-name check. The new value is not passed to the handler since it is already available via
+        /// <see cref="PaginationSet"/>.
+        /// </summary>
+        /// <param name="onPaginationSetChanged">The handler invoked after <see cref="PaginationSet"/> changes.</param>
+        /// <returns>This collection, for fluent chaining.</returns>
+        public InfiniteScrollCollection<TTarget> OnPaginationSetChanged(Action onPaginationSetChanged)
+        {
+            ArgumentNullException.ThrowIfNull(onPaginationSetChanged);
+
+            this.onPaginationSetChanged = onPaginationSetChanged;
+            return this;
+        }
+
+        /// <summary>
         /// Gets a value indicating whether more data can be requested. <c>false</c> until a page loader is
         /// configured and the first page has been loaded; afterwards it reflects whether the most recently loaded
         /// page reports further pages (<see cref="PaginationSet{T}.HasMorePages"/>). It is intentionally
         /// <c>false</c> before the first load so the scroll behavior does not race ahead of
         /// <see cref="InitializeAsync"/>, which loads the first page itself and is not gated by this property.
         /// </summary>
-        public virtual bool CanLoadMore => this.pageLoader != null && (this.LastPaginationSet?.HasMorePages() ?? false);
+        public virtual bool CanLoadMore => this.pageLoader != null && (this.PaginationSet?.HasMorePages() ?? false);
 
         /// <summary>
         /// Gets a value indicating whether a load operation is currently in progress.
@@ -263,7 +283,7 @@ namespace Paging.MAUI
                 // untouched, so the same page is retried cleanly rather than skipped.
                 var items = paginationSet.Items.ToArray();
 
-                this.LastPaginationSet = paginationSet;
+                this.PaginationSet = paginationSet;
                 if (paginationSet.HasMorePages())
                 {
                     this.PagingInfo.CurrentPage++;
@@ -347,7 +367,7 @@ namespace Paging.MAUI
                     this.refreshPending = false;
 
                     this.PagingInfo.CurrentPage = this.PagingInfo.FirstPageIndex;
-                    this.LastPaginationSet = null;
+                    this.PaginationSet = null;
                     this.ClearItems();
 
                     try
@@ -482,9 +502,9 @@ namespace Paging.MAUI
 
             var pageLoader = this.pageLoader;
 
-            // Materialize the projection (ToList) so LastPaginationSet.Items holds the same TTarget instances the
+            // Materialize the projection (ToList) so PaginationSet.Items holds the same TTarget instances the
             // collection was populated with. A lazy Select would re-run itemSelector on every re-enumeration of
-            // LastPaginationSet.Items, producing duplicate instances distinct from the bound items.
+            // PaginationSet.Items, producing duplicate instances distinct from the bound items.
             this.collection.UsePageLoader(async pagingInfo => (await pageLoader(pagingInfo)).Map(items => items.Select(itemSelector).ToList()));
 
             return this.collection;
@@ -547,6 +567,18 @@ namespace Paging.MAUI
         public InfiniteScrollSource<TSource, TTarget> OnError(Action<Exception> onError)
         {
             this.collection.OnError(onError);
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the handler invoked whenever <see cref="InfiniteScrollCollection{TTarget}.PaginationSet"/>
+        /// changes on the collection being configured, and returns this source so a mapping can still be chained.
+        /// </summary>
+        /// <param name="onPaginationSetChanged">The handler invoked after <c>PaginationSet</c> changes.</param>
+        /// <returns>This source, for fluent chaining.</returns>
+        public InfiniteScrollSource<TSource, TTarget> OnPaginationSetChanged(Action onPaginationSetChanged)
+        {
+            this.collection.OnPaginationSetChanged(onPaginationSetChanged);
             return this;
         }
     }

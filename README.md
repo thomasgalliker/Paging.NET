@@ -429,8 +429,10 @@ this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { Item
     });
 ```
 
-After a load, `Cars.LastPaginationSet` exposes the latest page's totals (`TotalCount` / `TotalCountUnfiltered`)
-for empty-state and raises `PropertyChanged`. Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`,
+`Cars.PaginationSet` is the last loaded page's `PaginationSet`; it is `null` if no loading has taken place. It
+exposes the server-side totals (`TotalCount` / `TotalCountUnfiltered`) for empty-state and raises `PropertyChanged`.
+Chain `.OnPaginationSetChanged(() => ...)` to react to it directly
+instead of subscribing to `PropertyChanged` and filtering by property name. Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`,
 `Filter` or `SortBy` to clear the list and reload from the first page. If a load is still in progress (for
 example a scroll-driven page load), the refresh is queued behind it rather than dropped, and concurrent refresh
 requests are coalesced into a single reload; the returned task completes when that reload finishes, so you can

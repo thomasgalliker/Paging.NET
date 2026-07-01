@@ -105,7 +105,7 @@ namespace Paging.MAUI.Tests
         }
 
         [Fact]
-        public async Task WithMapping_LastPaginationSetItems_AreTheBoundInstances()
+        public async Task WithMapping_PaginationSetItems_AreTheBoundInstances()
         {
             // Arrange
             const int totalCount = 30;
@@ -117,10 +117,10 @@ namespace Paging.MAUI.Tests
             // Act
             await collection.InitializeAsync();
 
-            // Assert: the projection is materialized once, so LastPaginationSet.Items are the very instances
+            // Assert: the projection is materialized once, so PaginationSet.Items are the very instances
             // bound into the collection and re-enumerating does not re-run the mapping into duplicate instances.
-            collection.LastPaginationSet!.Items.First().Should().BeSameAs(collection.First());
-            collection.LastPaginationSet.Items.First().Should().BeSameAs(collection.LastPaginationSet.Items.First());
+            collection.PaginationSet!.Items.First().Should().BeSameAs(collection.First());
+            collection.PaginationSet.Items.First().Should().BeSameAs(collection.PaginationSet.Items.First());
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace Paging.MAUI.Tests
             var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
             var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
                 .WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, totalCount), totalCount, totalCount)))
-                .WithMapping(MapPageToViewModel);
+                .WithMapping(MapDtosToViewModels);
 
             // Act
             await collection.InitializeAsync();
@@ -156,7 +156,7 @@ namespace Paging.MAUI.Tests
                 .WithMapping(dtos =>
                 {
                     mapCount++;
-                    return MapPageToViewModel(dtos);
+                    return MapDtosToViewModels(dtos);
                 });
 
             // Act
@@ -188,7 +188,7 @@ namespace Paging.MAUI.Tests
                         throw new InvalidOperationException("boom");
                     }
 
-                    return MapPageToViewModel(dtos);
+                    return MapDtosToViewModels(dtos);
                 })
                 .OnError(ex => captured = ex);
 
@@ -202,7 +202,7 @@ namespace Paging.MAUI.Tests
             collection.Should().HaveCount(30);
             pagingInfo.CurrentPage.Should().Be(2);
             collection.CanLoadMore.Should().BeTrue();
-            collection.LastPaginationSet!.CurrentPage.Should().Be(1); // still the first page's set
+            collection.PaginationSet!.CurrentPage.Should().Be(1); // still the first page's set
 
             // Act: retry the last page, now succeeding
             failLastPage = false;
@@ -415,9 +415,9 @@ namespace Paging.MAUI.Tests
             // Assert: cleared, no spurious empty Add, and empty-state metadata published (filtered 0 of 50).
             collection.Should().BeEmpty();
             collectionChanged.Should().NotContain(e => e.Action == NotifyCollectionChangedAction.Add);
-            collection.LastPaginationSet.Should().NotBeNull();
-            collection.LastPaginationSet!.TotalCount.Should().Be(0);
-            collection.LastPaginationSet.TotalCountUnfiltered.Should().Be(50);
+            collection.PaginationSet.Should().NotBeNull();
+            collection.PaginationSet!.TotalCount.Should().Be(0);
+            collection.PaginationSet.TotalCountUnfiltered.Should().Be(50);
         }
 
         [Fact]
@@ -465,7 +465,7 @@ namespace Paging.MAUI.Tests
         }
 
         [Fact]
-        public void LastPaginationSet_IsNull_BeforeFirstLoad()
+        public void PaginationSet_IsNull_BeforeFirstLoad()
         {
             // Arrange
             var collection = new InfiniteScrollCollection<CarViewModel>(new PagingInfo { ItemsPerPage = 30 })
@@ -473,11 +473,11 @@ namespace Paging.MAUI.Tests
                 .WithMapping(MapToViewModel);
 
             // Assert
-            collection.LastPaginationSet.Should().BeNull();
+            collection.PaginationSet.Should().BeNull();
         }
 
         [Fact]
-        public async Task LastPaginationSet_IsPopulated_WithServerTotals_AfterLoad()
+        public async Task PaginationSet_IsPopulated_WithServerTotals_AfterLoad()
         {
             // Arrange: 42 total matching, 50 unfiltered.
             const int totalCount = 42;
@@ -491,13 +491,13 @@ namespace Paging.MAUI.Tests
             await collection.InitializeAsync();
 
             // Assert
-            collection.LastPaginationSet.Should().NotBeNull();
-            collection.LastPaginationSet!.TotalCount.Should().Be(totalCount);
-            collection.LastPaginationSet.TotalCountUnfiltered.Should().Be(totalCountUnfiltered);
+            collection.PaginationSet.Should().NotBeNull();
+            collection.PaginationSet!.TotalCount.Should().Be(totalCount);
+            collection.PaginationSet.TotalCountUnfiltered.Should().Be(totalCountUnfiltered);
         }
 
         [Fact]
-        public async Task LastPaginationSet_RaisesPropertyChanged_OnLoad()
+        public async Task PaginationSet_RaisesPropertyChanged_OnLoad()
         {
             // Arrange
             var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
@@ -512,11 +512,11 @@ namespace Paging.MAUI.Tests
             await collection.InitializeAsync();
 
             // Assert
-            changed.Should().Contain(nameof(InfiniteScrollCollection<CarViewModel>.LastPaginationSet));
+            changed.Should().Contain(nameof(InfiniteScrollCollection<CarViewModel>.PaginationSet));
         }
 
         [Fact]
-        public async Task LastPaginationSet_IsResetToNull_DuringRefresh()
+        public async Task PaginationSet_IsResetToNull_DuringRefresh()
         {
             // Arrange: hold the reload of the refresh open so the reset is observable.
             const int totalCount = 65;
@@ -537,22 +537,22 @@ namespace Paging.MAUI.Tests
                 .WithMapping(MapToViewModel);
 
             await collection.InitializeAsync();
-            collection.LastPaginationSet.Should().NotBeNull();
+            collection.PaginationSet.Should().NotBeNull();
 
             // Act: start a refresh; it resets state synchronously, then awaits the gated reload
             var refreshTask = collection.RefreshAsync();
 
             // Assert: reset observed while the reload is in flight
-            collection.LastPaginationSet.Should().BeNull();
+            collection.PaginationSet.Should().BeNull();
 
             // Release and finish
             gate.SetResult(true);
             await refreshTask;
-            collection.LastPaginationSet.Should().NotBeNull();
+            collection.PaginationSet.Should().NotBeNull();
         }
 
         [Fact]
-        public async Task LastPaginationSet_NotSet_WhenFirstLoadFaults()
+        public async Task PaginationSet_NotSet_WhenFirstLoadFaults()
         {
             // Arrange
             Exception? captured = null;
@@ -566,7 +566,7 @@ namespace Paging.MAUI.Tests
 
             // Assert
             captured.Should().BeOfType<InvalidOperationException>();
-            collection.LastPaginationSet.Should().BeNull();
+            collection.PaginationSet.Should().BeNull();
         }
 
         [Fact]
@@ -611,6 +611,58 @@ namespace Paging.MAUI.Tests
 
             // Assert
             action.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("onError");
+        }
+
+        [Fact]
+        public async Task OnPaginationSetChanged_InvokedOnLoad_AndOnRefreshReset()
+        {
+            // Arrange: handler set fluently after the mapping (on the collection).
+            var invocationCount = 0;
+            var pagingInfo = new PagingInfo { ItemsPerPage = 30 };
+            var collection = new InfiniteScrollCollection<CarViewModel>(pagingInfo)
+                .WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, 65), 65, 65)))
+                .WithMapping(MapToViewModel)
+                .OnPaginationSetChanged(() => invocationCount++);
+
+            // Act: first load populates PaginationSet
+            await collection.InitializeAsync();
+
+            // Assert
+            invocationCount.Should().Be(1);
+            collection.PaginationSet.Should().NotBeNull();
+
+            // Act: RefreshAsync resets PaginationSet to null, then reloads it => 2 more invocations
+            await collection.RefreshAsync();
+
+            // Assert
+            invocationCount.Should().Be(3);
+        }
+
+        [Fact]
+        public async Task OnPaginationSetChanged_OnSource_IsInvoked()
+        {
+            // Arrange: handler set fluently mid-chain (on the source, before the mapping).
+            var invoked = false;
+            var collection = new InfiniteScrollCollection<CarViewModel>(new PagingInfo { ItemsPerPage = 30 })
+                .WithPageLoader(p => Task.FromResult(new PaginationSet<CarDto>(p, CreatePage(p, 30), 30, 30)))
+                .OnPaginationSetChanged(() => invoked = true)
+                .WithMapping(MapToViewModel);
+
+            // Act
+            await collection.InitializeAsync();
+
+            // Assert
+            invoked.Should().BeTrue();
+        }
+
+        [Fact]
+        public void OnPaginationSetChanged_Throws_WhenNull()
+        {
+            // Act
+            Action action = () => new InfiniteScrollCollection<CarViewModel>(new PagingInfo()).OnPaginationSetChanged(null!);
+
+            // Assert
+            action.Should().Throw<ArgumentNullException>().Which.ParamName.Should().Be("onPaginationSetChanged");
         }
 
         [Fact]
@@ -697,8 +749,8 @@ namespace Paging.MAUI.Tests
             // Assert: no spurious Add event for the empty page, but the server totals are still published.
             collectionChanged.Should().BeEmpty();
             collection.Should().BeEmpty();
-            collection.LastPaginationSet.Should().NotBeNull();
-            collection.LastPaginationSet!.TotalCount.Should().Be(0);
+            collection.PaginationSet.Should().NotBeNull();
+            collection.PaginationSet!.TotalCount.Should().Be(0);
             collection.CanLoadMore.Should().BeFalse();
         }
 
@@ -760,7 +812,7 @@ namespace Paging.MAUI.Tests
             return new CarViewModel { Id = dto.Id, Name = dto.Name };
         }
 
-        private static Task<IReadOnlyList<CarViewModel>> MapPageToViewModel(IReadOnlyList<CarDto> dtos)
+        private static Task<IReadOnlyList<CarViewModel>> MapDtosToViewModels(IReadOnlyList<CarDto> dtos)
         {
             return Task.FromResult<IReadOnlyList<CarViewModel>>(dtos.Select(MapToViewModel).ToArray());
         }
