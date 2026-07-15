@@ -55,6 +55,16 @@ namespace Paging.Queryable.Internals
 
             if (pagingOptions.TryGetFilterDefinition(condition.Property, out var filterDefinition))
             {
+                if (filterDefinition.IsCollectionFilter)
+                {
+                    return FilterExpressionBuilder.BuildCollectionAnyPredicate<TEntity>(
+                        filterDefinition.CollectionSelector!,
+                        filterDefinition.ElementSelector!,
+                        filterDefinition.PropertyPath,
+                        condition.Operator,
+                        condition.Value);
+                }
+
                 if (filterDefinition.HasCustomFilter)
                 {
                     var customPredicate = filterDefinition.BuildCustomPredicate(condition.Operator, condition.Value);
@@ -66,10 +76,7 @@ namespace Paging.Queryable.Internals
                     return customPredicate;
                 }
 
-                var propertyLambda = SortExpressionBuilder.CreatePropertyPathLambda<TEntity>(filterDefinition.PropertyPath)
-                    ?? throw new PagingException(
-                        $"Property path '{filterDefinition.PropertyPath}' cannot be resolved on type '{typeof(TEntity).Name}'.",
-                        condition.Property);
+                var propertyLambda = filterDefinition.GetFilterPropertyLambda();
 
                 return FilterExpressionBuilder.BuildPredicate<TEntity>(propertyLambda, filterDefinition.PropertyPath, condition.Operator, condition.Value);
             }

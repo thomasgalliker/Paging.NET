@@ -69,6 +69,48 @@ namespace Paging.Queryable
         }
 
         /// <summary>
+        /// Registers a to-many navigation for collection filtering. A filter condition on the resulting
+        /// property matches entities whose collection contains at least one element satisfying the condition,
+        /// i.e. it is applied as <c>e =&gt; e.Collection.Any(x =&gt; &lt;condition&gt;)</c> (translated to SQL <c>EXISTS</c>).
+        /// The external name defaults to <c>"&lt;collection&gt;.&lt;element&gt;"</c>; use
+        /// <see cref="PropertyOptions{TEntity}.HasName"/> to map a different external name.
+        /// Collection registrations support filtering only (not sorting).
+        /// </summary>
+        /// <param name="collectionSelector">A property access expression to a collection, e.g. <c>e =&gt; e.Children</c>.</param>
+        /// <param name="elementSelector">A property access expression on the collection element, e.g. <c>c =&gt; c.Name</c>.</param>
+        public PropertyOptions<TEntity> Property<TElement, TKey>(
+            Expression<Func<TEntity, IEnumerable<TElement>>> collectionSelector,
+            Expression<Func<TElement, TKey>> elementSelector)
+        {
+            this.ThrowIfFrozen();
+
+            if (collectionSelector == null)
+            {
+                throw new ArgumentNullException(nameof(collectionSelector));
+            }
+
+            if (elementSelector == null)
+            {
+                throw new ArgumentNullException(nameof(elementSelector));
+            }
+
+            var collectionPath = SortExpressionBuilder.GetPropertyPath(collectionSelector)
+                ?? throw new ArgumentException(
+                    $"Expression '{collectionSelector}' must be a property access chain to a collection, e.g. e => e.Children.",
+                    nameof(collectionSelector));
+
+            var elementPath = SortExpressionBuilder.GetPropertyPath(elementSelector)
+                ?? throw new ArgumentException(
+                    $"Expression '{elementSelector}' must be a property access chain on the element, e.g. c => c.Name.",
+                    nameof(elementSelector));
+
+            var externalName = $"{collectionPath}.{elementPath}";
+
+            return this.AddPropertyDefinition(new PropertyDefinition<TEntity>(
+                externalName, externalName, (LambdaExpression)collectionSelector, (LambdaExpression)elementSelector));
+        }
+
+        /// <summary>
         /// Registers a property by its external name. By default, the name is also used
         /// as (dotted) property path on <typeparamref name="TEntity"/> and is validated on first use;
         /// capabilities registered with custom expressions (e.g.

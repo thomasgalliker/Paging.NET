@@ -14,6 +14,7 @@ namespace Paging
     /// primary   := "(" expr ")" | condition
     /// condition := identifier operator value
     /// operator  := "==" | "!=" | "&gt;" | "&gt;=" | "&lt;" | "&lt;=" | "contains" | "startswith" | "endswith" | "in"
+    ///            | "!contains" | "!startswith" | "!endswith" | "!in"
     /// value     := string | number | "true" | "false" | "null" | "[" (value ("," value)*)? "]"
     /// </code>
     /// Throws <see cref="FormatException"/> on syntax errors.
@@ -148,7 +149,7 @@ namespace Paging
                 var filterOperator = this.ParseOperator();
                 var value = this.ParseValue();
 
-                if (filterOperator == FilterOperator.In && value is not object?[])
+                if ((filterOperator == FilterOperator.In || filterOperator == FilterOperator.NotIn) && value is not object?[])
                 {
                     throw Error("The 'in' operator requires a list value, e.g. Id in [1, 2, 3].", this.Current);
                 }
@@ -296,9 +297,29 @@ namespace Paging
                             i += 2;
                             continue;
                         case '!':
-                            Expect(input, i, '=');
-                            tokens.Add(new Token(TokenType.NotEqual, "!=", start));
-                            i += 2;
+                            if (Peek(input, i + 1) == '=')
+                            {
+                                tokens.Add(new Token(TokenType.NotEqual, "!=", start));
+                                i += 2;
+                            }
+                            else if (i + 1 < input.Length && (char.IsLetter(input[i + 1]) || input[i + 1] == '_'))
+                            {
+                                i++; // consume '!'
+                                var keyword = ReadIdentifier(input, ref i);
+                                var negatedToken = "!" + keyword.Text;
+                                if (!FilterOperatorTokens.IsKeyword(negatedToken))
+                                {
+                                    throw new FormatException(
+                                        $"Invalid filter expression at position {start}: '{negatedToken}' is not a valid operator. " +
+                                        "Expected '!=', '!contains', '!startswith', '!endswith' or '!in'.");
+                                }
+
+                                tokens.Add(new Token(TokenType.Identifier, negatedToken, start));
+                            }
+                            else
+                            {
+                                throw new FormatException($"Invalid filter expression at position {start}: expected '=' or a keyword after '!'.");
+                            }
                             continue;
                         case '>':
                             if (Peek(input, i + 1) == '=') { tokens.Add(new Token(TokenType.GreaterThanOrEqual, ">=", start)); i += 2; }

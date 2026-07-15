@@ -23,6 +23,10 @@ namespace Paging.Queryable.Internals
 
         private Capability filterCapability;
         private Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?>? filterPredicateFactory;
+        private LambdaExpression? filterPropertyLambda;
+
+        private readonly LambdaExpression? collectionSelector;
+        private readonly LambdaExpression? elementSelector;
 
         internal PropertyDefinition(string externalName, string propertyPath, LambdaExpression? propertyPathLambda = null)
         {
@@ -31,9 +35,26 @@ namespace Paging.Queryable.Internals
             this.sortKeySelector = propertyPathLambda;
         }
 
+        internal PropertyDefinition(string externalName, string propertyPath, LambdaExpression collectionSelector, LambdaExpression elementSelector)
+        {
+            this.ExternalName = externalName;
+            this.PropertyPath = propertyPath;
+            this.collectionSelector = collectionSelector;
+            this.elementSelector = elementSelector;
+        }
+
         internal string ExternalName { get; set; }
 
         internal string PropertyPath { get; }
+
+        /// <summary>
+        /// Whether this registration maps to a to-many navigation (filtered via <c>.Any(...)</c>).
+        /// </summary>
+        internal bool IsCollectionFilter => this.collectionSelector != null;
+
+        internal LambdaExpression? CollectionSelector => this.collectionSelector;
+
+        internal LambdaExpression? ElementSelector => this.elementSelector;
 
         internal bool IsSortable => this.sortCapability != Capability.None;
 
@@ -79,6 +100,13 @@ namespace Paging.Queryable.Internals
 
         internal void DeclareFilterable(Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?> predicateFactory)
         {
+            if (this.IsCollectionFilter)
+            {
+                throw new InvalidOperationException(
+                    $"Property '{this.ExternalName}' maps to a collection and does not support a custom filter predicate. " +
+                    "Collection registrations filter via the built-in Any(...) comparison.");
+            }
+
             this.EnsureNotYetFilterable();
             this.filterCapability = Capability.Custom;
             this.filterPredicateFactory = predicateFactory;
@@ -98,6 +126,18 @@ namespace Paging.Queryable.Internals
         }
 
         /// <summary>
+        /// Returns the (cached) property-path lambda used to build a filter predicate.
+        /// Built once per registration since <see cref="PagingOptions{TEntity}"/> is frozen and reused across queries.
+        /// </summary>
+        internal LambdaExpression GetFilterPropertyLambda()
+        {
+            return this.filterPropertyLambda ??= SortExpressionBuilder.CreatePropertyPathLambda<TEntity>(this.PropertyPath)
+                ?? throw new PagingException(
+                    $"Property path '{this.PropertyPath}' cannot be resolved on type '{typeof(TEntity).Name}'.",
+                    this.ExternalName);
+        }
+
+        /// <summary>
         /// Validates this registration when the owning <see cref="PagingOptions{TEntity}"/> is frozen.
         /// </summary>
         internal void Validate()
@@ -110,8 +150,9 @@ namespace Paging.Queryable.Internals
             }
 
             var usesPropertyPath =
-                this.sortCapability == Capability.PropertyPath && this.sortKeySelector == null ||
-                this.filterCapability == Capability.PropertyPath;
+                !this.IsCollectionFilter &&
+                (this.sortCapability == Capability.PropertyPath && this.sortKeySelector == null ||
+                 this.filterCapability == Capability.PropertyPath);
 
             if (usesPropertyPath && SortExpressionBuilder.CreatePropertyPathLambda<TEntity>(this.PropertyPath) == null)
             {
@@ -124,6 +165,13 @@ namespace Paging.Queryable.Internals
 
         private void EnsureNotYetSortable()
         {
+            if (this.IsCollectionFilter)
+            {
+                throw new InvalidOperationException(
+                    $"Property '{this.ExternalName}' maps to a collection and cannot be declared as sortable. " +
+                    "Collection registrations support filtering only.");
+            }
+
             if (this.IsSortable)
             {
                 throw new InvalidOperationException($"Property '{this.ExternalName}' is already declared as sortable.");

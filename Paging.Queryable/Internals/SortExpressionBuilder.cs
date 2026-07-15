@@ -38,19 +38,29 @@ namespace Paging.Queryable.Internals
         }
 
         /// <summary>
+        /// Strips any leading <see cref="ExpressionType.Convert"/>/<see cref="ExpressionType.ConvertChecked"/>
+        /// nodes (e.g. the implicit upcast the compiler inserts when a derived collection type is assigned
+        /// to an <c>IEnumerable&lt;T&gt;</c>-typed selector), returning the underlying expression.
+        /// </summary>
+        internal static Expression UnwrapConverts(Expression expression)
+        {
+            while (expression is UnaryExpression unaryExpression &&
+                   (unaryExpression.NodeType == ExpressionType.Convert || unaryExpression.NodeType == ExpressionType.ConvertChecked))
+            {
+                expression = unaryExpression.Operand;
+            }
+
+            return expression;
+        }
+
+        /// <summary>
         /// Extracts the dotted property path from a pure property access chain,
         /// e.g. <c>e =&gt; e.Owner.Name</c> returns <c>"Owner.Name"</c>.
         /// Returns <c>null</c> if the lambda body is not a property access chain.
         /// </summary>
         internal static string? GetPropertyPath(LambdaExpression lambda)
         {
-            var expression = lambda.Body;
-
-            while (expression is UnaryExpression unaryExpression &&
-                   (unaryExpression.NodeType == ExpressionType.Convert || unaryExpression.NodeType == ExpressionType.ConvertChecked))
-            {
-                expression = unaryExpression.Operand;
-            }
+            var expression = UnwrapConverts(lambda.Body);
 
             var segments = new List<string>();
 

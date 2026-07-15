@@ -63,6 +63,35 @@ namespace Paging.Tests.Filtering
             expression.Should().Be("Id in [1, 2, 3]");
         }
 
+        [Theory]
+        [InlineData(FilterOperator.NotContains, "Name !contains \"bmw\"")]
+        [InlineData(FilterOperator.NotStartsWith, "Name !startswith \"bmw\"")]
+        [InlineData(FilterOperator.NotEndsWith, "Name !endswith \"bmw\"")]
+        public void ShouldWriteNegatedStringOperators(FilterOperator filterOperator, string expected)
+        {
+            // Arrange
+            var node = new FilterCondition("Name", filterOperator, "bmw");
+
+            // Act
+            var expression = node.ToString();
+
+            // Assert
+            expression.Should().Be(expected);
+        }
+
+        [Fact]
+        public void ShouldWriteNotInListValue()
+        {
+            // Arrange
+            var node = new FilterCondition("Id", FilterOperator.NotIn, new object[] { 1, 2, 3 });
+
+            // Act
+            var expression = node.ToString();
+
+            // Assert
+            expression.Should().Be("Id !in [1, 2, 3]");
+        }
+
         [Fact]
         public void ShouldEscapeQuotesInStringValue()
         {
@@ -116,6 +145,8 @@ namespace Paging.Tests.Filtering
         [InlineData("Id in [1, 2, 3]")]
         [InlineData("Name == null")]
         [InlineData("Price >= 5000.5")]
+        [InlineData("Name !contains \"bmw\"")]
+        [InlineData("Kind !in [\"a\", \"b\"]")]
         public void ShouldRoundTripCanonicalForm(string expression)
         {
             // Arrange: the canonical form of a parsed expression re-parses and re-writes identically

@@ -10,5 +10,7 @@ namespace Paging.EF.Tests.TestData
         }
 
         public DbSet<License> Licenses => this.Set<License>();
+
+        public DbSet<Holder> Holders => this.Set<Holder>();
     }
 }

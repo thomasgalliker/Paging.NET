@@ -3,6 +3,8 @@ namespace Paging
     /// <summary>
     /// Maps <see cref="FilterOperator"/> values to and from their textual tokens
     /// used in the filter expression string (e.g. <c>"Year &gt;= 2020 &amp;&amp; Name contains \"bmw\""</c>).
+    /// Negated string/collection operators use a <c>!</c> prefix (e.g. <c>!contains</c>, <c>!in</c>),
+    /// consistent with the <c>!=</c> operator.
     /// </summary>
     internal static class FilterOperatorTokens
     {
@@ -20,6 +22,10 @@ namespace Paging
                 FilterOperator.StartsWith => "startswith",
                 FilterOperator.EndsWith => "endswith",
                 FilterOperator.In => "in",
+                FilterOperator.NotContains => "!contains",
+                FilterOperator.NotStartsWith => "!startswith",
+                FilterOperator.NotEndsWith => "!endswith",
+                FilterOperator.NotIn => "!in",
                 _ => throw new ArgumentOutOfRangeException(nameof(filterOperator), filterOperator, "Unknown filter operator."),
             };
         }
@@ -39,6 +45,18 @@ namespace Paging
                     return true;
                 case "in":
                     filterOperator = FilterOperator.In;
+                    return true;
+                case "!contains":
+                    filterOperator = FilterOperator.NotContains;
+                    return true;
+                case "!startswith":
+                    filterOperator = FilterOperator.NotStartsWith;
+                    return true;
+                case "!endswith":
+                    filterOperator = FilterOperator.NotEndsWith;
+                    return true;
+                case "!in":
+                    filterOperator = FilterOperator.NotIn;
                     return true;
                 default:
                     filterOperator = default;

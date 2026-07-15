@@ -258,6 +258,48 @@ namespace Paging.EF.Tests
         }
 
         [Fact]
+        public void ShouldFilterByStringEquality_CaseInsensitive_TranslatedToSql()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("name", FilterOperator.Equal, "fishing license a"),
+            };
+            var pagingOptions = CreateLicensePagingOptions(Now);
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: LOWER(Name) = LOWER('fishing license a') matches "Fishing License A"
+            paginationSet.Items.Select(l => l.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldFilterByCollectionAny_TranslatedToSql()
+        {
+            // Arrange
+            var pagingOptions = new PagingOptions<Holder>(o =>
+            {
+                o.Property((Holder h) => h.Licenses, (License l) => l.IsRevoked).HasName("hasRevokedLicense").Filterable();
+                o.DefaultSort(h => h.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("hasRevokedLicense", FilterOperator.Equal, true),
+            };
+
+            var queryable = this.context.Holders.AsQueryable();
+
+            // Act
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: EF translates .Any(...) to EXISTS; only Bob (id 2) holds a revoked license
+            paginationSet.Items.Select(h => h.Id).Should().Equal(2);
+        }
+
+        [Fact]
         public async Task ShouldPageAsync_WithStableDefaultSort()
         {
             // Arrange

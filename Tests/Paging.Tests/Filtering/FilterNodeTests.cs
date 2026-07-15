@@ -122,5 +122,21 @@ namespace Paging.Tests.Filtering
             // Assert
             areEqual.Should().BeFalse();
         }
+
+        [Fact]
+        public void ShouldRoundTripNegatedOperatorsThroughJson()
+        {
+            // Arrange
+            FilterNode original = FilterGroup.And(
+                new FilterCondition("Name", FilterOperator.NotContains, "temp"),
+                new FilterCondition("Kind", FilterOperator.NotIn, new object[] { "a", "b" }));
+
+            // Act
+            var json = JsonSerializer.Serialize(original);
+            var deserialized = JsonSerializer.Deserialize<FilterNode>(json);
+
+            // Assert
+            deserialized!.ToString().Should().Be(original.ToString());
+        }
     }
 }

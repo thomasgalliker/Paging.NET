@@ -113,6 +113,41 @@ namespace Paging.Tests.Filtering
             condition.Value.Should().BeEquivalentTo(new object[] { 1L, 2L, 3L });
         }
 
+        [Theory]
+        [InlineData("Name !contains \"bmw\"", FilterOperator.NotContains)]
+        [InlineData("Name !startswith \"b\"", FilterOperator.NotStartsWith)]
+        [InlineData("Name !endswith \"w\"", FilterOperator.NotEndsWith)]
+        public void ShouldParseNegatedStringOperators(string expression, FilterOperator expectedOperator)
+        {
+            // Act
+            var node = FilterNode.Parse(expression);
+
+            // Assert
+            node.Should().BeOfType<FilterCondition>().Which.Operator.Should().Be(expectedOperator);
+        }
+
+        [Fact]
+        public void ShouldParseNotInListValue()
+        {
+            // Act
+            var node = FilterNode.Parse("Id !in [1, 2, 3]");
+
+            // Assert
+            var condition = node.Should().BeOfType<FilterCondition>().Subject;
+            condition.Operator.Should().Be(FilterOperator.NotIn);
+            condition.Value.Should().BeEquivalentTo(new object[] { 1L, 2L, 3L });
+        }
+
+        [Fact]
+        public void ShouldParseIdentifierNamedLikeKeyword_AsPropertyName()
+        {
+            // Act: 'not' is a regular identifier, not a reserved keyword
+            var node = FilterNode.Parse("not == 1");
+
+            // Assert
+            node.Should().BeOfType<FilterCondition>().Which.Property.Should().Be("not");
+        }
+
         [Fact]
         public void ShouldApplyPrecedence_AndBindsTighterThanOr()
         {
@@ -178,6 +213,10 @@ namespace Paging.Tests.Filtering
         [InlineData("Year === 2020")]        // invalid token
         [InlineData("Name contains bmw")]    // unquoted string value
         [InlineData("Id in 1")]              // 'in' requires a list
+        [InlineData("Id !in 1")]             // '!in' requires a list
+        [InlineData("Year !< 2020")]         // '!' must precede '=' or a keyword
+        [InlineData("!foo == 1")]            // '!' + unknown keyword is not a valid property name
+        [InlineData("Name !nope \"x\"")]     // '!' + unknown keyword is not a valid operator
         public void ShouldThrowFormatException_OnInvalidExpression(string expression)
         {
             // Act
