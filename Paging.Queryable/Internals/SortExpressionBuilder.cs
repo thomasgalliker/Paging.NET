@@ -89,9 +89,16 @@ namespace Paging.Queryable.Internals
             SortOrder sortOrder,
             bool isFirst)
         {
+            if (sortOrder == SortOrder.None)
+            {
+                // No sort order requested for this property; leave the query unchanged.
+                return queryable;
+            }
+
+            var ascending = sortOrder == SortOrder.Asc;
             var methodName = isFirst
-                ? (sortOrder == SortOrder.Asc ? nameof(System.Linq.Queryable.OrderBy) : nameof(System.Linq.Queryable.OrderByDescending))
-                : (sortOrder == SortOrder.Asc ? nameof(System.Linq.Queryable.ThenBy) : nameof(System.Linq.Queryable.ThenByDescending));
+                ? (ascending ? nameof(System.Linq.Queryable.OrderBy) : nameof(System.Linq.Queryable.OrderByDescending))
+                : (ascending ? nameof(System.Linq.Queryable.ThenBy) : nameof(System.Linq.Queryable.ThenByDescending));
 
             var methodCallExpression = Expression.Call(
                 typeof(System.Linq.Queryable),

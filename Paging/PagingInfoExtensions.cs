@@ -27,7 +27,12 @@ namespace Paging
                     var value = SortOrder.Asc;
                     if (sortSplit.Length == 2)
                     {
+                        // Accepts both the name form (asc/desc/none) and the numeric form (1/-1/0).
                         value = (SortOrder)Enum.Parse(typeof(SortOrder), sortSplit[1], ignoreCase: true);
+                        if (!Enum.IsDefined(typeof(SortOrder), value))
+                        {
+                            throw new ArgumentException($"Requested value '{sortSplit[1]}' was not found.", nameof(sortBy));
+                        }
                     }
 
                     return new { Key = key, Value = value };
@@ -55,7 +60,8 @@ namespace Paging
             }
             else
             {
-                sortBy = string.Join(", ", sorting.Select(kvp => $"{kvp.Key} {kvp.Value}"));
+                // SortOrder.None means "no sort", so such entries are omitted from the SortBy string.
+                sortBy = string.Join(", ", sorting.Where(kvp => kvp.Value != SortOrder.None).Select(kvp => $"{kvp.Key} {kvp.Value}"));
                 if (sortBy == string.Empty)
                 {
                     sortBy = null;

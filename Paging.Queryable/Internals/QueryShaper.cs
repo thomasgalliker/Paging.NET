@@ -55,6 +55,12 @@ namespace Paging.Queryable.Internals
                 var externalName = sorting.Key;
                 var sortOrder = pagingInfo.Reverse ? Invert(sorting.Value) : sorting.Value;
 
+                if (sortOrder == SortOrder.None)
+                {
+                    // SortOrder.None means "no sort" for this property; skip it entirely.
+                    continue;
+                }
+
                 if (!pagingOptions.TryGetSortDefinition(externalName, out var sortDefinition))
                 {
                     switch (pagingOptions.UnknownSortPropertyHandling)
@@ -85,6 +91,11 @@ namespace Paging.Queryable.Internals
             // and is appended as tie-breaker otherwise. It is never affected by PagingInfo.Reverse.
             foreach (var defaultSort in pagingOptions.DefaultSortDefinitions)
             {
+                if (defaultSort.SortOrder == SortOrder.None)
+                {
+                    continue;
+                }
+
                 Trace.WriteLine($"Paging.OrderByDefault ({defaultSort.SortOrder})");
                 queryable = SortExpressionBuilder.ApplyOrderBy(queryable, defaultSort.GetKeySelector(), defaultSort.SortOrder, isFirst: appliedSortCount == 0);
                 appliedSortCount++;
@@ -95,7 +106,12 @@ namespace Paging.Queryable.Internals
 
         private static SortOrder Invert(SortOrder sortOrder)
         {
-            return sortOrder == SortOrder.Asc ? SortOrder.Desc : SortOrder.Asc;
+            return sortOrder switch
+            {
+                SortOrder.Asc => SortOrder.Desc,
+                SortOrder.Desc => SortOrder.Asc,
+                _ => SortOrder.None,
+            };
         }
     }
 }

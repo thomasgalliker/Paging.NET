@@ -346,7 +346,7 @@ namespace Paging.Tests
 
             // Assert
             serializeObject.Should()
-                .Be("{\"firstPageIndex\":0,\"currentPage\":2,\"itemsPerPage\":30,\"sortBy\":\"Venue.Name Asc, Name Desc\",\"sorting\":{\"Venue.Name\":0,\"Name\":1},\"reverse\":false,\"search\":null,\"filter\":null}");
+                .Be("{\"firstPageIndex\":0,\"currentPage\":2,\"itemsPerPage\":30,\"sortBy\":\"Venue.Name Asc, Name Desc\",\"sorting\":{\"Venue.Name\":1,\"Name\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
             pagingInfoResult.Should().BeEquivalentTo(pagingInfo);
         }
 
@@ -388,7 +388,7 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should().Be(
-                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":null}");
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
         }
 
         [Fact]
@@ -406,7 +406,7 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should()
-                .Be("{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":null}");
+                .Be("{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
         }
 
         [Fact]
@@ -424,7 +424,71 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should().Be(
-                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":null}");
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
+        }
+
+        [Theory]
+        [InlineData("ValidTo desc, ValidFrom asc")]
+        [InlineData("ValidTo -1, ValidFrom 1")]
+        public void ShouldParseSortBy_NameAndNumericTokensAreInterchangeable(string sortBy)
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo { SortBy = sortBy };
+
+            // Act
+            var sorting = pagingInfo.Sorting;
+
+            // Assert
+            sorting.Should().Equal(new Dictionary<string, SortOrder>
+            {
+                { "ValidTo", SortOrder.Desc },
+                { "ValidFrom", SortOrder.Asc }
+            });
+        }
+
+        [Fact]
+        public void ShouldParseSortBy_ThrowsForOutOfRangeNumericToken()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo { SortBy = "ValidTo 2" };
+
+            // Act
+            Action action = () => pagingInfo.Sorting.ToList();
+
+            // Assert
+            action.Should().Throw<ArgumentException>().Which.Message.Should().Contain("Requested value '2' was not found");
+        }
+
+        [Fact]
+        public void ShouldOmitNoneEntriesFromSortBy()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = new Dictionary<string, SortOrder>
+            {
+                { "ValidTo", SortOrder.None },
+                { "ValidFrom", SortOrder.Asc }
+            };
+
+            // Assert
+            pagingInfo.SortBy.Should().Be("ValidFrom Asc");
+            pagingInfo.Sorting.Should().Equal(new Dictionary<string, SortOrder> { { "ValidFrom", SortOrder.Asc } });
+        }
+
+        [Fact]
+        public void ShouldClearSortBy_WhenAllEntriesAreNone()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = new Dictionary<string, SortOrder> { { "ValidTo", SortOrder.None } };
+
+            // Assert
+            pagingInfo.SortBy.Should().BeNull();
+            pagingInfo.Sorting.Should().BeEmpty();
         }
 
         [Fact]

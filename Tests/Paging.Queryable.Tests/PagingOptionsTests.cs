@@ -199,6 +199,46 @@ namespace Paging.Queryable.Tests
             paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
         }
 
+        [Theory]
+        [InlineData("year 1", new[] { 1, 2, 3 })]
+        [InlineData("year asc", new[] { 1, 2, 3 })]
+        [InlineData("year -1", new[] { 3, 2, 1 })]
+        [InlineData("year desc", new[] { 3, 2, 1 })]
+        public void ShouldSortByNumericToken_EquivalentToNameToken(string sortBy, int[] expectedIds)
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Year).Sortable());
+            var pagingInfo = new PagingInfo { SortBy = sortBy };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(expectedIds);
+        }
+
+        [Fact]
+        public void ShouldTreatNoneAsUnsorted_AndFallBackToDefaultSort()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Sortable();
+                o.DefaultSort(c => c.Name, SortOrder.Asc);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "year 0" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            // SortOrder.None (0) is ignored, so ordering falls back to the default sort (Name asc):
+            // Audi(2), BMW(1), Tesla(3).
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+        }
+
         [Fact]
         public void ShouldFilterByMappedExternalName()
         {

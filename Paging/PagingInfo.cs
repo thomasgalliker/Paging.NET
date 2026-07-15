@@ -149,10 +149,12 @@ namespace Paging
         /// <example>
         /// Sorting a single property in ascending order:
         /// SortBy = "property1"
-        /// SortBy = "property1 ascending"
+        /// SortBy = "property1 Asc"
         ///
-        /// Sorting a multiple properties with mixed ordering:
-        /// SortBy = "property1 descending, property2 ascending"
+        /// Sorting multiple properties with mixed ordering (name or numeric tokens are both accepted;
+        /// Asc = 1, Desc = -1, None = 0):
+        /// SortBy = "property1 Desc, property2 Asc"
+        /// SortBy = "property1 -1, property2 1"
         /// </example>
         [JsonPropertyName("sortBy")]
         public virtual string? SortBy { get; set; }
