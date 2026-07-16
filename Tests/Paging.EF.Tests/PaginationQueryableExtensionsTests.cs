@@ -321,6 +321,26 @@ namespace Paging.EF.Tests
         }
 
         [Fact]
+        public void ShouldFilterByEmptyInList_MatchesNothing_TranslatedToSql()
+        {
+            // Arrange: 'in []' compiles to a constant-false predicate (WHERE 0)
+            var pagingOptions = new PagingOptions<License>(o => o.Property(l => l.Id).Filterable());
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Id", FilterOperator.In, Array.Empty<object>()),
+            };
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().BeEmpty();
+            paginationSet.TotalCount.Should().Be(0);
+        }
+
+        [Fact]
         public void ShouldFilterByCollectionAny_TranslatedToSql()
         {
             // Arrange

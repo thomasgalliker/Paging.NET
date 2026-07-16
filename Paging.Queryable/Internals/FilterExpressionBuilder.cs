@@ -299,9 +299,11 @@ namespace Paging.Queryable.Internals
 
                 if (typedList.Count == 0)
                 {
-                    // Well-defined set semantics -> never an invalid value (see A6/empty-list handling).
+                    // Well-defined set semantics, never an invalid value:
+                    // 'in []' matches nothing; '!in []' is no constraint (matches everything -> skip).
+                    // Applies equally to lists emptied by dropping null elements.
                     Trace.WriteLine($"Paging.ApplyFilter: IN filter collection for property '{context.PropertyPath}' is empty.");
-                    return null;
+                    return negate ? null : Expression.Constant(false);
                 }
 
                 var constant = Expression.Constant(typedList, typeof(IEnumerable<>).MakeGenericType(propertyType));

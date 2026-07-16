@@ -1062,6 +1062,45 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldFilterByEmptyInList_MatchesNothing()
+        {
+            // Arrange: 'in []' is a well-defined empty set -> no row can match
+            // (previously the condition was dropped and ALL rows were returned)
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Id).Filterable());
+
+            // Act
+            var emptyList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = "Id in []" }, pagingOptions);
+            var nullOnlyList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Id", FilterOperator.In, new object?[] { null }) }, pagingOptions);
+
+            // Assert: same for a syntactically empty list and one emptied by dropping null elements
+            emptyList.Items.Should().BeEmpty();
+            emptyList.TotalCount.Should().Be(0);
+            nullOnlyList.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ShouldFilterByEmptyNotInList_MatchesEverything()
+        {
+            // Arrange: nothing is excluded by '!in []'
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Id).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Id !in []" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
         public void ShouldFilterByTimeSpanProperty_FromStringValue()
         {
             // Arrange: TimeSpan is not IConvertible; requires the dedicated ConvertValue branch
