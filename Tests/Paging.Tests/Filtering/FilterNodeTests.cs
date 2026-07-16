@@ -35,6 +35,58 @@ namespace Paging.Tests.Filtering
         }
 
         [Fact]
+        public void ShouldBeEqual_ForInConditionsWithEqualListContent()
+        {
+            // Arrange: distinct collection instances (and types) with equal content
+            var condition1 = new FilterCondition("Id", FilterOperator.In, new object[] { 1L, 2L, 3L });
+            var condition2 = new FilterCondition("Id", FilterOperator.In, new List<object> { 1L, 2L, 3L });
+
+            // Act
+            var areEqual = condition1.Equals(condition2);
+
+            // Assert
+            areEqual.Should().BeTrue();
+            condition1.GetHashCode().Should().Be(condition2.GetHashCode());
+        }
+
+        public static TheoryData<object[]> DifferentListContentTestData => new TheoryData<object[]>
+        {
+            new object[] { 1L, 2L },        // fewer elements
+            new object[] { 1L, 2L, 4L },    // different element
+            new object[] { 3L, 2L, 1L },    // different order
+        };
+
+        [Theory]
+        [MemberData(nameof(DifferentListContentTestData))]
+        public void ShouldNotBeEqual_ForInConditionsWithDifferentListContent(object[] otherValues)
+        {
+            // Arrange
+            var condition = new FilterCondition("Id", FilterOperator.In, new object[] { 1L, 2L, 3L });
+            var other = new FilterCondition("Id", FilterOperator.In, otherValues);
+
+            // Act
+            var areEqual = condition.Equals(other);
+
+            // Assert
+            areEqual.Should().BeFalse();
+        }
+
+        [Fact]
+        public void ShouldBeEqual_ForParsedInExpressions()
+        {
+            // Arrange: two independent parses of the same expression must be equal
+            var node1 = FilterNode.Parse("Id in [1, 2, 3] && Name contains \"bmw\"");
+            var node2 = FilterNode.Parse("Id in [1, 2, 3] && Name contains \"bmw\"");
+
+            // Act
+            var areEqual = node1!.Equals(node2);
+
+            // Assert
+            areEqual.Should().BeTrue();
+            node1.GetHashCode().Should().Be(node2!.GetHashCode());
+        }
+
+        [Fact]
         public void ShouldBeEqual_ForGroupsWithSameLogicAndNodesInSameOrder()
         {
             // Arrange
