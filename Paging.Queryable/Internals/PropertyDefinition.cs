@@ -12,9 +12,18 @@ namespace Paging.Queryable.Internals
         private enum Capability
         {
             None,
+
+            /// <summary>Resolved from the dotted <see cref="PropertyPath"/>.</summary>
             PropertyPath,
-            Custom,
-            CustomFactory,
+
+            /// <summary>A custom key selector expression (e.g. a computed value).</summary>
+            KeySelector,
+
+            /// <summary>A key selector factory, evaluated on every query (e.g. time-dependent keys).</summary>
+            KeySelectorFactory,
+
+            /// <summary>A custom filter predicate factory (filtering only).</summary>
+            Predicate,
         }
 
         private Capability sortCapability;
@@ -23,6 +32,8 @@ namespace Paging.Queryable.Internals
 
         private Capability filterCapability;
         private Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?>? filterPredicateFactory;
+        private LambdaExpression? filterKeySelector;
+        private Func<LambdaExpression>? filterKeySelectorFactory;
         private LambdaExpression? filterPropertyLambda;
 
         private readonly LambdaExpression? collectionSelector;
@@ -60,7 +71,7 @@ namespace Paging.Queryable.Internals
 
         internal bool IsFilterable => this.filterCapability != Capability.None;
 
-        internal bool HasCustomFilter => this.filterCapability == Capability.Custom;
+        internal bool HasCustomFilter => this.filterCapability == Capability.Predicate;
 
         internal Expression<Func<TEntity, bool>>? BuildCustomPredicate(FilterOperator filterOperator, object? value)
         {
@@ -76,14 +87,14 @@ namespace Paging.Queryable.Internals
         internal void DeclareSortable(LambdaExpression keySelector)
         {
             this.EnsureNotYetSortable();
-            this.sortCapability = Capability.Custom;
+            this.sortCapability = Capability.KeySelector;
             this.sortKeySelector = keySelector;
         }
 
         internal void DeclareSortable(Func<LambdaExpression> keySelectorFactory)
         {
             this.EnsureNotYetSortable();
-            this.sortCapability = Capability.CustomFactory;
+            this.sortCapability = Capability.KeySelectorFactory;
             this.sortKeySelectorFactory = keySelectorFactory;
         }
 
@@ -100,21 +111,31 @@ namespace Paging.Queryable.Internals
 
         internal void DeclareFilterable(Func<FilterOperator, object?, Expression<Func<TEntity, bool>>?> predicateFactory)
         {
-            if (this.IsCollectionFilter)
-            {
-                throw new InvalidOperationException(
-                    $"Property '{this.ExternalName}' maps to a collection and does not support a custom filter predicate. " +
-                    "Collection registrations filter via the built-in Any(...) comparison.");
-            }
-
+            this.EnsureNotCollectionFilter("a custom filter predicate");
             this.EnsureNotYetFilterable();
-            this.filterCapability = Capability.Custom;
+            this.filterCapability = Capability.Predicate;
             this.filterPredicateFactory = predicateFactory;
+        }
+
+        internal void DeclareFilterable(LambdaExpression keySelector)
+        {
+            this.EnsureNotCollectionFilter("a custom filter key selector");
+            this.EnsureNotYetFilterable();
+            this.filterCapability = Capability.KeySelector;
+            this.filterKeySelector = keySelector;
+        }
+
+        internal void DeclareFilterable(Func<LambdaExpression> keySelectorFactory)
+        {
+            this.EnsureNotCollectionFilter("a custom filter key selector");
+            this.EnsureNotYetFilterable();
+            this.filterCapability = Capability.KeySelectorFactory;
+            this.filterKeySelectorFactory = keySelectorFactory;
         }
 
         internal LambdaExpression GetSortKeySelector()
         {
-            if (this.sortCapability == Capability.CustomFactory)
+            if (this.sortCapability == Capability.KeySelectorFactory)
             {
                 return this.sortKeySelectorFactory!();
             }
@@ -126,11 +147,23 @@ namespace Paging.Queryable.Internals
         }
 
         /// <summary>
-        /// Returns the (cached) property-path lambda used to build a filter predicate.
-        /// Built once per registration since <see cref="PagingOptions{TEntity}"/> is frozen and reused across queries.
+        /// Returns the lambda a filter predicate is built against: a custom key selector
+        /// (factories are evaluated on every query), or the cached property-path lambda
+        /// (built once per registration since <see cref="PagingOptions{TEntity}"/> is frozen
+        /// and reused across queries).
         /// </summary>
         internal LambdaExpression GetFilterPropertyLambda()
         {
+            if (this.filterCapability == Capability.KeySelectorFactory)
+            {
+                return this.filterKeySelectorFactory!();
+            }
+
+            if (this.filterKeySelector != null)
+            {
+                return this.filterKeySelector;
+            }
+
             return this.filterPropertyLambda ??= SortExpressionBuilder.CreatePropertyPathLambda<TEntity>(this.PropertyPath)
                 ?? throw new PagingException(
                     $"Property path '{this.PropertyPath}' cannot be resolved on type '{typeof(TEntity).Name}'.",
@@ -183,6 +216,16 @@ namespace Paging.Queryable.Internals
             if (this.IsFilterable)
             {
                 throw new InvalidOperationException($"Property '{this.ExternalName}' is already declared as filterable.");
+            }
+        }
+
+        private void EnsureNotCollectionFilter(string what)
+        {
+            if (this.IsCollectionFilter)
+            {
+                throw new InvalidOperationException(
+                    $"Property '{this.ExternalName}' maps to a collection and does not support {what}. " +
+                    "Collection registrations filter via the built-in Any(...) comparison.");
             }
         }
     }

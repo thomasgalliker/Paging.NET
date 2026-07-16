@@ -746,6 +746,81 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldFilterByComputedExpression()
+        {
+            // Arrange: "Age" is a computed value, not an entity property;
+            // all built-in operators work against the computed key
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Age").Filterable(c => 2026 - c.Year);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age >= 6" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: 2026-2010=16 (car 1), 2026-2020=6 (car 2); car 3 (age 4) excluded
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2);
+        }
+
+        [Fact]
+        public void ShouldFilterByComputedExpression_WithInOperator()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Age").Filterable(c => 2026 - c.Year);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age !in [16, 6]" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: negation composes with the computed key
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldEvaluateFilterKeyFactory_OnEveryQuery()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var year = 2026;
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                // Factory captures a changing value, evaluated per query
+                o.Property("Age").Filterable(() => (Expression<Func<Car, int>>)(c => year - c.Year));
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age == 6" };
+
+            // Act
+            var paginationSet1 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+            year = 2028;
+            var paginationSet2 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: 2026-2020=6 -> car 2; 2028-2022=6 -> car 3
+            paginationSet1.Items.Select(c => c.Id).Should().Equal(2);
+            paginationSet2.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenFilterKeySelectorIsDeclaredOnCollection()
+        {
+            // Act
+            Action action = () => new PagingOptions<Garage>(o =>
+                o.Property((Garage g) => g.Cars, (GarageCar c) => c.Brand).Filterable((Garage g) => g.Id));
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*collection*does not support*");
+        }
+
+        [Fact]
         public void ShouldThrowInvalidOperationException_WhenCustomFilterIsDeclaredOnCollection()
         {
             // Act

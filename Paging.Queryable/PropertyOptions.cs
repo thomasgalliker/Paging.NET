@@ -88,6 +88,45 @@ namespace Paging.Queryable
         }
 
         /// <summary>
+        /// Declares the property as filterable using a custom filter key expression,
+        /// e.g. a computed value which does not exist as entity property.
+        /// All filter operators (including negations, IN filters and the null-safe
+        /// string semantics) are applied against the computed key.
+        /// The expression must be translatable by the query provider.
+        /// </summary>
+        public PropertyOptions<TEntity> Filterable<TKey>(Expression<Func<TEntity, TKey>> keySelector)
+        {
+            this.owner.ThrowIfFrozen();
+
+            if (keySelector == null)
+            {
+                throw new ArgumentNullException(nameof(keySelector));
+            }
+
+            this.propertyDefinition.DeclareFilterable((LambdaExpression)keySelector);
+            return this;
+        }
+
+        /// <summary>
+        /// Declares the property as filterable using a custom filter key expression factory.
+        /// The factory is evaluated on every query, which is useful for time-dependent
+        /// filter keys (e.g. expressions capturing the current date/time).
+        /// See <see cref="Filterable{TKey}(Expression{Func{TEntity, TKey}})"/>.
+        /// </summary>
+        public PropertyOptions<TEntity> Filterable<TKey>(Func<Expression<Func<TEntity, TKey>>> keySelectorFactory)
+        {
+            this.owner.ThrowIfFrozen();
+
+            if (keySelectorFactory == null)
+            {
+                throw new ArgumentNullException(nameof(keySelectorFactory));
+            }
+
+            this.propertyDefinition.DeclareFilterable(() => keySelectorFactory());
+            return this;
+        }
+
+        /// <summary>
         /// Declares the property as filterable using a custom filter predicate factory.
         /// The factory receives the filter value from a <see cref="FilterCondition"/>
         /// and returns a predicate expression, or <c>null</c> to skip the filter.
