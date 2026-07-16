@@ -109,6 +109,14 @@ namespace Paging
                 properties.Add(ToJsonName(nameof(PagingInfo.Search)), pagingInfo.Search!);
             }
 
+            if (pagingInfo.Filter is FilterNode filter)
+            {
+                // Canonical filter expression string, e.g. Year >= 2020 && Name contains "bmw".
+                // ToQueryString URL-encodes the value; the server side parses it back via
+                // FilterNode.Parse (see FilterNodeTypeConverter for query-string model binding).
+                properties.Add(ToJsonName(nameof(PagingInfo.Filter)), filter.ToString());
+            }
+
             return new ReadOnlyDictionary<string, string>(properties);
         }
 

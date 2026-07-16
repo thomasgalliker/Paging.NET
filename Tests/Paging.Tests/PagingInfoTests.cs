@@ -279,7 +279,8 @@ namespace Paging.Tests
                 ItemsPerPage = 30,
                 SortBy = "Venue.Name Asc",
                 Reverse = true,
-                Search = "Test value"
+                Search = "Test value",
+                Filter = "Year >= 2020 && Name contains \"bmw\"",
             };
 
             // Act
@@ -293,7 +294,8 @@ namespace Paging.Tests
                 { "itemsPerPage", "30" },
                 { "sortBy", "Venue.Name Asc" },
                 { "reverse", "True" },
-                { "search", "Test value" }
+                { "search", "Test value" },
+                { "filter", "Year >= 2020 && Name contains \"bmw\"" }
             });
         }
 
@@ -325,6 +327,8 @@ namespace Paging.Tests
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" },
                     "currentPage=2&itemsPerPage=30&search=Test%20value");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 0 }, "currentPage=2&itemsPerPage=0");
+                this.Add(new PagingInfo { CurrentPage = 1, Filter = "Year >= 2020 && Name contains \"bmw\"" },
+                    "currentPage=1&filter=Year%20%3E%3D%202020%20%26%26%20Name%20contains%20%22bmw%22");
             }
         }
 

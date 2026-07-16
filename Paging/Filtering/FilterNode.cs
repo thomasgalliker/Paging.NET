@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -8,6 +9,14 @@ namespace Paging
     /// <see cref="FilterCondition"/> or a <see cref="FilterGroup"/> combining
     /// multiple child nodes with <see cref="FilterLogic.And"/> or <see cref="FilterLogic.Or"/>.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="TypeConverterAttribute"/> enables query-string model binding
+    /// (e.g. ASP.NET Core <c>[FromQuery] PagingInfo</c> binds <c>?filter=...</c>);
+    /// the <see cref="JsonConverterAttribute"/> covers JSON bodies. Both use the same
+    /// compact filter expression string form. The static <see cref="TryParse(string?, out FilterNode?)"/>
+    /// additionally satisfies the .NET 7+ TryParse binding convention.
+    /// </remarks>
+    [TypeConverter(typeof(FilterNodeTypeConverter))]
     [JsonConverter(typeof(FilterNodeJsonConverter))]
     public abstract class FilterNode : IEquatable<FilterNode?>
     {
