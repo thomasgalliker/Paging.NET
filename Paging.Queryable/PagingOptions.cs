@@ -28,6 +28,7 @@ namespace Paging.Queryable
         private Func<string, Expression<Func<TEntity, bool>>>? searchPredicateFactory;
         private UnknownPropertyHandling unknownSortPropertyHandling = UnknownPropertyHandling.Throw;
         private UnknownPropertyHandling unknownFilterPropertyHandling = UnknownPropertyHandling.Throw;
+        private InvalidValueHandling invalidFilterValueHandling = InvalidValueHandling.Skip;
         private bool unfilteredCountIncluded;
 
         private volatile bool isFrozen;
@@ -203,6 +204,18 @@ namespace Paging.Queryable
         }
 
         /// <summary>
+        /// Configures how filter values that cannot be applied to the target property are handled
+        /// (e.g. failed type conversions). Default is <see cref="InvalidValueHandling.Skip"/>,
+        /// which silently drops the condition; use <see cref="InvalidValueHandling.Throw"/> to
+        /// surface invalid requests to the caller instead.
+        /// </summary>
+        public void InvalidFilterValues(InvalidValueHandling handling)
+        {
+            this.ThrowIfFrozen();
+            this.invalidFilterValueHandling = handling;
+        }
+
+        /// <summary>
         /// Configures the string comparer used to match external property names.
         /// Default is <see cref="StringComparer.OrdinalIgnoreCase"/>.
         /// </summary>
@@ -229,6 +242,8 @@ namespace Paging.Queryable
         internal UnknownPropertyHandling UnknownSortPropertyHandling => this.unknownSortPropertyHandling;
 
         internal UnknownPropertyHandling UnknownFilterPropertyHandling => this.unknownFilterPropertyHandling;
+
+        internal InvalidValueHandling InvalidFilterValueHandling => this.invalidFilterValueHandling;
 
         internal Func<string, Expression<Func<TEntity, bool>>>? SearchPredicateFactory => this.searchPredicateFactory;
 

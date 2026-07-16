@@ -13,6 +13,12 @@ namespace Paging.Queryable
             this.PropertyName = propertyName;
         }
 
+        public PagingException(string message, string? propertyName, Exception? innerException)
+            : base(message, innerException)
+        {
+            this.PropertyName = propertyName;
+        }
+
         /// <summary>
         /// The external property name which caused this exception, if any.
         /// </summary>

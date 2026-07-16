@@ -30,11 +30,11 @@ namespace Paging.Queryable.Internals
 
         internal static Expression<Func<TEntity, bool>>? BuildPredicate<TEntity>(
             LambdaExpression propertyLambda,
-            string propertyPath,
+            in FilterConditionContext context,
             FilterOperator filterOperator,
             object? filterValue)
         {
-            var body = BuildBody(propertyLambda, propertyPath, filterOperator, filterValue);
+            var body = BuildBody(propertyLambda, context, filterOperator, filterValue);
             if (body == null)
             {
                 return null;
@@ -52,11 +52,11 @@ namespace Paging.Queryable.Internals
         internal static Expression<Func<TEntity, bool>>? BuildCollectionAnyPredicate<TEntity>(
             LambdaExpression collectionSelector,
             LambdaExpression elementSelector,
-            string propertyPath,
+            in FilterConditionContext context,
             FilterOperator filterOperator,
             object? filterValue)
         {
-            var leafBody = BuildBody(elementSelector, propertyPath, filterOperator, filterValue);
+            var leafBody = BuildBody(elementSelector, context, filterOperator, filterValue);
             if (leafBody == null)
             {
                 return null;
@@ -72,7 +72,7 @@ namespace Paging.Queryable.Internals
 
             var anyCall = Expression.Call(EnumerableAnyMethod.MakeGenericMethod(elementType), collectionBody, leafLambda);
 
-            Trace.WriteLine($"Paging.ApplyFilter: {propertyPath} {filterOperator} (collection Any)");
+            Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {filterOperator} (collection Any)");
             return Expression.Lambda<Func<TEntity, bool>>(anyCall, collectionSelector.Parameters[0]);
         }
 
@@ -83,7 +83,7 @@ namespace Paging.Queryable.Internals
         /// </summary>
         internal static Expression? BuildBody(
             LambdaExpression propertyLambda,
-            string propertyPath,
+            in FilterConditionContext context,
             FilterOperator filterOperator,
             object? filterValue)
         {
@@ -92,21 +92,21 @@ namespace Paging.Queryable.Internals
                 case FilterOperator.Contains:
                 case FilterOperator.StartsWith:
                 case FilterOperator.EndsWith:
-                    return BuildStringBody(propertyLambda, propertyPath, filterOperator, filterValue, negate: false);
+                    return BuildStringBody(propertyLambda, context, filterOperator, filterValue, negate: false);
 
                 case FilterOperator.NotContains:
                 case FilterOperator.NotStartsWith:
                 case FilterOperator.NotEndsWith:
-                    return BuildStringBody(propertyLambda, propertyPath, filterOperator, filterValue, negate: true);
+                    return BuildStringBody(propertyLambda, context, filterOperator, filterValue, negate: true);
 
                 case FilterOperator.In:
-                    return BuildInBody(propertyLambda, propertyPath, filterValue, negate: false);
+                    return BuildInBody(propertyLambda, context, filterValue, negate: false);
 
                 case FilterOperator.NotIn:
-                    return BuildInBody(propertyLambda, propertyPath, filterValue, negate: true);
+                    return BuildInBody(propertyLambda, context, filterValue, negate: true);
 
                 default:
-                    return BuildComparisonBody(propertyLambda, propertyPath, filterOperator, filterValue);
+                    return BuildComparisonBody(propertyLambda, context, filterOperator, filterValue);
             }
         }
 
@@ -126,7 +126,7 @@ namespace Paging.Queryable.Internals
 
         private static Expression? BuildComparisonBody(
             LambdaExpression propertyLambda,
-            string propertyPath,
+            in FilterConditionContext context,
             FilterOperator filterOperator,
             object? filterValue)
         {
@@ -158,26 +158,25 @@ namespace Paging.Queryable.Internals
                         ? Expression.AndAlso(Expression.NotEqual(column, nullConstant), Expression.Equal(loweredColumn, loweredConstant))
                         : (Expression)Expression.OrElse(Expression.Equal(column, nullConstant), Expression.NotEqual(loweredColumn, loweredConstant));
 
-                    Trace.WriteLine($"Paging.ApplyFilter: {propertyPath} {comparisonType} {convertedValue} (case-insensitive)");
+                    Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {comparisonType} {convertedValue} (case-insensitive)");
                     return caseInsensitiveBody;
                 }
 
                 var constant = Expression.Constant(convertedValue, propertyType);
                 var body = Expression.MakeBinary(comparisonType, propertyLambda.Body, constant);
 
-                Trace.WriteLine($"Paging.ApplyFilter: {propertyPath} {comparisonType} {convertedValue}");
+                Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {comparisonType} {convertedValue}");
                 return body;
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.ApplyFilter: Comparison '{propertyPath} {comparisonType} {filterValue}' failed with exception: {ex}");
-                return null;
+                return context.Invalid($"Comparison '{context.PropertyPath} {comparisonType} {filterValue}' failed: {ex.Message}", ex);
             }
         }
 
         private static Expression? BuildStringBody(
             LambdaExpression propertyLambda,
-            string propertyPath,
+            in FilterConditionContext context,
             FilterOperator filterOperator,
             object? filterValue,
             bool negate)
@@ -186,8 +185,7 @@ namespace Paging.Queryable.Internals
             {
                 if (filterValue == null)
                 {
-                    Trace.WriteLine($"Paging.ApplyFilter: String filter value for property '{propertyPath}' is null.");
-                    return null;
+                    return context.Invalid($"String filter value for property '{context.PropertyPath}' is null.");
                 }
 
                 // ToLower (not ToLowerInvariant) so the constant is lowered with the same casing rules as
@@ -199,8 +197,8 @@ namespace Paging.Queryable.Internals
                 if (string.IsNullOrEmpty(searchValue))
                 {
                     // A positive match against an empty needle matches everything (no constraint -> skip);
-                    // its negation matches nothing.
-                    Trace.WriteLine($"Paging.ApplyFilter: String filter value for property '{propertyPath}' is empty.");
+                    // its negation matches nothing. Well-defined semantics -> never an invalid value.
+                    Trace.WriteLine($"Paging.ApplyFilter: String filter value for property '{context.PropertyPath}' is empty.");
                     return negate ? Expression.Constant(false) : null;
                 }
 
@@ -232,19 +230,18 @@ namespace Paging.Queryable.Internals
                         : Expression.AndAlso(Expression.NotEqual(propertyLambda.Body, nullConstant), body);
                 }
 
-                Trace.WriteLine($"Paging.ApplyFilter: {propertyPath} {filterOperator} \"{searchValue}\"");
+                Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {filterOperator} \"{searchValue}\"");
                 return body;
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.ApplyFilter: {filterOperator} filter '{propertyPath}' ~ '{filterValue}' failed with exception: {ex}");
-                return null;
+                return context.Invalid($"{filterOperator} filter '{context.PropertyPath}' ~ '{filterValue}' failed: {ex.Message}", ex);
             }
         }
 
         private static Expression? BuildInBody(
             LambdaExpression propertyLambda,
-            string propertyPath,
+            in FilterConditionContext context,
             object? filterValue,
             bool negate)
         {
@@ -252,8 +249,7 @@ namespace Paging.Queryable.Internals
             {
                 if (filterValue is not IEnumerable enumerable || filterValue is string)
                 {
-                    Trace.WriteLine($"Paging.ApplyFilter: IN filter for property '{propertyPath}' requires a collection of values.");
-                    return null;
+                    return context.Invalid($"IN filter for property '{context.PropertyPath}' requires a collection of values.");
                 }
 
                 var propertyType = propertyLambda.ReturnType;
@@ -284,7 +280,8 @@ namespace Paging.Queryable.Internals
 
                 if (typedList.Count == 0)
                 {
-                    Trace.WriteLine($"Paging.ApplyFilter: IN filter collection for property '{propertyPath}' is empty.");
+                    // Well-defined set semantics -> never an invalid value (see A6/empty-list handling).
+                    Trace.WriteLine($"Paging.ApplyFilter: IN filter collection for property '{context.PropertyPath}' is empty.");
                     return null;
                 }
 
@@ -305,13 +302,12 @@ namespace Paging.Queryable.Internals
                         : Expression.AndAlso(Expression.NotEqual(column, nullConstant), body);
                 }
 
-                Trace.WriteLine($"Paging.ApplyFilter: {propertyPath} {(negate ? "!in" : "in")} [{typedList.Count} values]");
+                Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {(negate ? "!in" : "in")} [{typedList.Count} values]");
                 return body;
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Paging.ApplyFilter: IN filter for property '{propertyPath}' failed with exception: {ex}");
-                return null;
+                return context.Invalid($"IN filter for property '{context.PropertyPath}' failed: {ex.Message}", ex);
             }
         }
 

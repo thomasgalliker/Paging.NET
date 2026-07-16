@@ -55,12 +55,17 @@ namespace Paging.Queryable.Internals
 
             if (pagingOptions.TryGetFilterDefinition(condition.Property, out var filterDefinition))
             {
+                var context = new FilterConditionContext(
+                    condition.Property,
+                    filterDefinition.PropertyPath,
+                    pagingOptions.InvalidFilterValueHandling);
+
                 if (filterDefinition.IsCollectionFilter)
                 {
                     return FilterExpressionBuilder.BuildCollectionAnyPredicate<TEntity>(
                         filterDefinition.CollectionSelector!,
                         filterDefinition.ElementSelector!,
-                        filterDefinition.PropertyPath,
+                        context,
                         condition.Operator,
                         condition.Value);
                 }
@@ -78,7 +83,7 @@ namespace Paging.Queryable.Internals
 
                 var propertyLambda = filterDefinition.GetFilterPropertyLambda();
 
-                return FilterExpressionBuilder.BuildPredicate<TEntity>(propertyLambda, filterDefinition.PropertyPath, condition.Operator, condition.Value);
+                return FilterExpressionBuilder.BuildPredicate<TEntity>(propertyLambda, context, condition.Operator, condition.Value);
             }
 
             switch (pagingOptions.UnknownFilterPropertyHandling)

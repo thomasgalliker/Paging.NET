@@ -948,6 +948,94 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldSkipInvalidFilterValue_ByDefault()
+        {
+            // Arrange: unconvertible value -> condition silently skipped -> all rows (default lenient behavior)
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Year).Filterable());
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.Equal, "not-a-number"),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_OnInvalidFilterValue_WhenThrowConfigured()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).HasName("BuildYear").Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("BuildYear", FilterOperator.Equal, "not-a-number"),
+            };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: the exception names the external property and carries the conversion failure
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("BuildYear");
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_OnNonCollectionInValue_WhenThrowConfigured()
+        {
+            // Arrange: 'in' requires a collection of values
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.In, 2010),
+            };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("Year");
+        }
+
+        [Fact]
+        public void ShouldNotThrow_OnWellDefinedEdgeCases_WhenThrowConfigured()
+        {
+            // Arrange: empty needle, empty in-list and null list elements are semantics, not errors
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.Property(c => c.Id).Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+                o.DefaultSort(c => c.Id);
+            });
+
+            // Act
+            var emptyNeedle = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.Contains, "") }, pagingOptions);
+            var nullElementInList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Id", FilterOperator.NotIn, new object?[] { 1, null }) }, pagingOptions);
+
+            // Assert
+            emptyNeedle.Items.Should().HaveCount(3);
+            nullElementInList.Items.Select(c => c.Id).Should().Equal(2, 3);
+        }
+
+        [Fact]
         public void ShouldFilterByTimeSpanProperty_FromStringValue()
         {
             // Arrange: TimeSpan is not IConvertible; requires the dedicated ConvertValue branch
