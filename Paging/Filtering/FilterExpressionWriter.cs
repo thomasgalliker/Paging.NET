@@ -85,6 +85,19 @@ namespace Paging
                     return Quote(dateTimeOffset.ToString("o", CultureInfo.InvariantCulture));
                 case Guid guid:
                     return Quote(guid.ToString());
+                case TimeSpan timeSpan:
+                    return Quote(timeSpan.ToString("c", CultureInfo.InvariantCulture));
+                case char charValue:
+                    return Quote(charValue.ToString());
+                case Enum enumValue:
+                    // Member name(s), parsed back case-insensitively via Enum.Parse (incl. flags "A, B").
+                    return Quote(enumValue.ToString());
+#if NET8_0_OR_GREATER
+                case DateOnly dateOnly:
+                    return Quote(dateOnly.ToString("O", CultureInfo.InvariantCulture));
+                case TimeOnly timeOnly:
+                    return Quote(timeOnly.ToString("O", CultureInfo.InvariantCulture));
+#endif
                 case IEnumerable enumerable:
                     var items = new List<string>();
                     foreach (var item in enumerable)
@@ -93,6 +106,17 @@ namespace Paging
                     }
                     return "[" + string.Join(", ", items) + "]";
                 default:
+                    // netstandard builds cannot reference DateOnly/TimeOnly (net6+ types), but consumers
+                    // on net6/net7 resolve the netstandard binary while the types exist at runtime.
+                    var typeName = value.GetType().FullName;
+                    if (typeName == "System.DateOnly" || typeName == "System.TimeOnly")
+                    {
+                        return Quote(((IFormattable)value).ToString("O", CultureInfo.InvariantCulture));
+                    }
+
+                    // Numbers (incl. decimal/float) are emitted as unquoted invariant literals; the parser
+                    // reads them back as long/double and ConvertValue restores the property's CLR type
+                    // (precision beyond double's ~15-17 significant digits is not preserved).
                     return Convert.ToString(value, CultureInfo.InvariantCulture) ?? "null";
             }
         }

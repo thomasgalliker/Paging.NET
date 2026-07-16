@@ -947,6 +947,86 @@ namespace Paging.Queryable.Tests
             paginationSet.Items.Should().BeEmpty();
         }
 
+        [Fact]
+        public void ShouldFilterByTimeSpanProperty_FromStringValue()
+        {
+            // Arrange: TimeSpan is not IConvertible; requires the dedicated ConvertValue branch
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Duration = TimeSpan.FromMinutes(30) },
+                new Schedule { Id = 2, Duration = TimeSpan.FromMinutes(90) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Duration).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Duration > \"01:00:00\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByDateOnlyProperty_FromStringValue()
+        {
+            // Arrange
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Date = new DateOnly(2026, 1, 1) },
+                new Schedule { Id = 2, Date = new DateOnly(2026, 7, 15) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Date).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Date >= \"2026-07-01\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByTimeOnlyProperty_FromStringValue()
+        {
+            // Arrange
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Time = new TimeOnly(8, 0) },
+                new Schedule { Id = 2, Time = new TimeOnly(17, 30) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Time).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Time < \"12:00:00\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(1);
+        }
+
+        private sealed class Schedule
+        {
+            public int Id { get; set; }
+
+            public TimeSpan Duration { get; set; }
+
+            public DateOnly Date { get; set; }
+
+            public TimeOnly Time { get; set; }
+        }
+
         private static IQueryable<Car> CreateCarsQueryable()
         {
             return new[]

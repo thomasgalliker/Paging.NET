@@ -348,6 +348,31 @@ namespace Paging.Queryable.Internals
                     return Guid.Parse(stringValue);
                 }
 
+                if (underlyingType == typeof(TimeSpan))
+                {
+                    // TimeSpan is not IConvertible; Convert.ChangeType cannot produce it.
+                    return TimeSpan.Parse(stringValue, CultureInfo.InvariantCulture);
+                }
+
+#if NET8_0_OR_GREATER
+                if (underlyingType == typeof(DateOnly))
+                {
+                    return DateOnly.Parse(stringValue, CultureInfo.InvariantCulture);
+                }
+
+                if (underlyingType == typeof(TimeOnly))
+                {
+                    return TimeOnly.Parse(stringValue, CultureInfo.InvariantCulture);
+                }
+#else
+                // netstandard builds cannot reference DateOnly/TimeOnly (net6+ types), but consumers
+                // on net6/net7 resolve the netstandard binary while the types exist at runtime.
+                if (underlyingType.FullName == "System.DateOnly" || underlyingType.FullName == "System.TimeOnly")
+                {
+                    return ParseViaReflection(underlyingType, stringValue);
+                }
+#endif
+
                 return Convert.ChangeType(stringValue, underlyingType, CultureInfo.InvariantCulture);
             }
 
@@ -370,5 +395,20 @@ namespace Paging.Queryable.Internals
                 .GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Single(m => m.Name == name && m.IsGenericMethodDefinition && m.GetParameters().Length == parameterCount);
         }
+
+#if !NET8_0_OR_GREATER
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, MethodInfo> ParseMethods =
+            new System.Collections.Concurrent.ConcurrentDictionary<Type, MethodInfo>();
+
+        private static object ParseViaReflection(Type type, string value)
+        {
+            var parseMethod = ParseMethods.GetOrAdd(
+                type,
+                t => t.GetMethod("Parse", new[] { typeof(string), typeof(IFormatProvider) })
+                     ?? throw new InvalidOperationException($"Type '{t.FullName}' does not have a Parse(string, IFormatProvider) method."));
+
+            return parseMethod.Invoke(null, new object[] { value, CultureInfo.InvariantCulture })!;
+        }
+#endif
     }
 }
