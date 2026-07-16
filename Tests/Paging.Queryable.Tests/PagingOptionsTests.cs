@@ -948,6 +948,32 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldFilterByStringOrdering_NullSafe()
+        {
+            // Arrange: ordering comparisons on strings use string.Compare
+            // (previously silently dropped); null values never match
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "Audi" },
+                new Car { Id = 2, Name = "BMW" },
+                new Car { Id = 3, Name = "Tesla" },
+                new Car { Id = 4, Name = null },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Name > \"BMW\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: only "Tesla" sorts after "BMW"; null excluded
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
         public void ShouldSkipInvalidFilterValue_ByDefault()
         {
             // Arrange: unconvertible value -> condition silently skipped -> all rows (default lenient behavior)

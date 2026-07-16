@@ -277,6 +277,50 @@ namespace Paging.EF.Tests
         }
 
         [Fact]
+        public void ShouldFilterByStringOrdering_TranslatedToSql()
+        {
+            // Arrange: string ordering builds string.Compare(x, y) > 0, translated by EF
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("name", FilterOperator.GreaterThan, "Fishing License A"),
+            };
+            var pagingOptions = CreateLicensePagingOptions(Now);
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: "Fishing License B" and "Hunting License" sort after "Fishing License A"
+            // ("Boating License" sorts before); default sort Id desc
+            paginationSet.Items.Select(l => l.Id).Should().Equal(3, 2);
+        }
+
+        [Fact]
+        public void ShouldFilterByContainsOnNonStringProperty_TranslatedToSql()
+        {
+            // Arrange: contains on a non-string property goes through ToString().ToLower();
+            // this proves the EF provider translates it (SQLite throws on client-eval)
+            var pagingOptions = new PagingOptions<License>(o =>
+            {
+                o.Property(l => l.Id).Filterable();
+                o.DefaultSort(l => l.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Id", FilterOperator.Contains, "1"),
+            };
+
+            var queryable = this.context.Licenses.AsQueryable();
+
+            // Act
+            var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(l => l.Id).Should().Equal(1);
+        }
+
+        [Fact]
         public void ShouldFilterByCollectionAny_TranslatedToSql()
         {
             // Arrange

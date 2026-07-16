@@ -22,6 +22,7 @@ namespace Paging.Queryable.Internals
     internal static class FilterExpressionBuilder
     {
         private static readonly MethodInfo StringToLowerMethod = typeof(string).GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+        private static readonly MethodInfo StringCompareMethod = typeof(string).GetMethod(nameof(string.Compare), new[] { typeof(string), typeof(string) })!;
         private static readonly MethodInfo StringContainsMethod = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) })!;
         private static readonly MethodInfo StringStartsWithMethod = typeof(string).GetMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
         private static readonly MethodInfo StringEndsWithMethod = typeof(string).GetMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
@@ -160,6 +161,24 @@ namespace Paging.Queryable.Internals
 
                     Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {comparisonType} {convertedValue} (case-insensitive)");
                     return caseInsensitiveBody;
+                }
+
+                // String ordering via string.Compare(x, y) <op> 0, which EF Core translates to a
+                // collation-based comparison (the < > <= >= operators are not defined for string).
+                // No lowering: ordering follows the database collation in EF and the current culture
+                // in memory. Null-guarded so a null value never matches a positive comparison,
+                // consistent with the other string operators.
+                if (propertyType == typeof(string))
+                {
+                    var column = propertyLambda.Body;
+                    var compareCall = Expression.Call(StringCompareMethod, column, Expression.Constant(convertedValue, typeof(string)));
+                    var comparison = Expression.MakeBinary(comparisonType, compareCall, Expression.Constant(0));
+                    var guarded = Expression.AndAlso(
+                        Expression.NotEqual(column, Expression.Constant(null, typeof(string))),
+                        comparison);
+
+                    Trace.WriteLine($"Paging.ApplyFilter: {context.PropertyPath} {comparisonType} {convertedValue} (string ordering)");
+                    return guarded;
                 }
 
                 var constant = Expression.Constant(convertedValue, propertyType);
