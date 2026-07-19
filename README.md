@@ -233,6 +233,49 @@ var paginationSet = queryable.ToPaginationSet(pagingInfo, pagingOptions);
 
 `PagingOptions` is frozen on first use and can safely be cached and reused across queries and threads.
 
+#### Combined Properties (e.g. "FirstName LastName")
+
+A common requirement is to search, sort and filter several entity properties as **one combined value** —
+for example a person's first and last name as `"FirstName LastName"`. Register a virtual property by its
+external name and declare its capabilities with a computed key expression; no matching entity property
+is required:
+
+```csharp
+var pagingOptions = new PagingOptions<Person>(o =>
+{
+    o.Property("FullName")
+        .Sortable(p => p.FirstName + " " + p.LastName)
+        .Filterable(p => p.FirstName + " " + p.LastName);
+
+    // Free-text search over the same combined value
+    o.Search(s => p => (p.FirstName + " " + p.LastName).ToLower().Contains(s.ToLower()));
+
+    o.DefaultSort(p => p.Id);
+});
+```
+
+The client uses `FullName` like any other property — the combined value behaves as a single string:
+
+```csharp
+pagingInfo.SortBy = "FullName";                        // sorts by "FirstName LastName" as one string
+pagingInfo.Filter = "FullName contains \"na meier\"";  // matches across the FirstName/LastName boundary
+pagingInfo.Search = "Anna B";                          // free-text search over the combined value
+```
+
+All filter operators work against the computed key: the case-insensitive string semantics
+(`==`, `!=`, `contains`, `startswith`, `endswith` and their negations, `in`) as well as
+ordering comparisons (`>`, `>=`, `<`, `<=`) via `string.Compare`.
+
+Entity Framework translates the concatenation to SQL (recent EF Core versions wrap nullable string
+columns in `COALESCE` to match .NET's null-as-empty concatenation semantics — verify against your
+provider if the underlying columns are nullable). Note that filtering and sorting on a concatenation
+cannot use plain column indexes; if that matters for large tables, add a computed (persisted, indexed)
+column to the entity and register it instead — the client-facing contract stays identical:
+
+```csharp
+o.Property(p => p.FullName).Sortable().Filterable();   // FullName = computed column
+```
+
 #### Class-Based PagingOptions with Dependency Injection
 
 Instead of configuring inline, `PagingOptions` can be subclassed and registered in dependency injection.

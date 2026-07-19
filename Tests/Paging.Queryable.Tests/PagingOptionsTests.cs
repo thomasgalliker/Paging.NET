@@ -809,6 +809,104 @@ namespace Paging.Queryable.Tests
         }
 
         [Fact]
+        public void ShouldSortByCombinedStringExpression()
+        {
+            // Arrange: "DisplayName" combines two entity properties into one string,
+            // analogous to a "FirstName LastName" full-name property
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Sortable(c => c.Name + " " + c.Model);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "DisplayName" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: "Audi A4" < "BMW X5" < "Tesla Model 3"
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_ContainsSpansPropertyBoundary()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+
+            // "sla mod" spans the Name/Model boundary of "Tesla Model 3";
+            // lowercase input demonstrates the case-insensitive string semantics
+            var pagingInfo = new PagingInfo { Filter = "DisplayName contains \"sla mod\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_Equal()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "DisplayName == \"audi a4\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: string equality is case-insensitive
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_Ordering()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "DisplayName >= \"BMW X5\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: ordering comparison via string.Compare against the combined key
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 3);
+        }
+
+        [Fact]
+        public void ShouldSearchByCombinedStringExpression()
+        {
+            // Arrange: free-text search over the combined value
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Search(s => c => (c.Name + " " + c.Model).Contains(s));
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Search = "di A4" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: matches across the Name/Model boundary of "Audi A4"
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2);
+        }
+
+        [Fact]
         public void ShouldThrowInvalidOperationException_WhenFilterKeySelectorIsDeclaredOnCollection()
         {
             // Act
