@@ -5,7 +5,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MauiPagingSample</RootNamespace>
     <UseMaui>true</UseMaui>
-    <MauiVersion>10.0.80</MauiVersion>
+    <MauiVersion>10.0.90</MauiVersion>
     <SingleProject>true</SingleProject>
 
     <!-- Display name -->
