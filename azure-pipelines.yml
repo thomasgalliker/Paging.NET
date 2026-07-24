@@ -122,14 +122,6 @@ steps:
         /p:MergeWith=$(Build.SourcesDirectory)/Tests/CoverletOutput/coverage.json
         /p:CoverletOutputFormat=cobertura
 
-  - task: reportgenerator@5
-    displayName: 'Create Code Coverage Report'
-    inputs:
-      reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura*.xml'
-      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
-      reporttypes: 'Cobertura'
-      assemblyfilters: '-xunit*'
-
   - task: DotNetCoreCLI@2
     displayName: 'Create NuGet Packages'
     condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
@@ -151,11 +143,11 @@ steps:
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - task: PublishCodeCoverageResults@2
-    displayName: 'Publish Code Coverage'
+    displayName: 'Publish Code Coverage Results'
     inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      summaryFileLocation: '$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml'
+      pathToSources: '$(Build.SourcesDirectory)'
+      failIfCoverageEmpty: true
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'
