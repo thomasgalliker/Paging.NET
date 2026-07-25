@@ -42,7 +42,7 @@ namespace Paging.Queryable
         /// <remarks>
         /// This is the materialization seam. It does not apply any filtering or sorting; shape the
         /// query first with <see cref="ApplyPaging{TEntity}"/>. <see cref="PaginationSet{T}.TotalCountUnfiltered"/>
-        /// equals <see cref="PaginationSet{T}.TotalCount"/> here, since the unfiltered source is not known.
+        /// is <c>null</c> here, since the unfiltered source is not known.
         /// </remarks>
         /// <param name="queryable">The shaped source query.</param>
         /// <param name="pagingInfo">The paging request. If <c>null</c>, all items are returned in a single page.</param>
@@ -61,7 +61,7 @@ namespace Paging.Queryable
             var totalCount = queryable.Count();
             var items = Materialize(queryable, pagingInfo);
 
-            return new PaginationSet<T>(pagingInfo, items, totalCount, totalCount);
+            return new PaginationSet<T>(pagingInfo, items, totalCount, totalCountUnfiltered: null);
         }
 
         /// <summary>
@@ -88,11 +88,7 @@ namespace Paging.Queryable
             var totalCountUnfiltered = ResolveUnfilteredCount(queryable, pagingInfo, pagingOptions);
             var shaped = QueryShaper.Shape(queryable, pagingInfo, pagingOptions);
             var paginationSet = shaped.ToPaginationSet(pagingInfo);
-
-            if (totalCountUnfiltered.HasValue)
-            {
-                paginationSet.TotalCountUnfiltered = totalCountUnfiltered.Value;
-            }
+            paginationSet.TotalCountUnfiltered = totalCountUnfiltered;
 
             return paginationSet;
         }
@@ -123,11 +119,7 @@ namespace Paging.Queryable
             var shaped = QueryShaper.Shape(queryable, pagingInfo, pagingOptions);
             var projected = shaped.Select(pagingOptions.MapExpression);
             var paginationSet = projected.ToPaginationSet(pagingInfo);
-
-            if (totalCountUnfiltered.HasValue)
-            {
-                paginationSet.TotalCountUnfiltered = totalCountUnfiltered.Value;
-            }
+            paginationSet.TotalCountUnfiltered = totalCountUnfiltered;
 
             return paginationSet;
         }

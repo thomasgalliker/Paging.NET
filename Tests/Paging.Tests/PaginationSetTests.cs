@@ -27,7 +27,7 @@ namespace Paging.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(0);
-            paginationSet.TotalCountUnfiltered.Should().Be(0);
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
             paginationSet.Items.Should().BeEmpty();
         }
 
@@ -62,7 +62,7 @@ namespace Paging.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(items.Count);
-            paginationSet.TotalCountUnfiltered.Should().Be(items.Count);
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
             paginationSet.Items.Should().HaveCount(items.Count);
         }
 
@@ -181,6 +181,70 @@ namespace Paging.Tests
             paginationSetResult.TotalCount.Should().Be(paginationSet.TotalCount);
             paginationSetResult.TotalCountUnfiltered.Should().Be(paginationSet.TotalCountUnfiltered);
             paginationSetResult.Items.Should().BeEquivalentTo(paginationSet.Items);
+        }
+
+        [Fact]
+        public void ShouldSerializePaginationSet_OmitsNullTotalCountUnfiltered()
+        {
+            // Arrange
+            var items = CarFactory.GenerateCarsList(2).ToList();
+            var paginationSet = new PaginationSet<Car>(new PagingInfo { CurrentPage = 2, ItemsPerPage = 2 }, items, 5, totalCountUnfiltered: null);
+
+            // Act
+            var serializeObject = JsonSerializer.Serialize(paginationSet, SerializerOptions);
+
+            // Assert
+            serializeObject.Should()
+                .Be("{\"currentPage\":2,\"totalPages\":3,\"totalCount\":5,\"items\":[{\"Id\":0,\"Name\":\"Car 0\"},{\"Id\":1,\"Name\":\"Car 1\"}]}");
+        }
+
+        [Fact]
+        public void ShouldDeserializePaginationSet_MissingTotalCountUnfilteredIsNull()
+        {
+            // Arrange
+            const string serializeObject =
+                "{\"currentPage\":2,\"totalPages\":3,\"totalCount\":5,\"items\":[{\"id\":1,\"name\":\"Car 1\"}]}";
+
+            // Act
+            var paginationSet = JsonSerializer.Deserialize<PaginationSet<Car>>(serializeObject, SerializerOptions);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet!.TotalCount.Should().Be(5);
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
+        }
+
+        [Fact]
+        public void ShouldDeserializePaginationSet_NullTotalCountUnfilteredIsNull()
+        {
+            // Arrange
+            const string serializeObject =
+                "{\"currentPage\":2,\"totalPages\":3,\"totalCount\":5,\"totalCountUnfiltered\":null,\"items\":[{\"id\":1,\"name\":\"Car 1\"}]}";
+
+            // Act
+            var paginationSet = JsonSerializer.Deserialize<PaginationSet<Car>>(serializeObject, SerializerOptions);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet!.TotalCount.Should().Be(5);
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
+        }
+
+        [Fact]
+        public void ShouldRoundTripPaginationSet_PreservesNullTotalCountUnfiltered()
+        {
+            // Arrange
+            var items = CarFactory.GenerateCarsList(2).ToList();
+            var paginationSet = new PaginationSet<Car>(new PagingInfo { CurrentPage = 2, ItemsPerPage = 2 }, items, 5, totalCountUnfiltered: null);
+
+            // Act
+            var serializeObject = JsonSerializer.Serialize(paginationSet, SerializerOptions);
+            var paginationSetResult = JsonSerializer.Deserialize<PaginationSet<Car>>(serializeObject, SerializerOptions);
+
+            // Assert
+            paginationSetResult.Should().NotBeNull();
+            paginationSetResult!.TotalCount.Should().Be(5);
+            paginationSetResult.TotalCountUnfiltered.Should().BeNull();
         }
 
         private static void ResetDefaults()

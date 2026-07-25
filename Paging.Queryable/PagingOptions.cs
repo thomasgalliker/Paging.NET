@@ -228,7 +228,7 @@ namespace Paging.Queryable
         /// <summary>
         /// Configures whether <see cref="PaginationSet{T}.TotalCountUnfiltered"/> is computed
         /// with a separate (unfiltered) count query. Disabled by default to avoid the extra
-        /// round-trip; when disabled, <c>TotalCountUnfiltered</c> equals <c>TotalCount</c>.
+        /// round-trip; when disabled, <c>TotalCountUnfiltered</c> is <c>null</c>.
         /// Only honored by the convenience overloads that own the unfiltered source query.
         /// </summary>
         public void IncludeUnfilteredCount(bool include = true)

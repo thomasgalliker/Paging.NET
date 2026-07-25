@@ -30,7 +30,7 @@ namespace Paging.EF
             var totalCount = await queryable.CountAsync(cancellationToken).ConfigureAwait(false);
             var items = await MaterializeAsync(queryable, pagingInfo, cancellationToken).ConfigureAwait(false);
 
-            return new PaginationSet<T>(pagingInfo, items, totalCount, totalCount);
+            return new PaginationSet<T>(pagingInfo, items, totalCount, totalCountUnfiltered: null);
         }
 
         /// <summary>
@@ -48,11 +48,7 @@ namespace Paging.EF
             var totalCountUnfiltered = await ResolveUnfilteredCountAsync(queryable, pagingInfo, pagingOptions, cancellationToken).ConfigureAwait(false);
             var shaped = queryable.ApplyPaging(pagingInfo, pagingOptions);
             var paginationSet = await shaped.ToPaginationSetAsync(pagingInfo, cancellationToken).ConfigureAwait(false);
-
-            if (totalCountUnfiltered.HasValue)
-            {
-                paginationSet.TotalCountUnfiltered = totalCountUnfiltered.Value;
-            }
+            paginationSet.TotalCountUnfiltered = totalCountUnfiltered;
 
             return paginationSet;
         }
@@ -74,11 +70,7 @@ namespace Paging.EF
             var shaped = queryable.ApplyPaging(pagingInfo, pagingOptions);
             var projected = shaped.Select(pagingOptions.MapExpression);
             var paginationSet = await projected.ToPaginationSetAsync(pagingInfo, cancellationToken).ConfigureAwait(false);
-
-            if (totalCountUnfiltered.HasValue)
-            {
-                paginationSet.TotalCountUnfiltered = totalCountUnfiltered.Value;
-            }
+            paginationSet.TotalCountUnfiltered = totalCountUnfiltered;
 
             return paginationSet;
         }

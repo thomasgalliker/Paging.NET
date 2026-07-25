@@ -133,8 +133,9 @@ namespace Paging.MAUI
         /// <summary>
         /// Gets the last loaded page's <see cref="PaginationSet{T}"/>. It is <c>null</c> if no loading has taken
         /// place, i.e. before the first load and after <see cref="RefreshAsync"/> resets the collection. Carries the
-        /// server-side totals (<see cref="PaginationSet{T}.TotalCount"/> / <see cref="PaginationSet{T}.TotalCountUnfiltered"/>)
-        /// so callers can derive empty-state without tracking the loaded pages themselves. Note this is distinct from
+        /// server-side totals (<see cref="PaginationSet{T}.TotalCount"/> / <see cref="PaginationSet{T}.TotalCountUnfiltered"/>,
+        /// the latter <c>null</c> unless the server computes it) so callers can derive empty-state without tracking
+        /// the loaded pages themselves. Note this is distinct from
         /// <see cref="Collection{T}.Count"/>, which is the number of items loaded so far. Populated only by the
         /// self-contained page-loader path; <c>null</c> for delegate-driven collections.
         /// </summary>

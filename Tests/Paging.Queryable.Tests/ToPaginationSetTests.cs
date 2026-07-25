@@ -33,7 +33,7 @@ namespace Paging.Queryable.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(10);
-            paginationSet.TotalCountUnfiltered.Should().Be(10);
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
         }
 
         [Fact]
@@ -707,8 +707,8 @@ namespace Paging.Queryable.Tests
             // Assert
             paginationSet.Items.Should().HaveCount(2);
             paginationSet.TotalCount.Should().Be(6);
-            // Unfiltered count is not known on the manual seam; it equals the filtered count
-            paginationSet.TotalCountUnfiltered.Should().Be(6);
+            // Unfiltered count is not computed on the manual seam
+            paginationSet.TotalCountUnfiltered.Should().BeNull();
         }
 
         private static IQueryable<Car> CreateMixedBrandCars()

@@ -60,7 +60,7 @@ In Paging.NET, the client sends a paging request as a `PagingInfo`, and the serv
 | `CurrentPage`          | The current page number of the returned result. This value is relative to `FirstPageIndex`. |
 | `TotalPages`           | Total number of pages available for the current filter and search criteria.                 |
 | `TotalCount`           | Total number of items matching the current filter and search criteria.                      |
-| `TotalCountUnfiltered` | Total number of items before filter or search is applied.                                   |
+| `TotalCountUnfiltered` | Total number of items before filter or search is applied; `null` when not computed.         |
 | `Items`                | The items contained in the current page.                                                    |
 
 #### Basic Example
@@ -407,8 +407,9 @@ var set = dbContext.Cars.ToPaginationSet(pagingInfo, pagingOptions);
 var setAsync = await dbContext.Cars.ToPaginationSetAsync(pagingInfo, pagingOptions, cancellationToken);
 ```
 
-By default `PaginationSet.TotalCountUnfiltered` equals `TotalCount` (no extra count query is issued).
+By default `PaginationSet.TotalCountUnfiltered` is `null` (no extra count query is issued).
 Call `o.IncludeUnfilteredCount()` in `PagingOptions` to compute the unfiltered total with a separate count.
+When it is `null`, the field is omitted from the JSON representation.
 
 #### Mapping the Result In-Memory
 
@@ -473,7 +474,8 @@ this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { Item
 ```
 
 `Cars.PaginationSet` is the last loaded page's `PaginationSet`; it is `null` if no loading has taken place. It
-exposes the server-side totals (`TotalCount` / `TotalCountUnfiltered`) for empty-state and raises `PropertyChanged`.
+exposes the server-side totals (`TotalCount` / `TotalCountUnfiltered`, the latter `null` unless the server
+computes it) for empty-state and raises `PropertyChanged`.
 Chain `.OnPaginationSetChanged(() => ...)` to react to it directly
 instead of subscribing to `PropertyChanged` and filtering by property name. Call `RefreshAsync()` after changing `Cars.PagingInfo.Search`,
 `Filter` or `SortBy` to clear the list and reload from the first page. If a load is still in progress (for

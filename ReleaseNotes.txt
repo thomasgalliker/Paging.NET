@@ -14,6 +14,7 @@
   RemainingItemsThresholdReached mechanism, with bindable RemainingItemsThreshold property.
 - Breaking change: The ListView-based InfiniteScrollBehavior moved to namespace Paging.MAUI.Compat
   and will be removed in a future release.
+- Make PaginationSet.TotalCountUnfiltered nullable.
 
 4.1
 - Maintenance updates.

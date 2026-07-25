@@ -64,7 +64,7 @@ namespace Paging
                             paginationSet.TotalCount = ReadInt32(ref reader);
                             break;
                         case "totalcountunfiltered":
-                            paginationSet.TotalCountUnfiltered = ReadInt32(ref reader);
+                            paginationSet.TotalCountUnfiltered = ReadNullableInt32(ref reader);
                             break;
                         case "items":
                             paginationSet.Items = JsonSerializer.Deserialize<IEnumerable<T>>(ref reader, options) ?? Enumerable.Empty<T>();
@@ -89,10 +89,24 @@ namespace Paging
                 writer.WriteNumber("currentPage", value.CurrentPage);
                 writer.WriteNumber("totalPages", value.TotalPages);
                 writer.WriteNumber("totalCount", value.TotalCount);
-                writer.WriteNumber("totalCountUnfiltered", value.TotalCountUnfiltered);
+                if (value.TotalCountUnfiltered is int totalCountUnfiltered)
+                {
+                    writer.WriteNumber("totalCountUnfiltered", totalCountUnfiltered);
+                }
+
                 writer.WritePropertyName("items");
                 JsonSerializer.Serialize(writer, value.Items, options);
                 writer.WriteEndObject();
+            }
+
+            private static int? ReadNullableInt32(ref Utf8JsonReader reader)
+            {
+                if (reader.TokenType == JsonTokenType.Null)
+                {
+                    return null;
+                }
+
+                return ReadInt32(ref reader);
             }
 
             private static int ReadInt32(ref Utf8JsonReader reader)
