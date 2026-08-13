@@ -62,8 +62,30 @@ namespace Paging.Tests
             paginationSet.CurrentPage.Should().Be(1);
             paginationSet.TotalPages.Should().Be(1);
             paginationSet.TotalCount.Should().Be(items.Count);
-            paginationSet.TotalCountUnfiltered.Should().BeNull();
+
+            // The collection is complete and unfiltered, so the unfiltered total is known here.
+            paginationSet.TotalCountUnfiltered.Should().Be(items.Count);
             paginationSet.Items.Should().HaveCount(items.Count);
+        }
+
+        [Fact]
+        public void ShouldEnumerateItemsOnce_WhenCollectionIsLazy()
+        {
+            // Arrange
+            var enumerationCount = 0;
+            var items = CarFactory.GenerateCarsList(3).Select(c =>
+            {
+                enumerationCount++;
+                return c;
+            });
+
+            // Act
+            var paginationSet = new PaginationSet<Car>(items);
+
+            // Assert
+            enumerationCount.Should().Be(3);
+            paginationSet.TotalCount.Should().Be(3);
+            paginationSet.TotalCountUnfiltered.Should().Be(3);
         }
 
         [Theory]

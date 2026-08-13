@@ -55,7 +55,10 @@ namespace Paging.Queryable
 
             if (pagingInfo == null)
             {
-                return new PaginationSet<T>(queryable.ToList());
+                // Not the PaginationSet(items) constructor: the query may already be filtered by the
+                // caller, so its count is the filtered total and the unfiltered one stays unknown.
+                var allItems = queryable.ToList();
+                return new PaginationSet<T>(pagingInfo, allItems, allItems.Count, totalCountUnfiltered: null);
             }
 
             var totalCount = queryable.Count();

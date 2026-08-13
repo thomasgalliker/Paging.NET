@@ -5,18 +5,33 @@ namespace Paging
     [JsonConverter(typeof(PaginationSetJsonConverterFactory))]
     public class PaginationSet<T>
     {
+        /// <summary>
+        /// Creates an empty PaginationSet. <see cref="TotalCountUnfiltered"/> is <c>null</c> (unknown),
+        /// which is also the default a deserializer starts from when the payload omits the property.
+        /// </summary>
         public PaginationSet()
-            : this(new HashSet<T>())
+            : this(new PagingInfo(), Enumerable.Empty<T>(), totalCount: 0, totalCountUnfiltered: null)
         {
         }
 
         /// <summary>
         /// Creates a new PaginationSet with a given collection of <typeparamref name="T"/>.
         /// Since no <seealso cref="PagingInfo"/> is specified, a single-page request is assumed.
+        /// The collection is complete and unfiltered, so <see cref="TotalCountUnfiltered"/> equals
+        /// <see cref="TotalCount"/> — it is known here, unlike in the query-based overloads.
         /// </summary>
         /// <param name="items">The collection of items.</param>
         public PaginationSet(IEnumerable<T> items)
-            : this(new PagingInfo(), items, items.Count(), totalCountUnfiltered: null)
+            : this(items as IReadOnlyCollection<T> ?? items.ToList())
+        {
+        }
+
+        /// <summary>
+        /// Counts the materialized collection once, so a lazily evaluated <paramref name="items"/>
+        /// is not enumerated again for the two totals.
+        /// </summary>
+        private PaginationSet(IReadOnlyCollection<T> items)
+            : this(new PagingInfo(), items, items.Count, items.Count)
         {
         }
 
