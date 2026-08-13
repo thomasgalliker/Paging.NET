@@ -1,27 +1,11 @@
 using System.Collections.ObjectModel;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace Paging
 {
     public static class PagingInfoExtensions
     {
-        /// <summary>
-        /// Maps Items of <paramref name="paginationSet"/> into a new <see cref="PaginationSet{TTarget}"/>
-        /// using the mapping logic in parameter <paramref name="mapSourceToTarget"/>.
-        /// </summary>
-        /// <typeparam name="TSource">Source type (e.g. entity type).</typeparam>
-        /// <typeparam name="TTarget">Target type (e.g. DTO, ViewModel type).</typeparam>
-        /// <param name="pagingInfo">The source paginationInfo.</param>
-        /// <param name="paginationSet">The source paginationSet.</param>
-        /// <param name="mapSourceToTarget">The mapping logic which maps <see cref="IEnumerable{TSource}"/> to <see cref="IEnumerable{TTarget}"/>.</param>
-        /// <returns>A new <see cref="PaginationSet{TTarget}"/> containing the mapped items.</returns>
-        public static PaginationSet<TTarget> Map<TSource, TTarget>(this PagingInfo pagingInfo, PaginationSet<TSource> paginationSet, Func<IEnumerable<TSource>, IEnumerable<TTarget>> mapSourceToTarget)
-        {
-            var sourceItems = paginationSet.Items;
-            var targetItems = mapSourceToTarget(sourceItems);
-            var paginationSetTarget = new PaginationSet<TTarget>(pagingInfo, targetItems, paginationSet.TotalCount, paginationSet.TotalCountUnfiltered);
-            return paginationSetTarget;
-        }
-
         /// <summary>
         /// Converts a <c>SortBy</c> string into a sorting dictionary keyed by property name.
         /// </summary>
@@ -43,7 +27,12 @@ namespace Paging
                     var value = SortOrder.Asc;
                     if (sortSplit.Length == 2)
                     {
+                        // Accepts both the name form (asc/desc/none) and the numeric form (1/-1/0).
                         value = (SortOrder)Enum.Parse(typeof(SortOrder), sortSplit[1], ignoreCase: true);
+                        if (!Enum.IsDefined(typeof(SortOrder), value))
+                        {
+                            throw new ArgumentException($"Requested value '{sortSplit[1]}' was not found.", nameof(sortBy));
+                        }
                     }
 
                     return new { Key = key, Value = value };
@@ -71,7 +60,8 @@ namespace Paging
             }
             else
             {
-                sortBy = string.Join(", ", sorting.Select(kvp => $"{kvp.Key} {kvp.Value}"));
+                // SortOrder.None means "no sort", so such entries are omitted from the SortBy string.
+                sortBy = string.Join(", ", sorting.Where(kvp => kvp.Value != SortOrder.None).Select(kvp => $"{kvp.Key} {kvp.Value}"));
                 if (sortBy == string.Empty)
                 {
                     sortBy = null;
@@ -91,35 +81,57 @@ namespace Paging
             // Get all properties on the object
             var properties = new Dictionary<string, string>
             {
-                { nameof(PagingInfo.CurrentPage), $"{pagingInfo.CurrentPage}" }
+                { ToJsonName(nameof(PagingInfo.CurrentPage)), $"{pagingInfo.CurrentPage}" }
             };
 
             if (pagingInfo.FirstPageIndex != PagingInfo.DefaultFirstPageIndex)
             {
-                properties.Add(nameof(PagingInfo.FirstPageIndex), $"{pagingInfo.FirstPageIndex}");
+                properties.Add(ToJsonName(nameof(PagingInfo.FirstPageIndex)), $"{pagingInfo.FirstPageIndex}");
             }
 
             if (pagingInfo.ItemsPerPage is int itemsPerPage)
             {
-                properties.Add(nameof(PagingInfo.ItemsPerPage), $"{itemsPerPage}");
+                properties.Add(ToJsonName(nameof(PagingInfo.ItemsPerPage)), $"{itemsPerPage}");
             }
 
             if (!string.IsNullOrEmpty(pagingInfo.SortBy))
             {
-                properties.Add(nameof(PagingInfo.SortBy), pagingInfo.SortBy!);
+                properties.Add(ToJsonName(nameof(PagingInfo.SortBy)), pagingInfo.SortBy!);
             }
 
             if (pagingInfo.Reverse)
             {
-                properties.Add(nameof(PagingInfo.Reverse), $"{pagingInfo.Reverse}");
+                properties.Add(ToJsonName(nameof(PagingInfo.Reverse)), $"{pagingInfo.Reverse}");
             }
 
             if (!string.IsNullOrEmpty(pagingInfo.Search))
             {
-                properties.Add(nameof(PagingInfo.Search), pagingInfo.Search!);
+                properties.Add(ToJsonName(nameof(PagingInfo.Search)), pagingInfo.Search!);
+            }
+
+            if (pagingInfo.Filter is FilterNode filter)
+            {
+                // Canonical filter expression string, e.g. Year >= 2020 && Name contains "bmw".
+                // ToQueryString URL-encodes the value; the server side parses it back via
+                // FilterNode.Parse (see FilterNodeTypeConverter for query-string model binding).
+                properties.Add(ToJsonName(nameof(PagingInfo.Filter)), filter.ToString());
             }
 
             return new ReadOnlyDictionary<string, string>(properties);
+        }
+
+        // Maps PagingInfo CLR property names to their JSON property names so the query string
+        // shares the same camelCase contract as JSON serialization. The [JsonPropertyName]
+        // attributes on PagingInfo remain the single source of truth for the wire format.
+        private static readonly IReadOnlyDictionary<string, string> JsonPropertyNames = typeof(PagingInfo)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(p => new { p.Name, JsonName = p.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name })
+            .Where(p => p.JsonName != null)
+            .ToDictionary(p => p.Name, p => p.JsonName!);
+
+        private static string ToJsonName(string propertyName)
+        {
+            return JsonPropertyNames.TryGetValue(propertyName, out var value) ? value : throw new InvalidOperationException($"Property {propertyName} does not have a JsonPropertyNameAttribute");
         }
 
         /// <summary>

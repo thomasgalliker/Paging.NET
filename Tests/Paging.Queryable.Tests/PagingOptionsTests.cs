@@ -1,0 +1,1303 @@
+using Moq;
+using Paging.Queryable.Tests.TestData;
+
+namespace Paging.Queryable.Tests
+{
+    public class PagingOptionsTests
+    {
+        [Fact]
+        public void ShouldSortByRegisteredProperty_ExternalNameInferred_CaseInsensitive()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Sortable());
+            var pagingInfo = new PagingInfo { SortBy = "name" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Name).Should().Equal("Audi", "BMW", "Tesla");
+        }
+
+        [Fact]
+        public void ShouldSortByMappedExternalName()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Model).HasName("Brand").Sortable());
+            var pagingInfo = new PagingInfo { SortBy = "Brand desc" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Model).Should().Equal("X5", "Model 3", "A4");
+        }
+
+        [Fact]
+        public void ShouldSortByNestedPropertyPath()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Owner!.Name).HasName("owner").Sortable());
+            var pagingInfo = new PagingInfo { SortBy = "owner" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 3, 1);
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_WhenSortPropertyNotRegistered()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Sortable());
+            var pagingInfo = new PagingInfo { SortBy = "Price" };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("Price");
+        }
+
+        [Fact]
+        public void ShouldIgnoreUnknownSortProperty_AndApplyDefaultSort()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.UnknownSortProperties(UnknownPropertyHandling.Ignore);
+                o.DefaultSort(c => c.Id, SortOrder.Desc);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "Price" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Fact]
+        public void ShouldSortByComputedExpression()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Rank").Sortable(c => c.IsElectric ? 0 : (c.Year < 2015 ? 2 : 1));
+            });
+            var pagingInfo = new PagingInfo { SortBy = "rank" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Fact]
+        public void ShouldSortByComputedExpression_Reversed()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Rank").Sortable(c => c.IsElectric ? 0 : (c.Year < 2015 ? 2 : 1));
+            });
+            var pagingInfo = new PagingInfo { SortBy = "Rank", Reverse = true };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
+        public void ShouldEvaluateSortKeyFactory_OnEveryQuery()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var negate = false;
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("year").Sortable(() => negate
+                    ? (Expression<Func<Car, int>>)(c => -c.Year)
+                    : c => c.Year);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "year" };
+
+            // Act
+            var paginationSet1 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+            negate = true;
+            var paginationSet2 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet1.Items.Select(c => c.Id).Should().Equal(1, 2, 3);
+            paginationSet2.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Fact]
+        public void ShouldApplyDefaultSort_AsPrimarySortOrder_NotAffectedByReverse()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.DefaultSort(c => c.Id, SortOrder.Desc));
+            var pagingInfo = new PagingInfo { Reverse = true };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Fact]
+        public void ShouldApplyDefaultSort_AsTieBreaker()
+        {
+            // Arrange
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "BMW" },
+                new Car { Id = 2, Name = "BMW" },
+                new Car { Id = 3, Name = "Audi" },
+            }.AsQueryable();
+
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Sortable();
+                o.DefaultSort(c => c.Id, SortOrder.Desc);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "Name" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Fact]
+        public void ShouldApplyDefaultSort_WhenPagingInfoIsNull()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.DefaultSort(c => c.Id, SortOrder.Desc));
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(null, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+        }
+
+        [Theory]
+        [InlineData("year 1", new[] { 1, 2, 3 })]
+        [InlineData("year asc", new[] { 1, 2, 3 })]
+        [InlineData("year -1", new[] { 3, 2, 1 })]
+        [InlineData("year desc", new[] { 3, 2, 1 })]
+        public void ShouldSortByNumericToken_EquivalentToNameToken(string sortBy, int[] expectedIds)
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Year).Sortable());
+            var pagingInfo = new PagingInfo { SortBy = sortBy };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(expectedIds);
+        }
+
+        [Fact]
+        public void ShouldTreatNoneAsUnsorted_AndFallBackToDefaultSort()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Sortable();
+                o.DefaultSort(c => c.Name, SortOrder.Asc);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "year 0" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            // SortOrder.None (0) is ignored, so ordering falls back to the default sort (Name asc):
+            // Audi(2), BMW(1), Tesla(3).
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByMappedExternalName()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Model).HasName("Brand").Filterable();
+                o.IncludeUnfilteredCount();
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("brand", FilterOperator.Contains, "model"),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+            paginationSet.TotalCount.Should().Be(1);
+            paginationSet.TotalCountUnfiltered.Should().Be(3);
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_WhenFilterPropertyNotRegistered()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Sortable());
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Price", FilterOperator.Equal, 30000m),
+            };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("Price");
+        }
+
+        [Fact]
+        public void ShouldIgnoreUnknownFilterProperty()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.UnknownFilterProperties(UnknownPropertyHandling.Ignore));
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Price", FilterOperator.Equal, 30000m),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public void ShouldConfigureUnknownHandling_SeparatelyForSortAndFilter()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Price).Filterable();
+                o.UnknownSortProperties(UnknownPropertyHandling.Ignore);
+                o.UnknownFilterProperties(UnknownPropertyHandling.Throw);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                // Unknown sort property is ignored, while the registered filter property is applied
+                SortBy = "Unknown",
+                Filter = new FilterCondition("Price", FilterOperator.GreaterThanOrEqual, 40000m),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().HaveCount(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByCustomPredicate()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("electric").Filterable(value => value is bool isElectric
+                    ? (isElectric ? (Expression<Func<Car, bool>>)(c => c.IsElectric) : c => !c.IsElectric)
+                    : null);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Electric", FilterOperator.Equal, true),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldSkipCustomFilterPredicate_WhenFactoryReturnsNull()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("electric").Filterable(value => value is bool isElectric
+                    ? (Expression<Func<Car, bool>>)(c => c.IsElectric == isElectric)
+                    : null);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("electric", FilterOperator.Equal, "not-a-bool"),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public void ShouldRestrictPropertyToSorting()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Sortable();
+            });
+            var sortPagingInfo = new PagingInfo { SortBy = "Year desc" };
+            var filterPagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
+            };
+
+            // Act
+            var sortedPaginationSet = carsQueryable.ToPaginationSet(sortPagingInfo, pagingOptions);
+            Action filterAction = () => carsQueryable.ToPaginationSet(filterPagingInfo, pagingOptions);
+
+            // Assert
+            sortedPaginationSet.Items.Select(c => c.Id).Should().Equal(3, 2, 1);
+            filterAction.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("Year");
+        }
+
+        [Fact]
+        public void ShouldRestrictPropertyToFiltering()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Filterable();
+            });
+            var sortPagingInfo = new PagingInfo { SortBy = "Year" };
+            var filterPagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
+            };
+
+            // Act
+            Action sortAction = () => carsQueryable.ToPaginationSet(sortPagingInfo, pagingOptions);
+            var filteredPaginationSet = carsQueryable.ToPaginationSet(filterPagingInfo, pagingOptions);
+
+            // Assert
+            sortAction.Should().Throw<PagingException>().Which.PropertyName.Should().Be("Year");
+            filteredPaginationSet.Items.Select(c => c.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldSortByCustomKey_AndFilterByPropertyPath_OnSameProperty()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year)
+                    .Sortable(c => c.Year < 2015 ? 1 : 0)   // custom sort key...
+                    .Filterable();                          // ...while filtering uses the Year property
+            });
+            var sortPagingInfo = new PagingInfo { SortBy = "Year" };
+            var filterPagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.Equal, 2010),
+            };
+
+            // Act
+            var sortedPaginationSet = carsQueryable.ToPaginationSet(sortPagingInfo, pagingOptions);
+            var filteredPaginationSet = carsQueryable.ToPaginationSet(filterPagingInfo, pagingOptions);
+
+            // Assert
+            sortedPaginationSet.Items.Select(c => c.Id).Should().Equal(2, 3, 1);
+            filteredPaginationSet.Items.Select(c => c.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenSortableIsDeclaredTwice()
+        {
+            // Act
+            Action action = () => new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Sortable().Sortable(c => c.Year);
+            });
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*already declared as sortable*");
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenNoCapabilityIsDeclared()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Year));
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(new PagingInfo(), pagingOptions);
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*declares no capabilities*");
+        }
+
+        [Fact]
+        public void ShouldThrowArgumentException_WhenComputedExpressionIsRegisteredAsProperty()
+        {
+            // Act
+            Action action = () => new PagingOptions<Car>(o => o.Property(c => c.Year + 1));
+
+            // Assert
+            action.Should().Throw<ArgumentException>()
+                .WithMessage("*property access chain*");
+        }
+
+        [Fact]
+        public void ShouldThrowArgumentException_WhenExternalNameIsRegisteredTwice()
+        {
+            // Act
+            Action action = () => new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Sortable();
+                o.Property("name").Sortable(c => c.Name);
+            });
+
+            // Assert
+            action.Should().Throw<ArgumentException>()
+                .WithMessage("*'name'*already registered*");
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_WhenRegisteredPropertyPathIsInvalid()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property("Owner.Nonexistent").Sortable());
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(new PagingInfo(), pagingOptions);
+
+            // Assert
+            action.Should().Throw<PagingException>()
+                .WithMessage("*Owner.Nonexistent*");
+        }
+
+        [Fact]
+        public void ShouldApplySearchPredicate_OnlyWhenSearchTextIsNotEmpty()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var searchInvoked = false;
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Search(s =>
+                {
+                    searchInvoked = true;
+                    return c => c.Name != null && c.Name.ToLower().Contains(s.ToLower());
+                });
+                o.IncludeUnfilteredCount();
+            });
+
+            // Act
+            var emptySearchPaginationSet = carsQueryable.ToPaginationSet(new PagingInfo { Search = "" }, pagingOptions);
+            var searchInvokedAfterEmptySearch = searchInvoked;
+            var searchPaginationSet = carsQueryable.ToPaginationSet(new PagingInfo { Search = "bmw" }, pagingOptions);
+
+            // Assert
+            searchInvokedAfterEmptySearch.Should().BeFalse();
+            searchInvoked.Should().BeTrue();
+            emptySearchPaginationSet.Items.Should().HaveCount(3);
+            searchPaginationSet.Items.Select(c => c.Id).Should().Equal(1);
+            searchPaginationSet.TotalCount.Should().Be(1);
+            searchPaginationSet.TotalCountUnfiltered.Should().Be(3);
+        }
+
+        [Fact]
+        public void ShouldMatchExternalNamesCaseSensitive_WithOrdinalNameComparer()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.NameComparer(StringComparer.Ordinal);
+                o.Property(c => c.Model).HasName("Brand").Sortable();
+            });
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(new PagingInfo { SortBy = "Brand" }, pagingOptions);
+            Action action = () => carsQueryable.ToPaginationSet(new PagingInfo { SortBy = "brand" }, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Model).Should().Equal("A4", "Model 3", "X5");
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("brand");
+        }
+
+        [Fact]
+        public void ShouldFreezeOnFirstUse_AndRemainReusable()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Sortable());
+            var pagingInfo = new PagingInfo { SortBy = "Name" };
+
+            // Act
+            var paginationSet1 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+            Action configureAction = () => pagingOptions.Property(c => c.Model);
+            var paginationSet2 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            configureAction.Should().Throw<InvalidOperationException>();
+            paginationSet1.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+            paginationSet2.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenMapIsNotConfigured()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car, CarDto>(o => o.Property(c => c.Name).Sortable());
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(new PagingInfo(), pagingOptions);
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*Map(...)*");
+        }
+
+        [Fact]
+        public void ShouldUseClassBasedPagingOptions()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+
+            var dateTimeMock = new Mock<IDateTime>();
+            dateTimeMock.SetupGet(d => d.UtcNow)
+                .Returns(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+            var pagingOptions = new CarPagingOptions(dateTimeMock.Object);
+            var pagingInfo = new PagingInfo { SortBy = "Age", Search = "BMW" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Should().NotBeNull();
+            paginationSet.Items.Should().AllBeOfType<CarDto>();
+            paginationSet.Items.Select(c => c.Name).Should().Equal("BMW");
+            paginationSet.TotalCount.Should().Be(1);
+            paginationSet.TotalCountUnfiltered.Should().Be(3);
+        }
+
+        [Fact]
+        public void ShouldSortByComputedAge_WithClassBasedPagingOptions()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+
+            var dateTimeMock = new Mock<IDateTime>();
+            dateTimeMock.SetupGet(d => d.UtcNow)
+                .Returns(new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+            var pagingOptions = new CarPagingOptions(dateTimeMock.Object);
+            var pagingInfo = new PagingInfo { SortBy = "Age desc" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByStringEquality_CaseInsensitiveByDefault()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Filterable());
+
+            // Act
+            var lower = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.Equal, "bmw") }, pagingOptions);
+            var upper = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.Equal, "BMW") }, pagingOptions);
+
+            // Assert: string equality is case-insensitive regardless of the value's casing
+            lower.Items.Select(c => c.Id).Should().Equal(1);
+            upper.Items.Select(c => c.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldFilterByNotContains_CaseInsensitive()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Name", FilterOperator.NotContains, "E"),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: "Tesla" contains 'e'; "BMW" and "Audi" do not
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2);
+        }
+
+        [Fact]
+        public void ShouldFilterByNotIn()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.NotIn, new object[] { 2010, 2020 }),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldFilterByCollectionAny()
+        {
+            // Arrange
+            var garages = new[]
+            {
+                new Garage { Id = 1, Cars = { new GarageCar { Brand = "BMW" } } },
+                new Garage { Id = 2, Cars = { new GarageCar { Brand = "Audi" } } },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Garage>(o =>
+            {
+                o.Property((Garage g) => g.Cars, (GarageCar c) => c.Brand).HasName("car").Filterable();
+                o.DefaultSort(g => g.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("car", FilterOperator.Contains, "bm"),
+            };
+
+            // Act
+            var paginationSet = garages.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: only garage 1 has a car whose brand contains "bm"
+            paginationSet.Items.Select(g => g.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenCollectionPropertyIsDeclaredSortable()
+        {
+            // Act
+            Action action = () => new PagingOptions<Garage>(o =>
+                o.Property((Garage g) => g.Cars, (GarageCar c) => c.Brand).Sortable());
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*collection*cannot be declared as sortable*");
+        }
+
+        [Fact]
+        public void ShouldFilterByComputedExpression()
+        {
+            // Arrange: "Age" is a computed value, not an entity property;
+            // all built-in operators work against the computed key
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Age").Filterable(c => 2026 - c.Year);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age >= 6" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: 2026-2010=16 (car 1), 2026-2020=6 (car 2); car 3 (age 4) excluded
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2);
+        }
+
+        [Fact]
+        public void ShouldFilterByComputedExpression_WithInOperator()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("Age").Filterable(c => 2026 - c.Year);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age !in [16, 6]" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: negation composes with the computed key
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldEvaluateFilterKeyFactory_OnEveryQuery()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var year = 2026;
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                // Factory captures a changing value, evaluated per query
+                o.Property("Age").Filterable(() => (Expression<Func<Car, int>>)(c => year - c.Year));
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Age == 6" };
+
+            // Act
+            var paginationSet1 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+            year = 2028;
+            var paginationSet2 = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: 2026-2020=6 -> car 2; 2028-2022=6 -> car 3
+            paginationSet1.Items.Select(c => c.Id).Should().Equal(2);
+            paginationSet2.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldSortByCombinedStringExpression()
+        {
+            // Arrange: "DisplayName" combines two entity properties into one string,
+            // analogous to a "FirstName LastName" full-name property
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Sortable(c => c.Name + " " + c.Model);
+            });
+            var pagingInfo = new PagingInfo { SortBy = "DisplayName" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: "Audi A4" < "BMW X5" < "Tesla Model 3"
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 1, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_ContainsSpansPropertyBoundary()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+
+            // "sla mod" spans the Name/Model boundary of "Tesla Model 3";
+            // lowercase input demonstrates the case-insensitive string semantics
+            var pagingInfo = new PagingInfo { Filter = "DisplayName contains \"sla mod\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_Equal()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "DisplayName == \"audi a4\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: string equality is case-insensitive
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByCombinedStringExpression_Ordering()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property("DisplayName").Filterable(c => c.Name + " " + c.Model);
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "DisplayName >= \"BMW X5\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: ordering comparison via string.Compare against the combined key
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 3);
+        }
+
+        [Fact]
+        public void ShouldSearchByCombinedStringExpression()
+        {
+            // Arrange: free-text search over the combined value
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Search(s => c => (c.Name + " " + c.Model).Contains(s));
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Search = "di A4" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: matches across the Name/Model boundary of "Audi A4"
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenFilterKeySelectorIsDeclaredOnCollection()
+        {
+            // Act
+            Action action = () => new PagingOptions<Garage>(o =>
+                o.Property((Garage g) => g.Cars, (GarageCar c) => c.Brand).Filterable((Garage g) => g.Id));
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*collection*does not support*");
+        }
+
+        [Fact]
+        public void ShouldThrowInvalidOperationException_WhenCustomFilterIsDeclaredOnCollection()
+        {
+            // Act
+            Action action = () => new PagingOptions<Garage>(o =>
+                o.Property((Garage g) => g.Cars, (GarageCar c) => c.Brand).Filterable((op, value) => null));
+
+            // Assert
+            action.Should().Throw<InvalidOperationException>()
+                .WithMessage("*collection*does not support a custom filter*");
+        }
+
+        [Fact]
+        public void ShouldFilterByCaseInsensitiveEquality_WithNullProperty_ExcludesNullAndDoesNotThrow()
+        {
+            // Arrange: a null string property must not throw NullReferenceException on ToLower in memory
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "BMW" },
+                new Car { Id = 2, Name = null },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.Equal, "bmw") };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: the null-named car is excluded (a null value never equals the filter value)
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldFilterByCaseInsensitiveInequality_WithNullProperty_IncludesNull()
+        {
+            // Arrange
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "BMW" },
+                new Car { Id = 2, Name = "Audi" },
+                new Car { Id = 3, Name = null },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.NotEqual, "bmw") };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: everything that is not "bmw", including the null-named car
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByIn_WithNullProperty_ExcludesNullAndDoesNotThrow()
+        {
+            // Arrange
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "BMW" },
+                new Car { Id = 2, Name = null },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Name", FilterOperator.In, new object[] { "bmw", "audi" }),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: the null-named car is excluded and no NullReferenceException is thrown
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1);
+        }
+
+        [Fact]
+        public void ShouldFilterByNotIn_WithNullElementInList_IgnoresNullAndKeepsFiltering()
+        {
+            // Arrange: a null element in an IN list on a non-nullable value-type property must not throw
+            // (List<int>.Add(null)) and silently drop the whole condition; it is ignored, Id 1 still excluded.
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Id).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Id", FilterOperator.NotIn, new object?[] { 1, null }),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(2, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByNotContains_WithEmptyValue_MatchesNothing()
+        {
+            // Arrange: every string contains the empty needle, so its negation matches nothing
+            // (rather than being skipped, which would return all rows).
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Name).Filterable());
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Name", FilterOperator.NotContains, ""),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ShouldFilterByStringOrdering_NullSafe()
+        {
+            // Arrange: ordering comparisons on strings use string.Compare
+            // (previously silently dropped); null values never match
+            var carsQueryable = new[]
+            {
+                new Car { Id = 1, Name = "Audi" },
+                new Car { Id = 2, Name = "BMW" },
+                new Car { Id = 3, Name = "Tesla" },
+                new Car { Id = 4, Name = null },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Name > \"BMW\"" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: only "Tesla" sorts after "BMW"; null excluded
+            paginationSet.Items.Select(c => c.Id).Should().Equal(3);
+        }
+
+        [Fact]
+        public void ShouldSkipInvalidFilterValue_ByDefault()
+        {
+            // Arrange: unconvertible value -> condition silently skipped -> all rows (default lenient behavior)
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Year).Filterable());
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.Equal, "not-a-number"),
+            };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Should().HaveCount(3);
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_OnInvalidFilterValue_WhenThrowConfigured()
+        {
+            // Arrange
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).HasName("BuildYear").Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("BuildYear", FilterOperator.Equal, "not-a-number"),
+            };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert: the exception names the external property and carries the conversion failure
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("BuildYear");
+        }
+
+        [Fact]
+        public void ShouldThrowPagingException_OnNonCollectionInValue_WhenThrowConfigured()
+        {
+            // Arrange: 'in' requires a collection of values
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Year).Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+            });
+            var pagingInfo = new PagingInfo
+            {
+                Filter = new FilterCondition("Year", FilterOperator.In, 2010),
+            };
+
+            // Act
+            Action action = () => carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            action.Should().Throw<PagingException>()
+                .Which.PropertyName.Should().Be("Year");
+        }
+
+        [Fact]
+        public void ShouldNotThrow_OnWellDefinedEdgeCases_WhenThrowConfigured()
+        {
+            // Arrange: empty needle, empty in-list and null list elements are semantics, not errors
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Name).Filterable();
+                o.Property(c => c.Id).Filterable();
+                o.InvalidFilterValues(InvalidValueHandling.Throw);
+                o.DefaultSort(c => c.Id);
+            });
+
+            // Act
+            var emptyNeedle = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Name", FilterOperator.Contains, "") }, pagingOptions);
+            var nullElementInList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Id", FilterOperator.NotIn, new object?[] { 1, null }) }, pagingOptions);
+
+            // Assert
+            emptyNeedle.Items.Should().HaveCount(3);
+            nullElementInList.Items.Select(c => c.Id).Should().Equal(2, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByEmptyInList_MatchesNothing()
+        {
+            // Arrange: 'in []' is a well-defined empty set -> no row can match
+            // (previously the condition was dropped and ALL rows were returned)
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o => o.Property(c => c.Id).Filterable());
+
+            // Act
+            var emptyList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = "Id in []" }, pagingOptions);
+            var nullOnlyList = carsQueryable.ToPaginationSet(
+                new PagingInfo { Filter = new FilterCondition("Id", FilterOperator.In, new object?[] { null }) }, pagingOptions);
+
+            // Assert: same for a syntactically empty list and one emptied by dropping null elements
+            emptyList.Items.Should().BeEmpty();
+            emptyList.TotalCount.Should().Be(0);
+            nullOnlyList.Items.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ShouldFilterByEmptyNotInList_MatchesEverything()
+        {
+            // Arrange: nothing is excluded by '!in []'
+            var carsQueryable = CreateCarsQueryable();
+            var pagingOptions = new PagingOptions<Car>(o =>
+            {
+                o.Property(c => c.Id).Filterable();
+                o.DefaultSort(c => c.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Id !in []" };
+
+            // Act
+            var paginationSet = carsQueryable.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(c => c.Id).Should().Equal(1, 2, 3);
+        }
+
+        [Fact]
+        public void ShouldFilterByTimeSpanProperty_FromStringValue()
+        {
+            // Arrange: TimeSpan is not IConvertible; requires the dedicated ConvertValue branch
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Duration = TimeSpan.FromMinutes(30) },
+                new Schedule { Id = 2, Duration = TimeSpan.FromMinutes(90) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Duration).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Duration > \"01:00:00\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByDateOnlyProperty_FromStringValue()
+        {
+            // Arrange
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Date = new DateOnly(2026, 1, 1) },
+                new Schedule { Id = 2, Date = new DateOnly(2026, 7, 15) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Date).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Date >= \"2026-07-01\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(2);
+        }
+
+        [Fact]
+        public void ShouldFilterByTimeOnlyProperty_FromStringValue()
+        {
+            // Arrange
+            var schedules = new[]
+            {
+                new Schedule { Id = 1, Time = new TimeOnly(8, 0) },
+                new Schedule { Id = 2, Time = new TimeOnly(17, 30) },
+            }.AsQueryable();
+            var pagingOptions = new PagingOptions<Schedule>(o =>
+            {
+                o.Property(s => s.Time).Filterable();
+                o.DefaultSort(s => s.Id);
+            });
+            var pagingInfo = new PagingInfo { Filter = "Time < \"12:00:00\"" };
+
+            // Act
+            var paginationSet = schedules.ToPaginationSet(pagingInfo, pagingOptions);
+
+            // Assert
+            paginationSet.Items.Select(s => s.Id).Should().Equal(1);
+        }
+
+        private sealed class Schedule
+        {
+            public int Id { get; set; }
+
+            public TimeSpan Duration { get; set; }
+
+            public DateOnly Date { get; set; }
+
+            public TimeOnly Time { get; set; }
+        }
+
+        private static IQueryable<Car> CreateCarsQueryable()
+        {
+            return new[]
+            {
+                new Car { Id = 1, Name = "BMW", Model = "X5", Year = 2010, Price = 30000m, IsElectric = false, Owner = new CarOwner { Name = "Charlie" } },
+                new Car { Id = 2, Name = "Audi", Model = "A4", Year = 2020, Price = 40000m, IsElectric = false, Owner = new CarOwner { Name = "Anna" } },
+                new Car { Id = 3, Name = "Tesla", Model = "Model 3", Year = 2022, Price = 50000m, IsElectric = true, Owner = new CarOwner { Name = "Berta" } },
+            }.AsQueryable();
+        }
+
+        private sealed class Garage
+        {
+            public int Id { get; set; }
+
+            public List<GarageCar> Cars { get; } = new List<GarageCar>();
+        }
+
+        private sealed class GarageCar
+        {
+            public string Brand { get; set; } = string.Empty;
+        }
+    }
+}

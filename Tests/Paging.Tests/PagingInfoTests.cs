@@ -84,8 +84,8 @@ namespace Paging.Tests
         public void ShouldNotEqualToDefault_IfFilterIsDifferent()
         {
             // Arrange
-            var pagingInfo1 = new PagingInfo { Filter = new Dictionary<string, object?>() };
-            var pagingInfo2 = new PagingInfo { Filter = new Dictionary<string, object?> { { "key", "value" } } };
+            var pagingInfo1 = new PagingInfo { Filter = null };
+            var pagingInfo2 = new PagingInfo { Filter = new FilterCondition("key", FilterOperator.Equal, "value") };
 
             // Act
             var areEqual = pagingInfo1.Equals(pagingInfo2);
@@ -104,7 +104,7 @@ namespace Paging.Tests
             pagingInfo.CurrentPage.Should().Be(1);
             pagingInfo.ItemsPerPage.Should().BeNull();
             pagingInfo.Search.Should().BeNull();
-            pagingInfo.Filter.Should().BeEmpty();
+            pagingInfo.Filter.Should().BeNull();
             pagingInfo.SortBy.Should().BeNull();
             pagingInfo.Sorting.Should().BeEmpty();
             pagingInfo.Reverse.Should().BeFalse();
@@ -279,7 +279,8 @@ namespace Paging.Tests
                 ItemsPerPage = 30,
                 SortBy = "Venue.Name Asc",
                 Reverse = true,
-                Search = "Test value"
+                Search = "Test value",
+                Filter = "Year >= 2020 && Name contains \"bmw\"",
             };
 
             // Act
@@ -288,12 +289,13 @@ namespace Paging.Tests
             // Assert
             parameters.Should().Equal(new Dictionary<string, string>
             {
-                { "CurrentPage", "2" },
-                { "FirstPageIndex", "0" },
-                { "ItemsPerPage", "30" },
-                { "SortBy", "Venue.Name Asc" },
-                { "Reverse", "True" },
-                { "Search", "Test value" }
+                { "currentPage", "2" },
+                { "firstPageIndex", "0" },
+                { "itemsPerPage", "30" },
+                { "sortBy", "Venue.Name Asc" },
+                { "reverse", "True" },
+                { "search", "Test value" },
+                { "filter", "Year >= 2020 && Name contains \"bmw\"" }
             });
         }
 
@@ -301,10 +303,10 @@ namespace Paging.Tests
         {
             public ToStringTestData()
             {
-                this.Add(new PagingInfo(), "CurrentPage=1");
-                this.Add(new PagingInfo { FirstPageIndex = 0, CurrentPage = 0 }, "CurrentPage=0&FirstPageIndex=0");
+                this.Add(new PagingInfo(), "currentPage=1");
+                this.Add(new PagingInfo { FirstPageIndex = 0, CurrentPage = 0 }, "currentPage=0&firstPageIndex=0");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name", Reverse = true },
-                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name&Reverse=True");
+                    "currentPage=2&itemsPerPage=30&sortBy=Venue.Name&reverse=True");
                 this.Add(
                     new PagingInfo
                     {
@@ -312,19 +314,21 @@ namespace Paging.Tests
                         ItemsPerPage = 30,
                         Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc } },
                         Reverse = true
-                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc&Reverse=True");
+                    }, "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20Asc&reverse=True");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, SortBy = "Venue.Name asc, Name asc" },
-                    "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20asc%2C%20Name%20asc");
+                    "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20asc%2C%20Name%20asc");
                 this.Add(
                     new PagingInfo
                     {
                         CurrentPage = 2,
                         ItemsPerPage = 30,
                         Sorting = new Dictionary<string, SortOrder> { { "Venue.Name", SortOrder.Asc }, { "Name", SortOrder.Asc } }
-                    }, "CurrentPage=2&ItemsPerPage=30&SortBy=Venue.Name%20Asc%2C%20Name%20Asc");
+                    }, "currentPage=2&itemsPerPage=30&sortBy=Venue.Name%20Asc%2C%20Name%20Asc");
                 this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 30, Search = "Test value" },
-                    "CurrentPage=2&ItemsPerPage=30&Search=Test%20value");
-                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 0 }, "CurrentPage=2&ItemsPerPage=0");
+                    "currentPage=2&itemsPerPage=30&search=Test%20value");
+                this.Add(new PagingInfo { CurrentPage = 2, ItemsPerPage = 0 }, "currentPage=2&itemsPerPage=0");
+                this.Add(new PagingInfo { CurrentPage = 1, Filter = "Year >= 2020 && Name contains \"bmw\"" },
+                    "currentPage=1&filter=Year%20%3E%3D%202020%20%26%26%20Name%20contains%20%22bmw%22");
             }
         }
 
@@ -346,7 +350,7 @@ namespace Paging.Tests
 
             // Assert
             serializeObject.Should()
-                .Be("{\"firstPageIndex\":0,\"currentPage\":2,\"itemsPerPage\":30,\"sortBy\":\"Venue.Name Asc, Name Desc\",\"sorting\":{\"Venue.Name\":0,\"Name\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
+                .Be("{\"firstPageIndex\":0,\"currentPage\":2,\"itemsPerPage\":30,\"sortBy\":\"Venue.Name Asc, Name Desc\",\"sorting\":{\"Venue.Name\":1,\"Name\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
             pagingInfoResult.Should().BeEquivalentTo(pagingInfo);
         }
 
@@ -376,7 +380,7 @@ namespace Paging.Tests
                 "  \"sorting\": {\r\n" +
                 "    \"valueDate\": \"desc\"\r\n" +
                 "  },\r\n" +
-                "  \"filter\": {}\r\n" +
+                "  \"filter\": null\r\n" +
                 "}";
 
             // Act
@@ -388,7 +392,7 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should().Be(
-                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
         }
 
         [Fact]
@@ -396,7 +400,7 @@ namespace Paging.Tests
         {
             // Arrange
             const string serializeObject =
-                "{\r\n  \"firstPageIndex\": \"1\",\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": {}\r\n}";
+                "{\r\n  \"firstPageIndex\": \"1\",\r\n  \"currentPage\": \"1\",\r\n  \"itemsPerPage\": \"25\",\r\n  \"sortby\": \"valueDate Desc\",\r\n  \"filter\": null\r\n}";
 
             // Act
             var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
@@ -406,7 +410,7 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should()
-                .Be("{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
+                .Be("{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
         }
 
         [Fact]
@@ -414,7 +418,7 @@ namespace Paging.Tests
         {
             // Arrange
             const string serializeObject =
-                "{\"FirstPageIndex\":1,\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":{}}";
+                "{\"FirstPageIndex\":1,\"CurrentPage\":1,\"ItemsPerPage\":25,\"SortBy\":\"valueDate Desc\",\"Sorting\":{\"valueDate\":0},\"Reverse\":false,\"Search\":null,\"Filter\":null}";
 
             // Act
             var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
@@ -424,7 +428,112 @@ namespace Paging.Tests
             pagingInfo.SortBy.Should().Be("valueDate Desc");
             pagingInfo.Sorting.Should().Contain(new Dictionary<string, SortOrder> { { "valueDate", SortOrder.Desc } });
             serializeObject2.Should().Be(
-                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":1},\"reverse\":false,\"search\":null,\"filter\":{}}");
+                "{\"currentPage\":1,\"itemsPerPage\":25,\"sortBy\":\"valueDate Desc\",\"sorting\":{\"valueDate\":-1},\"reverse\":false,\"search\":null,\"filter\":null}");
+        }
+
+        [Theory]
+        [InlineData("ValidTo desc, ValidFrom asc")]
+        [InlineData("ValidTo -1, ValidFrom 1")]
+        public void ShouldParseSortBy_NameAndNumericTokensAreInterchangeable(string sortBy)
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo { SortBy = sortBy };
+
+            // Act
+            var sorting = pagingInfo.Sorting;
+
+            // Assert
+            sorting.Should().Equal(new Dictionary<string, SortOrder>
+            {
+                { "ValidTo", SortOrder.Desc },
+                { "ValidFrom", SortOrder.Asc }
+            });
+        }
+
+        [Fact]
+        public void ShouldParseSortBy_ThrowsForOutOfRangeNumericToken()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo { SortBy = "ValidTo 2" };
+
+            // Act
+            Action action = () => pagingInfo.Sorting.ToList();
+
+            // Assert
+            action.Should().Throw<ArgumentException>().Which.Message.Should().Contain("Requested value '2' was not found");
+        }
+
+        [Fact]
+        public void ShouldOmitNoneEntriesFromSortBy()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = new Dictionary<string, SortOrder>
+            {
+                { "ValidTo", SortOrder.None },
+                { "ValidFrom", SortOrder.Asc }
+            };
+
+            // Assert
+            pagingInfo.SortBy.Should().Be("ValidFrom Asc");
+            pagingInfo.Sorting.Should().Equal(new Dictionary<string, SortOrder> { { "ValidFrom", SortOrder.Asc } });
+        }
+
+        [Fact]
+        public void ShouldClearSortBy_WhenAllEntriesAreNone()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo();
+
+            // Act
+            pagingInfo.Sorting = new Dictionary<string, SortOrder> { { "ValidTo", SortOrder.None } };
+
+            // Assert
+            pagingInfo.SortBy.Should().BeNull();
+            pagingInfo.Sorting.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void ShouldSerializeFilterAsExpressionString()
+        {
+            // Arrange
+            var pagingInfo = new PagingInfo
+            {
+                ItemsPerPage = 25,
+                Filter = FilterGroup.Or(
+                    FilterGroup.And(
+                        new FilterCondition("Brand", FilterOperator.Contains, "bmw"),
+                        new FilterCondition("Year", FilterOperator.GreaterThanOrEqual, 2020)),
+                    new FilterCondition("IsElectric", FilterOperator.Equal, true)),
+            };
+
+            // Act
+            var json = JsonSerializer.Serialize(pagingInfo, SerializerOptions);
+            var roundTrip = JsonSerializer.Deserialize<PagingInfo>(json, SerializerOptions)!;
+
+            // Assert: the filter serializes as its canonical expression string and round-trips.
+            // Parentheses around the AND group are omitted because && already binds tighter than ||.
+            pagingInfo.Filter!.ToString().Should().Be("Brand contains \"bmw\" && Year >= 2020 || IsElectric == true");
+            roundTrip.Filter!.ToString().Should().Be(pagingInfo.Filter!.ToString());
+        }
+
+        [Fact]
+        public void ShouldDeserializeFilterFromExpressionString()
+        {
+            // Arrange
+            const string serializeObject = "{\"itemsPerPage\":25,\"filter\":\"Year >= 2020 && Name contains \\\"bmw\\\"\"}";
+
+            // Act
+            var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;
+
+            // Assert
+            var group = pagingInfo.Filter.Should().BeOfType<FilterGroup>().Subject;
+            group.Logic.Should().Be(FilterLogic.And);
+            group.Nodes.Should().HaveCount(2);
+            group.Nodes[0].Should().BeEquivalentTo(new FilterCondition("Year", FilterOperator.GreaterThanOrEqual, 2020L));
+            group.Nodes[1].Should().BeEquivalentTo(new FilterCondition("Name", FilterOperator.Contains, "bmw"));
         }
 
         [Fact]
@@ -433,7 +542,7 @@ namespace Paging.Tests
             // Arrange
             PagingInfo.DefaultItemsPerPage = 15;
 
-            const string serializeObject = "{\"filter\":{}}";
+            const string serializeObject = "{\"filter\":null}";
 
             // Act
             var pagingInfo = JsonSerializer.Deserialize<PagingInfo>(serializeObject, SerializerOptions)!;

@@ -5,18 +5,33 @@ namespace Paging
     [JsonConverter(typeof(PaginationSetJsonConverterFactory))]
     public class PaginationSet<T>
     {
+        /// <summary>
+        /// Creates an empty PaginationSet. <see cref="TotalCountUnfiltered"/> is <c>null</c> (unknown),
+        /// which is also the default a deserializer starts from when the payload omits the property.
+        /// </summary>
         public PaginationSet()
-            : this(new HashSet<T>())
+            : this(new PagingInfo(), Enumerable.Empty<T>(), totalCount: 0, totalCountUnfiltered: null)
         {
         }
 
         /// <summary>
         /// Creates a new PaginationSet with a given collection of <typeparamref name="T"/>.
         /// Since no <seealso cref="PagingInfo"/> is specified, a single-page request is assumed.
+        /// The collection is complete and unfiltered, so <see cref="TotalCountUnfiltered"/> equals
+        /// <see cref="TotalCount"/> — it is known here, unlike in the query-based overloads.
         /// </summary>
         /// <param name="items">The collection of items.</param>
         public PaginationSet(IEnumerable<T> items)
-            : this(new PagingInfo(), items, items.Count(), items.Count())
+            : this(items as IReadOnlyCollection<T> ?? items.ToList())
+        {
+        }
+
+        /// <summary>
+        /// Counts the materialized collection once, so a lazily evaluated <paramref name="items"/>
+        /// is not enumerated again for the two totals.
+        /// </summary>
+        private PaginationSet(IReadOnlyCollection<T> items)
+            : this(new PagingInfo(), items, items.Count, items.Count)
         {
         }
 
@@ -26,8 +41,8 @@ namespace Paging
         /// <param name="pagingInfo">The original paging request.</param>
         /// <param name="items">The collection of items for the current paging request.</param>
         /// <param name="totalCount">Total number of items available that match with the filter/search.</param>
-        /// <param name="totalCountUnfiltered">Total number of items (if no filter/search applied).</param>
-        public PaginationSet(PagingInfo? pagingInfo, IEnumerable<T> items, int totalCount, int totalCountUnfiltered)
+        /// <param name="totalCountUnfiltered">Total number of items if no filter/search is applied, or <c>null</c> if unknown.</param>
+        public PaginationSet(PagingInfo? pagingInfo, IEnumerable<T> items, int totalCount, int? totalCountUnfiltered)
         {
             pagingInfo ??= new PagingInfo();
             this.FirstPageIndex = pagingInfo.FirstPageIndex;
@@ -80,9 +95,11 @@ namespace Paging
 
         /// <summary>
         /// The total number of items if no filter/search is applied.
+        /// <c>null</c> when the unfiltered count was not computed;
+        /// producers opt in via PagingOptions.IncludeUnfilteredCount.
         /// </summary>
         [JsonPropertyName("totalCountUnfiltered")]
-        public int TotalCountUnfiltered { get; set; }
+        public int? TotalCountUnfiltered { get; set; }
 
         /// <summary>
         /// The paged collection of items which match the filter/search criteria.

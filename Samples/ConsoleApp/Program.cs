@@ -50,9 +50,6 @@ namespace ConsoleApp
                     var input = Console.ReadLine();
                 }
             } while (pagingSet.HasMorePages());
-
-            // Alternative way to check if more pages available:
-            //} while (!pagingSet.StopScroll(pageInfo));
         }
     }
 }

@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Samples/">
+    <Project Path="Samples/ConsoleApp/ConsoleApp.csproj" />
+    <Project Path="Samples/MauiPagingSample/MauiPagingSample.csproj">
+      <Deploy Solution="Debug|Any CPU" />
+    </Project>
+    <Project Path="Samples/WpfPagingSample/WpfPagingSample.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="azure-pipelines.yml" />
+    <File Path="global.json" />
+    <File Path="README.md" />
+    <File Path="ReleaseNotes.txt" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Paging.EF.Tests/Paging.EF.Tests.csproj" />
+    <Project Path="Tests/Paging.MAUI.Tests/Paging.MAUI.Tests.csproj" />
+    <Project Path="Tests/Paging.Queryable.Tests/Paging.Queryable.Tests.csproj" />
+    <Project Path="Tests/Paging.Tests/Paging.Tests.csproj" />
+  </Folder>
+  <Project Path="Paging.EF/Paging.EF.csproj" />
+  <Project Path="Paging.MAUI/Paging.MAUI.csproj" />
+  <Project Path="Paging.Queryable/Paging.Queryable.csproj" />
+  <Project Path="Paging/Paging.csproj" />
+</Solution>
