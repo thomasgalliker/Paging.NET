@@ -1,4 +1,4 @@
-namespace Paging.Queryable.Tests.Testdata
+namespace Paging.Queryable.Tests.TestData
 {
     internal static class CarFactory
     {
@@ -37,10 +37,10 @@ namespace Paging.Queryable.Tests.Testdata
 
         internal static IEnumerable<Car> Union(this IEnumerable<Car> first, IEnumerable<Car> second)
         {
-            return Enumerable.Concat(first, second).WithUnitqueIds();
+            return first.Concat(second).WithUniqueIds();
         }
 
-        internal static IEnumerable<Car> WithUnitqueIds(this IEnumerable<Car> cars)
+        internal static IEnumerable<Car> WithUniqueIds(this IEnumerable<Car> cars)
         {
             var carsArray = cars.ToArray();
             for (var i = 0; i < carsArray.Length; i++)
@@ -51,20 +51,22 @@ namespace Paging.Queryable.Tests.Testdata
             return carsArray;
         }
 
+        // Projection expression translated to SQL by the query provider.
+        internal static readonly Expression<Func<Car, CarDto>> MapCarToCarDto = car => new CarDto
+        {
+            Id = car.Id,
+            Name = car.Name,
+            Model = car.Model,
+            Price = car.Price,
+            Year = car.Year,
+            LastService = car.LastService,
+            LastOilChange = car.LastOilChange,
+            IsElectric = car.IsElectric
+        };
+
         internal static IEnumerable<CarDto> MapCarsToCarDtos(IEnumerable<Car> cars)
         {
-            // Use some more sophisticated mapping logic here (e.g. AutoMapper)
-            return cars.Select(car => new CarDto
-            {
-                Id = car.Id,
-                Name = car.Name,
-                Model = car.Model,
-                Price = car.Price,
-                Year = car.Year,
-                LastService = car.LastService,
-                LastOilChange = car.LastOilChange,
-                IsElectric = car.IsElectric
-            });
+            return cars.AsQueryable().Select(MapCarToCarDto);
         }
     }
 }

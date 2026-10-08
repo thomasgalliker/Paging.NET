@@ -3,7 +3,6 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:android="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;assembly=Microsoft.Maui.Controls"
     xmlns:itemTemplates="clr-namespace:MauiPagingSample.Views.ItemTemplates"
     xmlns:p="clr-namespace:Paging.MAUI;assembly=Paging.MAUI"
     xmlns:viewModels="clr-namespace:MauiPagingSample.ViewModels"
@@ -13,8 +12,8 @@
 
     <ContentPage.Resources>
         <ResourceDictionary>
-            <DataTemplate x:Key="CarItemTemplate">
-                <itemTemplates:CarItemTemplate />
+            <DataTemplate x:Key="CarItemView">
+                <itemTemplates:CarItemView />
             </DataTemplate>
         </ResourceDictionary>
     </ContentPage.Resources>
@@ -49,41 +48,38 @@
             </Label>
         </Grid>
 
-        <ListView
+        <CollectionView
             Grid.Row="1"
-            android:ListView.IsFastScrollEnabled="True"
-            CachingStrategy="RecycleElement"
-            HasUnevenRows="True"
-            ItemTemplate="{StaticResource CarItemTemplate}"
-            ItemsSource="{Binding Cars, Mode=OneWay}"
-            SeparatorColor="{StaticResource Gray500}">
-            <ListView.Behaviors>
+            ItemTemplate="{StaticResource CarItemView}"
+            ItemsSource="{Binding Cars, Mode=OneWay}">
+            <CollectionView.Behaviors>
                 <p:InfiniteScrollBehavior
-                    IsLoadingMore="{Binding IsLoadingMore}"
-                    ItemsSource="{Binding Cars, Mode=OneWay}" />
-            </ListView.Behaviors>
+                    x:Name="InfiniteScrollBehavior"
+                    ItemsSource="{Binding Cars, Mode=OneWay}"
+                    RemainingItemsThreshold="5" />
+            </CollectionView.Behaviors>
 
-            <ListView.Triggers>
+            <CollectionView.Triggers>
                 <DataTrigger
-                    Binding="{Binding IsLoadingMore}"
-                    TargetType="ListView"
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
+                    TargetType="CollectionView"
                     Value="False">
                     <Setter Property="Footer" Value="" />
                 </DataTrigger>
                 <DataTrigger
-                    Binding="{Binding IsLoadingMore}"
-                    TargetType="ListView"
+                    Binding="{Binding IsLoadingMore, Source={x:Reference InfiniteScrollBehavior}}"
+                    TargetType="CollectionView"
                     Value="True">
                     <Setter Property="Footer">
-                        <Grid Padding="16">
-                            <ActivityIndicator
-                                IsRunning="True"
-                                IsVisible="{Binding IsLoadingMore, Mode=OneWay}" />
+                        <Grid
+                            Padding="16"
+                            BackgroundColor="{StaticResource Secondary}">
+                            <ActivityIndicator IsRunning="True" />
                         </Grid>
                     </Setter>
                 </DataTrigger>
-            </ListView.Triggers>
-        </ListView>
+            </CollectionView.Triggers>
+        </CollectionView>
     </Grid>
 
 </ContentPage>

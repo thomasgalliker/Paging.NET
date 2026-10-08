@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Paging.Internals
 {
@@ -47,12 +48,13 @@ namespace Paging.Internals
             set => ThrowReadOnly();
         }
 
-        public override IDictionary<string, object?> Filter
+        public override FilterNode? Filter
         {
             get => base.Filter;
             set => ThrowReadOnly();
         }
 
+        [DoesNotReturn]
         private static void ThrowReadOnly()
         {
             throw new InvalidOperationException("Cannot modify read-only PagingInfo.Default instance.");
