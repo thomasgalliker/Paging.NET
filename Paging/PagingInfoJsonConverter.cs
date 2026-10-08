@@ -66,8 +66,9 @@ namespace Paging
                         pagingInfo.Search = reader.TokenType == JsonTokenType.Null ? null : reader.GetString();
                         break;
                     case "filter":
-                        pagingInfo.Filter = JsonSerializer.Deserialize<Dictionary<string, object?>>(ref reader, options)
-                            ?? new Dictionary<string, object?>();
+                        pagingInfo.Filter = reader.TokenType == JsonTokenType.Null
+                            ? null
+                            : JsonSerializer.Deserialize<FilterNode>(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -119,7 +120,14 @@ namespace Paging
             }
 
             writer.WritePropertyName("filter");
-            JsonSerializer.Serialize(writer, value.Filter, options);
+            if (value.Filter is null)
+            {
+                writer.WriteNullValue();
+            }
+            else
+            {
+                JsonSerializer.Serialize(writer, value.Filter, typeof(FilterNode), options);
+            }
             writer.WriteEndObject();
         }
 

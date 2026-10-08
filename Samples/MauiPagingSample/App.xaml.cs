@@ -14,7 +14,11 @@ namespace MauiPagingSample
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var mainPage = this.serviceProvider.GetRequiredService<MainPage>();
+            Page mainPage = this.serviceProvider.GetRequiredService<MainPage>();
+
+            // Uncomment to run the legacy ListView-based page (Paging.MAUI.Compat):
+            // Page mainPage = this.serviceProvider.GetRequiredService<MainPage_WithListView>();
+
             return new Window(new NavigationPage(mainPage));
         }
     }

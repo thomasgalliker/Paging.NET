@@ -22,8 +22,8 @@ trigger:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  majorVersion: 4
-  minorVersion: 1
+  majorVersion: 5
+  minorVersion: 0
   patchVersion: $[counter(format('{0}.{1}', variables.majorVersion, variables.minorVersion), 0)]
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
     # Versioning: 1.0.0
@@ -111,24 +111,15 @@ steps:
     displayName: 'Run Unit Tests'
     inputs:
       command: test
-      projects: 'Tests/**/*.Tests.csproj'
+      projects: Tests/**/*.Tests.csproj
       arguments: >
-        --no-restore
-        --no-build
-        --configuration $(buildConfiguration)
-        /p:CollectCoverage=true
+        --no-restore --no-build 
+        --configuration $(buildConfiguration) 
         /p:Exclude="[Microsoft*]*%2C[Mono*]*%2C[xunit*]*%2C[*.Testdata]*"
-        /p:CoverletOutput=UnitTests.coverage.cobertura.xml
-        /p:MergeWith=$(Build.SourcesDirectory)/Tests/CoverletOutput/coverage.json
-        /p:CoverletOutputFormat=cobertura
-
-  - task: reportgenerator@5
-    displayName: 'Create Code Coverage Report'
-    inputs:
-      reports: '$(Build.SourcesDirectory)/Tests/**/*.coverage.cobertura*.xml'
-      targetdir: '$(Build.SourcesDirectory)/CodeCoverage'
-      reporttypes: 'Cobertura'
-      assemblyfilters: '-xunit*'
+        /p:CollectCoverage=true
+        /p:CoverletOutputFormat=json%2Ccobertura%2Copencover
+        /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/CodeCoverage/
+        /p:MergeWith=$(Build.SourcesDirectory)/TestResults/CodeCoverage/coverage.json
 
   - task: DotNetCoreCLI@2
     displayName: 'Create NuGet Packages'
@@ -151,11 +142,11 @@ steps:
       TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
   - task: PublishCodeCoverageResults@2
-    displayName: 'Publish Code Coverage'
+    displayName: 'Publish Code Coverage Results'
     inputs:
-      codeCoverageTool: Cobertura
-      summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-      reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+      summaryFileLocation: '$(Build.SourcesDirectory)/TestResults/**/coverage.cobertura.xml'
+      pathToSources: '$(Build.SourcesDirectory)'
+      failIfCoverageEmpty: true
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: drop'

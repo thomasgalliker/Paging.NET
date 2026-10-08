@@ -28,6 +28,7 @@ public static class MauiProgram
         });
 
         builder.Services.AddTransient<MainPage>();
+        builder.Services.AddTransient<MainPage_WithListView>();
         builder.Services.AddTransient<MainViewModel>();
         builder.Services.AddSingleton<ICarService, CarService>();
         builder.Services.AddSingleton<ILauncher>(_ => Launcher.Default);
