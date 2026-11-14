@@ -13,10 +13,7 @@ namespace MauiPagingSample.ViewModels
         private readonly ILogger logger;
         private readonly ICarService carService;
         private readonly ILauncher launcher;
-        private readonly PagingInfo pagingInfo;
 
-        private bool isLoadingMore;
-        private PaginationSet<Car>? lastPaginationSet;
         private IAsyncRelayCommand<string>? openUrlCommand;
 
         public MainViewModel(
@@ -28,57 +25,18 @@ namespace MauiPagingSample.ViewModels
             this.carService = carService;
             this.launcher = launcher;
 
-            this.pagingInfo = new PagingInfo
-            {
-                CurrentPage = 1,
-                ItemsPerPage = 30,
-            };
+            // The collection owns the PagingInfo, advances the page, maps each Car to a
+            // CarItemViewModel and decides when to stop - so the view model only needs to say
+            // how to load a page and how to project it.
+            this.Cars = new InfiniteScrollCollection<CarItemViewModel>(new PagingInfo { ItemsPerPage = 30 })
+                .WithPageLoader(this.carService.GetCarsAsync)
+                .WithMapping(car => new CarItemViewModel(car))
+                .OnError(ex => this.logger.LogError(ex, "Failed to load cars"));
 
-            this.Cars = new InfiniteScrollCollection<CarItemViewModel>();
-
-            _ = this.LoadData();
+            _ = this.Cars.InitializeAsync();
         }
 
         public InfiniteScrollCollection<CarItemViewModel> Cars { get; }
-
-        public bool IsLoadingMore
-        {
-            get => this.isLoadingMore;
-            set => this.SetProperty(ref this.isLoadingMore, value);
-        }
-
-        private async Task LoadData()
-        {
-            try
-            {
-                this.logger.LogDebug($"LoadData: CurrentPage={this.pagingInfo.CurrentPage}");
-
-                this.Cars.OnCanLoadMore = () => !this.lastPaginationSet.StopScroll(this.pagingInfo);
-                this.Cars.OnLoadMore = async () =>
-                {
-                    var paginationSet = await this.carService.GetCarsAsync(this.pagingInfo);
-                    this.lastPaginationSet = paginationSet;
-
-                    this.logger.LogDebug(
-                        $"OnLoadMore: Page {paginationSet.CurrentPage} of {paginationSet.TotalPages}, Items={paginationSet.Items.Count()}");
-
-                    this.pagingInfo.CurrentPage++;
-
-                    var carViewModels = paginationSet.Items
-                        .Select(car => new CarItemViewModel(car))
-                        .ToArray();
-
-                    return carViewModels;
-                };
-
-                await this.Cars.LoadMoreAsync();
-            }
-            catch (Exception ex)
-            {
-                this.logger.LogError(ex, "Failed to init viewmodel");
-            }
-        }
-
 
         public IAsyncRelayCommand<string> OpenUrlCommand
         {

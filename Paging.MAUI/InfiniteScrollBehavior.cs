@@ -1,9 +1,14 @@
-﻿using System.Collections;
+using System.Collections;
 using Paging.MAUI.Internals;
 
 namespace Paging.MAUI
 {
-    public class InfiniteScrollBehavior : BehaviorBase<ListView>
+    /// <summary>
+    /// Infinite-scroll behavior for <see cref="CollectionView"/> and other <see cref="ItemsView"/>-derived controls.
+    /// Uses the native <see cref="ItemsView.RemainingItemsThresholdReached"/> mechanism to load
+    /// the next page from an <see cref="IInfiniteScrollLoader"/> items source.
+    /// </summary>
+    public class InfiniteScrollBehavior : BehaviorBase<ItemsView>
     {
         private bool isLoadingMoreFromScroll;
         private bool isLoadingMoreFromLoader;
@@ -16,6 +21,12 @@ namespace Paging.MAUI
                 false,
                 BindingMode.OneWayToSource);
 
+        public bool IsLoadingMore
+        {
+            get => (bool)this.GetValue(IsLoadingMoreProperty);
+            private set => this.SetValue(IsLoadingMoreProperty, value);
+        }
+
         public static readonly BindableProperty ItemsSourceProperty =
             BindableProperty.Create(
                 nameof(ItemsSource),
@@ -23,40 +34,59 @@ namespace Paging.MAUI
                 typeof(InfiniteScrollBehavior),
                 propertyChanged: OnItemsSourceChanged);
 
-        public bool IsLoadingMore
-        {
-            get => (bool)this.GetValue(IsLoadingMoreProperty);
-            private set => this.SetValue(IsLoadingMoreProperty, value);
-        }
-
         public IEnumerable ItemsSource
         {
             get => (IEnumerable)this.GetValue(ItemsSourceProperty);
             set => this.SetValue(ItemsSourceProperty, value);
         }
 
-        protected override void OnAttachedTo(ListView bindable)
-        {
-            base.OnAttachedTo(bindable);
+        public static readonly BindableProperty RemainingItemsThresholdProperty =
+            BindableProperty.Create(
+                nameof(RemainingItemsThreshold),
+                typeof(int),
+                typeof(InfiniteScrollBehavior),
+                5,
+                propertyChanged: OnRemainingItemsThresholdChanged);
 
-            bindable.ItemAppearing += this.OnListViewItemAppearing;
+        /// <summary>
+        /// Number of items not yet scrolled to at which loading of the next page is triggered.
+        /// The value is applied to the attached <see cref="ItemsView"/> and overwrites any
+        /// <see cref="ItemsView.RemainingItemsThreshold"/> set directly on the view. Default: 5.
+        /// </summary>
+        public int RemainingItemsThreshold
+        {
+            get => (int)this.GetValue(RemainingItemsThresholdProperty);
+            set => this.SetValue(RemainingItemsThresholdProperty, value);
         }
 
-        protected override void OnDetachingFrom(ListView bindable)
+        protected override void OnAttachedTo(ItemsView bindable)
+        {
+            base.OnAttachedTo(bindable);
+            bindable.RemainingItemsThreshold = this.RemainingItemsThreshold;
+            bindable.RemainingItemsThresholdReached += this.OnRemainingItemsThresholdReached;
+        }
+
+        protected override void OnDetachingFrom(ItemsView bindable)
         {
             this.RemoveBinding(ItemsSourceProperty);
-
-            bindable.ItemAppearing -= this.OnListViewItemAppearing;
-
+            bindable.RemainingItemsThresholdReached -= this.OnRemainingItemsThresholdReached;
             base.OnDetachingFrom(bindable);
         }
 
-        private async void OnListViewItemAppearing(object? sender, ItemVisibilityEventArgs e)
+        private static void OnRemainingItemsThresholdChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            await this.OnListViewItemAppearingAsync(e.Item);
+            if (bindable is InfiniteScrollBehavior { AssociatedObject: ItemsView itemsView })
+            {
+                itemsView.RemainingItemsThreshold = (int)newValue;
+            }
         }
 
-        internal async Task OnListViewItemAppearingAsync(object item)
+        private async void OnRemainingItemsThresholdReached(object? sender, EventArgs e)
+        {
+            await this.OnThresholdReachedAsync();
+        }
+
+        internal async Task OnThresholdReachedAsync()
         {
             if (this.IsLoadingMore)
             {
@@ -65,30 +95,19 @@ namespace Paging.MAUI
 
             if (this.ItemsSource is IInfiniteScrollLoader loader)
             {
-                if (loader.CanLoadMore && this.ShouldLoadMore(item))
+                if (loader.CanLoadMore)
                 {
                     this.UpdateIsLoadingMore(true, null);
-                    await loader.LoadMoreAsync();
-                    this.UpdateIsLoadingMore(false, null);
+                    try
+                    {
+                        await loader.LoadMoreAsync();
+                    }
+                    finally
+                    {
+                        this.UpdateIsLoadingMore(false, null);
+                    }
                 }
             }
-        }
-
-        private bool ShouldLoadMore(object item)
-        {
-            if (this.ItemsSource is IList list)
-            {
-                if (list.Count == 0)
-                {
-                    return true;
-                }
-
-                var lastItem = list[list.Count - 1];
-                var isLastItem = lastItem == item;
-                return isLastItem;
-            }
-
-            return false;
         }
 
         private static void OnItemsSourceChanged(BindableObject bindable, object oldValue, object newValue)

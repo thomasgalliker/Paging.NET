@@ -10,13 +10,15 @@ namespace Paging
             if (reader.TokenType == JsonTokenType.String)
             {
                 var enumString = reader.GetString();
-                if (Enum.TryParse<SortOrder>(enumString, true, out var sortOrder))
+                if (Enum.TryParse<SortOrder>(enumString, true, out var sortOrder) &&
+                    Enum.IsDefined(typeof(SortOrder), sortOrder))
                 {
                     return sortOrder;
                 }
             }
 
-            if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var enumValue))
+            if (reader.TokenType == JsonTokenType.Number && reader.TryGetInt32(out var enumValue) &&
+                Enum.IsDefined(typeof(SortOrder), enumValue))
             {
                 return (SortOrder)enumValue;
             }
